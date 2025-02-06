@@ -6,14 +6,14 @@ import keys from "@/app/he.json";
 import { useKeyboardControl } from "@/hooks/useKeyboardControl";
 import { useRef } from "react";
 
-export default function Table({ rowData = [] }) {
-    const total = rowData.reduce((acc, row) => acc + row.amount, 0);
+export default function Table({ rows = [] }) {
+    const total = rows.reduce((acc, row) => acc + row.amount, 0);
     const tableRef = useRef(null);
 
     useKeyboardControl(tableRef);
 
     return (
-        <table ref={tableRef} dir="rtl">
+        <table ref={tableRef} dir="rtl" data-testid="pasteable-expenses-table">
             <thead>
                 <tr>
                     <th>{keys.name}</th>
@@ -25,7 +25,7 @@ export default function Table({ rowData = [] }) {
                 </tr>
             </thead>
             <tbody>
-                {rowData.map((row) => (
+                {rows.map((row) => (
                     <TableRow key={row.id} rowData={row} />
                 ))}
             </tbody>

@@ -18,11 +18,27 @@ const Categories = {
     car: { name: "רכב", emoji: "🚗", color: "#2E8B57" },
     restaurants: { name: "מסעדות/קפה", emoji: "🍴", color: "#FF8C00" }
 };
-
+/*
+*
+        "house": "בית",
+        "vacation": "חופשה",
+        "subscriptions": "מינויים",
+        "fees": "עמלות",
+        "animals": "חיות",
+        "groceries": "מצרכים",
+        "transportation": "תחבצ",
+        "workout": "כושר",
+        "self": "עצמי",
+        "gifts": "מתנות/תרומות",
+        "wedding": "חתונה",
+        "savings": "חסכונות",
+        "car": "רכב",
+        "restaurants": "מסעדות/קפה"
+* */
 export const CategoriesDropdown = ({ value }) => {
     return (
         <select value={value}>
-            <option value="">---</option>
+            <option value="">-</option>
             {Object.entries(keys.categories).map(([key, value]) => (
                 <option
                     key={key}
