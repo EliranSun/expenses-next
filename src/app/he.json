@@ -1,0 +1,25 @@
+{
+    "name": "שם",
+    "date": "תאריך",
+    "amount": "סכום",
+    "account": "חשבון",
+    "category": "קטגוריה",
+    "note": "הערה",
+    "categories": {
+        "income": "הכנסה",
+        "house": "בית",
+        "vacation": "חופשה",
+        "subscriptions": "מינויים",
+        "fees": "עמלות",
+        "animals": "חיות",
+        "groceries": "מצרכים",
+        "transportation": "תחבצ",
+        "workout": "כושר",
+        "self": "עצמי",
+        "gifts": "מתנות/תרומות",
+        "wedding": "חתונה",
+        "savings": "חסכונות",
+        "car": "רכב",
+        "restaurants": "מסעדות/קפה"
+    }
+}
