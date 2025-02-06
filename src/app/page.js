@@ -1,6 +1,5 @@
 import { parseTextToRows } from "@/utils";
 import Table from "@/components/organisms/table";
-import { sql } from '@vercel/postgres';
 
 export default function Home() {
   return (
