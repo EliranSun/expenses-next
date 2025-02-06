@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { parseTextToRows } from "@/utils";
 
 export default function usePasteToRows(expenses = [], pasteFilterLogic = () => { }) {
-    const [rows, setRows] = useState([]);
+    const [rows, setRows] = useState(expenses);
 
     useEffect(() => {
         const handlePaste = (event) => {

@@ -12,5 +12,5 @@ export const CurrencyAmount = ({ amount = 100 }) => {
         });
     }, [amount]);
 
-    return <span>{currencyAmount}</span>;
+    return <span data-testid="currency-amount">{currencyAmount}</span>;
 };
