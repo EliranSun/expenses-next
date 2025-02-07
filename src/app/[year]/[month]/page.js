@@ -1,6 +1,5 @@
 import { neon } from '@neondatabase/serverless';
 import PasteableExpensesTable from '@/features/PasteableExpensesTable';
-import { Navbar } from '@/components/molecules/date-navbar';
 export default async function YearMonthPage({ params }) {
   const { year, month } = await params;
 
@@ -142,11 +141,10 @@ export default async function YearMonthPage({ params }) {
 
   return (
     <div className="flex flex-col gap-1 w-full h-full items-center justify-center">
-      <Navbar year={year} month={month} />
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-
-
         <PasteableExpensesTable
+          year={year}
+          month={month}
           onSave={handleSave}
           updateCategory={updateCategory}
           updateNote={updateNote}

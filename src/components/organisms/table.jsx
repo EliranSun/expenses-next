@@ -17,7 +17,9 @@ export default function Table({ rows = [], updateCategory, updateNote, updateDat
     const tableRef = useRef(null);
     const query = useSearchParams();
     const account = query.get("account");
-    const category = query.get("category");
+    const categories = query.get("category") ? query.get("category").split(",") : [];
+
+    console.log({ categories });
 
     const filteredRows = useMemo(() =>
         rows.filter((row) =>
@@ -26,8 +28,9 @@ export default function Table({ rows = [], updateCategory, updateNote, updateDat
                     ? PrivateAccount.includes(row.account)
                     : !PrivateAccount.includes(row.account)
                 : true) &&
-            (category ? row.category === category : true)
-        ), [rows, account, category]);
+            (categories.length ? categories.includes(row.category) : true)
+        ), [rows, account, categories]);
+
 
 
 

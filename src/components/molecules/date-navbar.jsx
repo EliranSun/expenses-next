@@ -1,6 +1,7 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import { Categories } from '@/constants';
+import { useSearchParams } from 'next/navigation';
 
 // Utility function to preserve and update query parameters
 const preserveQueryParams = (path, newParams = {}) => {
@@ -17,8 +18,9 @@ const preserveQueryParams = (path, newParams = {}) => {
 
 export const Navbar = ({ year, month }) => {
     const router = useRouter();
-    const category = new URLSearchParams(window.location.search).get("category");
-    const account = new URLSearchParams(window.location.search).get("account");
+    const searchParams = useSearchParams();
+    const categories = searchParams.get("category") ? searchParams.get("category").split(",") : [];
+    const account = searchParams.get("account");
 
     return (
         <div className='flex flex-col text-sm cursor-pointer'>
@@ -44,11 +46,18 @@ export const Navbar = ({ year, month }) => {
                     <li
                         key={key}
                         onClick={() => {
-                            const query = new URLSearchParams(window.location.search);
-                            const newCategory = query.get("category") === key ? null : key;
+                            const categoryIndex = categories.indexOf(key);
+
+                            if (categoryIndex > -1) {
+                                categories.splice(categoryIndex, 1);
+                            } else {
+                                categories.push(key);
+                            }
+
+                            const newCategory = categories.length ? categories.join(",") : null;
                             router.push(preserveQueryParams(`/${year}/${month}`, { category: newCategory }));
                         }}
-                        className={`flex text-xs ${key === category ? "bg-amber-500 text-white" : ""}`}>
+                        className={`flex text-xs ${categories.includes(key) ? "bg-amber-500 text-white" : ""}`}>
                         {value.emoji} {value.name}
                     </li>
                 ))}
