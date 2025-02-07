@@ -1,9 +1,17 @@
 import { neon } from '@neondatabase/serverless';
 import PasteableExpensesTable from '@/features/PasteableExpensesTable';
-
+import { DateNavbar } from '@/components/molecules/date-navbar';
 export default async function YearMonthPage({ params }) {
   const { year, month } = await params;
 
+  const formatDateToDB = async (date) => {
+    'use server';
+    const splitDate = date.split("-");
+    const year = splitDate[0].slice(2);
+    const month = splitDate[1];
+    const day = splitDate[2];
+    return `${day}/${month}/${year}`;
+  }
 
   async function fetchExpenses() {
     const sql = neon(`${process.env.DATABASE_URL}`);
@@ -26,13 +34,19 @@ export default async function YearMonthPage({ params }) {
 
       return {
         ...expense,
-        date: `${year}-${month}-${day}`,
-        timestamp: new Date(year, month - 1, day)
+        date: `20${year}-${month}-${day}`,
+        month,
+        year,
+        timestamp: new Date(`20${year}`, month - 1, day).getTime()
       };
-
-    }).sort((a, b) => a.timestamp - b.timestamp);
-
-
+    })
+      .filter(expense => expense.month === month && expense.year === year)
+      .sort((a, b) => {
+        if (a.timestamp === b.timestamp) {
+          return a.name.localeCompare(b.name);
+        }
+        return a.timestamp - b.timestamp;
+      });
 
     return mappedExpenses;
   }
@@ -45,14 +59,26 @@ export default async function YearMonthPage({ params }) {
 
     try {
       for (const row of rows) {
-        await sql('INSERT INTO expenses (name, amount, date, account, category, id) VALUES ($1, $2, $3, $4, $5, $6)', [
-          row.name,
-          row.amount,
-          row.date,
-          row.account,
-          row.category,
-          row.id
-        ]);
+        if (row.id) {
+          // update existing expense
+          await sql('UPDATE expenses SET name = $1, amount = $2, date = $3, account = $4, category = $5 WHERE id = $6', [
+            row.name,
+            row.amount,
+            formatDateToDB(row.date),
+            row.account,
+            row.category,
+            row.id
+          ]);
+        } else {
+          await sql('INSERT INTO expenses (name, amount, date, account, category, id) VALUES ($1, $2, $3, $4, $5, $6)', [
+            row.name,
+            row.amount,
+            row.date,
+            row.account,
+            row.category,
+            crypto.randomUUID(),
+          ]);
+        }
       }
       console.log('Rows saved successfully:', rows.length);
     } catch (error) {
@@ -63,14 +89,14 @@ export default async function YearMonthPage({ params }) {
   async function updateCategory(id, category) {
     'use server';
 
-    if (!category) {
+    if (!category || !id) {
       console.log("No category provided");
       return;
     }
 
-
     console.log("Updating expense category:", id, category);
     const sql = neon(`${process.env.DATABASE_URL}`);
+
 
     await sql('UPDATE expenses SET category = $1 WHERE id = $2', [
       category,
@@ -82,7 +108,7 @@ export default async function YearMonthPage({ params }) {
   async function updateNote(id, note) {
     'use server';
 
-    if (!note) {
+    if (!note || !id) {
       console.log("No note provided");
       return;
     }
@@ -94,29 +120,37 @@ export default async function YearMonthPage({ params }) {
     await sql('UPDATE expenses SET note = $1 WHERE id = $2', [note, id]);
   }
 
-  const existingExpenses = await fetchExpenses();
+  async function updateDate(id, date) {
+    'use server';
 
-  console.log(year, month);
+    if (!date || !id) {
+      console.log("No date provided");
+      return;
+    }
+
+    console.log("Updating expense date:", id, date);
+    const formattedDate = formatDateToDB(date);
+    const sql = neon(`${process.env.DATABASE_URL}`);
+
+    await sql('UPDATE expenses SET date = $1 WHERE id = $2', [
+      formattedDate,
+      id
+    ]);
+  }
+
+  const existingExpenses = await fetchExpenses();
 
   return (
     <div className="flex flex-col gap-1 w-full h-full items-center justify-center">
-      <ul className="grid grid-cols-12 gap-4 w-10/12 border-b border-gray-200">
-        {['2024', '2025', '2026'].map((y) => (
-          <li key={y} className={(y === year ? "bg-gray-200" : "")}>{y}</li>
-        ))}
-      </ul>
-
-      <ul className="grid grid-cols-12 gap-4 w-10/12 border-b border-gray-200">
-        {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((m) => (
-          <li key={m} className={(m === month ? "bg-gray-200" : "")}>{m}</li>
-        ))}
-      </ul>
+      <DateNavbar year={year} month={month} />
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <PasteableExpensesTable
 
+
+        <PasteableExpensesTable
           onSave={handleSave}
           updateCategory={updateCategory}
           updateNote={updateNote}
+          updateDate={updateDate}
           expenses={existingExpenses} />
       </main>
     </div>

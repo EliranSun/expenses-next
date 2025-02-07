@@ -18,7 +18,6 @@ export const parseTextToRows = (text) => {
             const [name, date, account, action, amount] = data;
 
             return {
-                id: crypto.randomUUID(),
                 name,
                 date,
                 account,

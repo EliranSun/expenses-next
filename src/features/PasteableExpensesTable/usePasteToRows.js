@@ -14,8 +14,6 @@ export default function usePasteToRows(expenses = [], pasteFilterLogic = () => {
             ]);
         };
 
-
-
         document.addEventListener('paste', handlePaste);
 
         return () => {
