@@ -19,8 +19,8 @@ export default function TextToExpensesTable({ expenses = [], onSave, updateCateg
     return (
         <>
             <button
-                className="bg-blue-500 text-white px-4 py-2 rounded-md"
-                onClick={() => onSave(rows)}>Save</button>
+                className="bg-blue-500 text-white px-4 py-2 rounded-md fixed bottom-10 left-8"
+                onClick={() => onSave(rows)}>Save all</button>
             <Table
                 rows={rows}
                 updateCategory={updateCategory}
