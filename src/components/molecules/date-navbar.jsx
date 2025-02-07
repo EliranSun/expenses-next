@@ -1,7 +1,6 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import { Categories } from '@/constants';
-import { useSearchParams } from 'next/navigation';
 
 // Utility function to preserve and update query parameters
 const preserveQueryParams = (path, newParams = {}) => {
@@ -18,9 +17,8 @@ const preserveQueryParams = (path, newParams = {}) => {
 
 export const Navbar = ({ year, month }) => {
     const router = useRouter();
-    const query = useSearchParams();
-    const category = query.get("category");
-    const account = query.get("account");
+    const category = new URLSearchParams(window.location.search).get("category");
+    const account = new URLSearchParams(window.location.search).get("account");
 
     return (
         <div className='flex flex-col text-sm cursor-pointer'>
