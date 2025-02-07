@@ -1,29 +1,12 @@
 import { neon } from '@neondatabase/serverless';
 import PasteableExpensesTable from '@/features/PasteableExpensesTable';
+import { updateCategory, formatDateToDB } from '@/utils/db';
+
 export default async function YearMonthPage({ params }) {
   const { year, month } = await params;
 
-  const formatDateToDB = async (date) => {
-    'use server';
-    const splitDate = date.split("-");
-    const year = splitDate[0].slice(2);
-    const month = splitDate[1];
-    const day = splitDate[2];
-    return `${day}/${month}/${year}`;
-  }
-
   async function fetchExpenses() {
     const sql = neon(`${process.env.DATABASE_URL}`);
-
-
-    // await sql('INSERT INTO expenses (name, amount, date, category, id) VALUES ($1, $2, $3, $4, $5)', [
-    //   "test",
-    //   100,
-    //   "2024-01-01",
-    //   "test",
-    //   crypto.randomUUID()
-    // ]);
-
     const existingExpenses = await sql('SELECT name, amount, date, account, category, id, note FROM expenses');
     const mappedExpenses = existingExpenses.map(expense => {
       const splitDate = expense.date.split("/");
@@ -51,7 +34,7 @@ export default async function YearMonthPage({ params }) {
   }
 
 
-  async function handleSave(rows) {
+  async function updateExpenses(rows) {
     'use server';
     console.log("Saving expenses:", rows.length);
     const sql = neon(`${process.env.DATABASE_URL}`);
@@ -68,40 +51,12 @@ export default async function YearMonthPage({ params }) {
             row.category,
             row.id
           ]);
-        } else {
-          await sql('INSERT INTO expenses (name, amount, date, account, category, id) VALUES ($1, $2, $3, $4, $5, $6)', [
-            row.name,
-            row.amount,
-            row.date,
-            row.account,
-            row.category,
-            crypto.randomUUID(),
-          ]);
         }
       }
       console.log('Rows saved successfully:', rows.length);
     } catch (error) {
       console.error('Error saving rows:', error);
     }
-  }
-
-  async function updateCategory(id, category) {
-    'use server';
-
-    if (!category || !id) {
-      console.log("No category provided");
-      return;
-    }
-
-    console.log("Updating expense category:", id, category);
-    const sql = neon(`${process.env.DATABASE_URL}`);
-
-
-    await sql('UPDATE expenses SET category = $1 WHERE id = $2', [
-      category,
-      id
-    ]);
-
   }
 
   async function updateNote(id, note) {
@@ -145,7 +100,7 @@ export default async function YearMonthPage({ params }) {
         <PasteableExpensesTable
           year={year}
           month={month}
-          onSave={handleSave}
+          onSave={updateExpenses}
           updateCategory={updateCategory}
           updateNote={updateNote}
           updateDate={updateDate}

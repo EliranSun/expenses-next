@@ -2,9 +2,10 @@ import { CategoriesDropdown } from "../molecules/categories-dropdown";
 import { CurrencyAmount } from "./currency-amount";
 import { useState } from "react";
 
-const TableData = ({ children }) => {
-    return <td className="px-2">{children}</td>
+const TableData = ({ children, className }) => {
+    return <td className={`px-2 ${className}`}>{children}</td>
 }
+
 
 export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate }) => {
     const [category, setCategory] = useState(rowData.category || "");
@@ -12,11 +13,13 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate 
     const [date, setDate] = useState(rowData.date || "");
 
     return (
-        <tr className="bg-gray-100 even:bg-white">
+        <tr className="bg-gray-100 dark:bg-transparent even:bg-white dark:even:bg-neutral-800">
             <TableData>
                 <input
                     type="date"
+                    className="bg-transparent"
                     value={date}
+
                     onBlur={() => {
                         updateDate(rowData.id, date);
                     }}
@@ -25,9 +28,8 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate 
                     }} />
 
             </TableData>
-            <TableData>{rowData.name}</TableData>
+            <TableData className="w-40">{rowData.name}</TableData>
             <TableData>
-
                 <CategoriesDropdown
                     value={category}
                     onChange={(value) => {

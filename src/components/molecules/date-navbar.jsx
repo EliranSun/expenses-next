@@ -25,10 +25,11 @@ export const Navbar = ({ year, month }) => {
     return (
         <div className='flex flex-col text-sm cursor-pointer'>
             <ul className="grid grid-cols-12 gap-4 w-10/12 border-b border-gray-200">
-                {['24', '25', '26'].map((y) => (
+                {['22', '23', '24', '25', '26'].map((y) => (
                     <li
                         key={y}
                         onClick={() => router.push(preserveQueryParams(`/${y}/${month}`))}
+
                         className={(y === year ? "bg-amber-500 text-white" : "")}>{`20${y}`}</li>
                 ))}
             </ul>
