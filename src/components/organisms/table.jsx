@@ -57,8 +57,8 @@ export default function Table({ rows = [], updateCategory, updateNote, updateDat
                     <CurrencyAmount amount={totalIncome - totalExpenses} />
                 </div>
             </div>
-            <div className="h-[66vh]overflow-y-auto">
-                <table ref={tableRef} dir="rtl" data-testid="pasteable-expenses-table">
+            <div className="w-full h-[66vh] overflow-y-scroll">
+                <table ref={tableRef} dir="rtl" data-testid="pasteable-expenses-table" className="w-full">
                     <thead>
                         <tr>
                             <th>{keys.date}</th>

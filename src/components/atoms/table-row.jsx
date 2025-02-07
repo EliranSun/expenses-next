@@ -13,7 +13,7 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate 
     const [date, setDate] = useState(rowData.date || "");
 
     return (
-        <tr className="bg-gray-100 dark:bg-transparent even:bg-white dark:even:bg-neutral-800">
+        <tr className="bg-gray-100 dark:bg-transparent even:bg-white dark:even:bg-neutral-800 text-sm">
             <TableData>
                 <input
                     type="date"
@@ -28,7 +28,7 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate 
                     }} />
 
             </TableData>
-            <TableData className="w-40">{rowData.name}</TableData>
+            <TableData className="w-40 max-w-40 text-xs overflow-hidden whitespace-nowrap">{rowData.name}</TableData>
             <TableData>
                 <CategoriesDropdown
                     value={category}
@@ -38,7 +38,7 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate 
                         updateCategory(rowData.id, value);
                     }} />
             </TableData>
-            <TableData>{rowData.account}</TableData>
+            <TableData className="w-28 max-w-28 text-sm overflow-hidden whitespace-nowrap">{rowData.account}</TableData>
             <TableData><CurrencyAmount amount={rowData.amount} /></TableData>
             <TableData>
                 <input

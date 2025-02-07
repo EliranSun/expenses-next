@@ -24,7 +24,7 @@ export const Navbar = ({ year, month }) => {
 
     return (
         <div className='flex flex-col text-sm cursor-pointer'>
-            <ul className="grid grid-cols-12 gap-4 w-10/12 border-b border-gray-200">
+            <ul className="grid grid-cols-12 gap-4 w-full border-b border-gray-200">
                 {['22', '23', '24', '25', '26'].map((y) => (
                     <li
                         key={y}
@@ -34,7 +34,7 @@ export const Navbar = ({ year, month }) => {
                 ))}
             </ul>
 
-            <ul className="grid grid-cols-12 gap-4 w-10/12 border-b border-gray-200">
+            <ul className="grid grid-cols-12 gap-4 border-b border-gray-200">
                 {['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'].map((m) => (
                     <li
                         key={m}
@@ -42,7 +42,7 @@ export const Navbar = ({ year, month }) => {
                         className={(m === month ? "bg-amber-500 text-white" : "")}>{m}</li>
                 ))}
             </ul>
-            <ul className="flex items-center gap-4 w-12/12 border-b border-gray-200">
+            <ul className="flex items-center gap-px border-b border-gray-200">
                 {Object.entries(Categories).map(([key, value]) => (
                     <li
                         key={key}
@@ -58,12 +58,12 @@ export const Navbar = ({ year, month }) => {
                             const newCategory = categories.length ? categories.join(",") : null;
                             router.push(preserveQueryParams(`/${year}/${month}`, { category: newCategory }));
                         }}
-                        className={`flex text-xs ${categories.includes(key) ? "bg-amber-500 text-white" : ""}`}>
+                        className={`flex text-xs px-1 ${categories.includes(key) ? "bg-amber-500 text-white" : ""}`}>
                         {value.emoji} {value.name}
                     </li>
                 ))}
             </ul>
-            <ul className="flex items-center gap-4 w-10/12 border-b border-gray-200">
+            <ul className="flex items-center gap-4 border-b border-gray-200">
                 <li
                     className={`${account === "all" ? "bg-amber-500 text-white" : ""}`}
                     onClick={() => router.push(preserveQueryParams(`/${year}/${month}`, { account: null }))}>

@@ -5,7 +5,7 @@ import { Categories } from "@/constants";
 export const CategoriesDropdown = ({ value = "", onChange }) => {
     return (
         <select
-            className="bg-transparent"
+            className="bg-transparent text-xs w-20"
             value={value}
             onChange={(e) => onChange(e.target.value)}>
             <option value="" className="dark:bg-neutral-800">
