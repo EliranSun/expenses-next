@@ -44,6 +44,7 @@ export const Navbar = ({ year, month }) => {
                     <li
                         key={key}
                         onClick={() => {
+                            const query = new URLSearchParams(window.location.search);
                             const newCategory = query.get("category") === key ? null : key;
                             router.push(preserveQueryParams(`/${year}/${month}`, { category: newCategory }));
                         }}

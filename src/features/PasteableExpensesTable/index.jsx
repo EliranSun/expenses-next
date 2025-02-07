@@ -3,6 +3,7 @@
 import Table from "@/components/organisms/table";
 import usePasteToRows from "@/features/PasteableExpensesTable/usePasteToRows";
 import { useCallback } from "react";
+import { Suspense } from "react";
 
 export default function TextToExpensesTable({ expenses = [], onSave, updateCategory, updateNote, updateDate }) {
     const pasteFilterLogic = useCallback((row) => !expenses.some(expense => {
@@ -17,7 +18,7 @@ export default function TextToExpensesTable({ expenses = [], onSave, updateCateg
     const [rows] = usePasteToRows(expenses, pasteFilterLogic);
 
     return (
-        <>
+        <Suspense fallback={<div>Loading...</div>}>
             <button
                 className="bg-blue-500 text-white px-4 py-2 rounded-md fixed bottom-10 left-8"
                 onClick={() => onSave(rows)}>Save all</button>
@@ -27,6 +28,6 @@ export default function TextToExpensesTable({ expenses = [], onSave, updateCateg
                 updateNote={updateNote}
                 updateDate={updateDate}
             />
-        </>
+        </Suspense>
     );
 }

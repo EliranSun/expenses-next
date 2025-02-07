@@ -9,6 +9,7 @@ import { useSearchParams } from "next/navigation";
 
 const PrivateAccount = [
     "3361",
+    "4887",
     "170-489748"
 ];
 
@@ -17,6 +18,7 @@ export default function Table({ rows = [], updateCategory, updateNote, updateDat
     const query = useSearchParams();
     const account = query.get("account");
     const category = query.get("category");
+
     const filteredRows = useMemo(() =>
         rows.filter((row) =>
             (account ?
