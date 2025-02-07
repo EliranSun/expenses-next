@@ -6,7 +6,7 @@ import keys from "@/app/he.json";
 import { useKeyboardControl } from "@/hooks/useKeyboardControl";
 import { useRef } from "react";
 
-export default function Table({ rows = [] }) {
+export default function Table({ rows = [], updateCategory, updateNote }) {
     const total = rows.reduce((acc, row) => acc + row.amount, 0);
     const tableRef = useRef(null);
 
@@ -26,12 +26,18 @@ export default function Table({ rows = [] }) {
             </thead>
             <tbody>
                 {rows.map((row) => (
-                    <TableRow key={row.id} rowData={row} />
+                    <TableRow
+                        key={row.id}
+                        rowData={row}
+                        updateCategory={updateCategory}
+                        updateNote={updateNote}
+                    />
                 ))}
             </tbody>
             <tfoot>
                 <tr>
                     <td colSpan={3}>{keys.total}</td>
+
                     <td>
                         <CurrencyAmount amount={total} />
                     </td>

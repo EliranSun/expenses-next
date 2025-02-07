@@ -4,7 +4,7 @@ import Table from "@/components/organisms/table";
 import usePasteToRows from "@/features/PasteableExpensesTable/usePasteToRows";
 import { useCallback } from "react";
 
-export default function TextToExpensesTable({ expenses = [] }) {
+export default function TextToExpensesTable({ expenses = [], onSave, updateCategory, updateNote }) {
     const pasteFilterLogic = useCallback((row) => !expenses.some(expense => {
         return expense.id === row.id || (
             expense.name === row.name &&
@@ -18,7 +18,11 @@ export default function TextToExpensesTable({ expenses = [] }) {
 
     return (
         <>
-            <Table rows={rows} />
+            <Table
+                rows={rows}
+                updateCategory={updateCategory}
+                updateNote={updateNote}
+            />
         </>
     );
 }

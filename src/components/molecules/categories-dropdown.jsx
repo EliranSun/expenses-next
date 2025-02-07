@@ -35,9 +35,9 @@ const Categories = {
         "car": "רכב",
         "restaurants": "מסעדות/קפה"
 * */
-export const CategoriesDropdown = ({ value }) => {
+export const CategoriesDropdown = ({ value = "", onChange }) => {
     return (
-        <select value={value}>
+        <select value={value} onChange={(e) => onChange(e.target.value)}>
             <option value="">-</option>
             {Object.entries(keys.categories).map(([key, value]) => (
                 <option

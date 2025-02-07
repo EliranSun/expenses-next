@@ -1,6 +1,7 @@
-import { data } from "@/data";
 
-export const parseTextToRows = (text = data) => {
+export const parseTextToRows = (text) => {
+    if (!text) return [];
+
     const rows = text.trim().split("\n");
     const uniqueRows = new Set(); // Set to track unique lines
 

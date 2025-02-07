@@ -1,12 +1,13 @@
 import { neon } from '@neondatabase/serverless';
 import PasteableExpensesTable from '@/features/PasteableExpensesTable';
 
-export default async function Home() {
-
+export default async function YearMonthPage({ params }) {
+  const { year, month } = await params;
 
 
   async function fetchExpenses() {
     const sql = neon(`${process.env.DATABASE_URL}`);
+
 
     // await sql('INSERT INTO expenses (name, amount, date, category, id) VALUES ($1, $2, $3, $4, $5)', [
     //   "test",
@@ -95,25 +96,24 @@ export default async function Home() {
 
   const existingExpenses = await fetchExpenses();
 
+  console.log(year, month);
+
   return (
     <div className="flex flex-col gap-1 w-full h-full items-center justify-center">
       <ul className="grid grid-cols-12 gap-4 w-10/12 border-b border-gray-200">
-        <li>2024</li>
-        <li>2025</li>
-        <li>2026</li>
+        {['2024', '2025', '2026'].map((y) => (
+          <li key={y} className={(y === year ? "bg-gray-200" : "")}>{y}</li>
+        ))}
       </ul>
+
       <ul className="grid grid-cols-12 gap-4 w-10/12 border-b border-gray-200">
-        <li>Jan</li>
-        <li>Feb</li>
-        <li>Mar</li>
-        <li>Apr</li>
-        <li>May</li>
-        <li>Jun</li>
-        <li>Jul</li>
-        <li>Aug</li>
+        {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((m) => (
+          <li key={m} className={(m === month ? "bg-gray-200" : "")}>{m}</li>
+        ))}
       </ul>
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
         <PasteableExpensesTable
+
           onSave={handleSave}
           updateCategory={updateCategory}
           updateNote={updateNote}
