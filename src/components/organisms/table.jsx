@@ -86,18 +86,18 @@ export default function Table({ rows = [], updateCategory, updateNote, updateDat
                     showColorIndication
                     label={keys.bottom_line}
                     amount={totalIncome - totalExpenses} />}
-                {categories.length === 0 && <InfoDisplay
-                    label={keys.expected_income}
-                    amount={temporalBudget.income}
-                />}
+                {categories.length === 0 && temporalBudget &&
+                    < InfoDisplay
+                        label={keys.expected_income}
+                        amount={temporalBudget.income}
+                    />}
                 <InfoDisplay
                     label={keys.budget || "Budget"}
                     amount={budget}
-                    additionalText={categories.length > 0 ? categoriesEmoji.join(", ") : keys.all}
                 />
                 <InfoDisplay
                     label={keys.budget_difference || "Budget difference"}
-                    amount={categories.length === 0
+                    amount={categories.length === 0 && temporalBudget
                         ? temporalBudget.income - budget
                         : budget - totalExpenses}
                     showColorIndication
