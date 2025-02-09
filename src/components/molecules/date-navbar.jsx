@@ -59,7 +59,9 @@ export const Navbar = ({ year, month }) => {
                             router.push(preserveQueryParams(`/${year}/${month}`, { category: newCategory }));
                         }}
                         className={`flex text-xs px-1 ${categories.includes(key) ? "bg-amber-500 text-white" : ""}`}>
-                        {value.emoji} {value.name}
+                        {/* {value.emoji} */}
+                        {/* {value.name} */}
+                        blah
                     </li>
                 ))}
             </ul>

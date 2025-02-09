@@ -1,5 +1,5 @@
 'use client';
-import keys from "@/app/he.json";
+import keys from "@/app/gi.json";
 import { Categories } from "@/constants";
 
 export const CategoriesDropdown = ({ value = "", onChange }) => {
@@ -11,14 +11,17 @@ export const CategoriesDropdown = ({ value = "", onChange }) => {
             <option value="" className="dark:bg-neutral-800">
                 -
             </option>
-            {Object.entries(keys.categories).sort((a, b) => a[1].localeCompare(b[1])).map(([key, value]) => (
-                <option
-                    key={key}
-                    className="dark:bg-neutral-800"
-                    value={key}>
-                    {Categories[key].emoji} {value}
-                </option>
-            ))}
+            {Object
+                .entries(keys.categories)
+                .sort((a, b) => a[1].localeCompare(b[1]))
+                .map(([key, value]) => (
+                    <option
+                        key={key}
+                        className="dark:bg-neutral-800"
+                        value={key}>
+                        {Categories[key].emoji} {value}
+                    </option>
+                ))}
         </select>
     );
 };

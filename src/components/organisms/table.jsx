@@ -2,10 +2,11 @@
 
 import { CurrencyAmount } from "../atoms/currency-amount";
 import { TableRow } from "../atoms/table-row";
-import keys from "@/app/he.json";
-// import { useKeyboardControl } from "@/hooks/useKeyboardControl";
+import keys from "@/app/gi.json";
 import { useRef, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, usePathname } from "next/navigation";
+import { Budget } from "@/constants";
+// import { useKeyboardControl } from "@/hooks/useKeyboardControl";
 
 const PrivateAccount = [
     "3361",
@@ -19,8 +20,19 @@ export default function Table({ rows = [], updateCategory, updateNote, updateDat
     const query = useSearchParams();
     const account = query.get("account");
     const categories = query.get("category") ? query.get("category").split(",") : [];
+    const pathname = usePathname();
+    const year = pathname.split("/")[1];
+    const month = pathname.split("/")[2];
 
-    console.log({ rows, categories });
+    const budget = useMemo(() => {
+        const temporalBudget = Budget[year][month];
+        return Object.keys(temporalBudget).reduce((acc, key) => {
+            if (categories.includes(key)) {
+                acc += temporalBudget[key];
+            }
+            return acc;
+        }, 0);
+    }, [year, month, categories]);
 
     const filteredRows = useMemo(() =>
         rows.filter((row) =>
@@ -43,7 +55,7 @@ export default function Table({ rows = [], updateCategory, updateNote, updateDat
 
     return (
         <>
-            <div className="grid grid-cols-3 gap-4" dir="rtl">
+            <div className="grid grid-cols-5 gap-2" dir="rtl">
                 <div className="flex flex-col items-center gap-2">
                     <span>{keys.total_income}</span>
                     <CurrencyAmount amount={totalIncome} />
@@ -56,8 +68,16 @@ export default function Table({ rows = [], updateCategory, updateNote, updateDat
                     <span>{keys.bottom_line}</span>
                     <CurrencyAmount amount={totalIncome - totalExpenses} />
                 </div>
+                <div className="flex flex-col items-center gap-2">
+                    <span>{keys.budget} for {categories.join(", ")}</span>
+                    <CurrencyAmount amount={budget} />
+                </div>
+                <div className="flex flex-col items-center gap-2">
+                    <span>Budget difference</span>
+                    <CurrencyAmount amount={budget - totalExpenses} />
+                </div>
             </div>
-            <div className="w-full h-[66vh] overflow-y-scroll">
+            <div className="w-full min-h-fit max-h-[66vh]">
                 <table ref={tableRef} dir="rtl" data-testid="pasteable-expenses-table" className="w-full">
                     <thead>
                         <tr>

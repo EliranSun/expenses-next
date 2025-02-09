@@ -1,0 +1,33 @@
+{
+    "name": "name",
+    "date": "date",
+    "amount": "amount",
+    "account": "account",
+    "category": "category",
+    "note": "note",
+    "total_expenses": "total_expenses",
+    "total_income": "total_income",
+    "bottom_line": "bottom_line",
+    "budget": "budget",
+    "categories": {
+        "income": "income",
+        "self": "self",
+        "restaurants": "restaurants",
+        "house": "house",
+        "groceries": "groceries",
+        "vacation": "vacation",
+        "wedding": "wedding",
+        "workout": "workout",
+        "subscriptions": "subscriptions",
+        "animals": "animals",
+        "transportation": "transportation",
+        "gifts": "gifts",
+        "savings": "savings",
+        "car": "car",
+        "fees": "fees",
+        "games": "games",
+        "tech": "tech",
+        "online": "online",
+        "entertainment": "entertainment"
+    }
+}
