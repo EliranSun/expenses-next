@@ -8,6 +8,8 @@ import { Budget } from "@/constants/budget";
 // import { useKeyboardControl } from "@/hooks/useKeyboardControl";
 import { Categories } from "@/constants";
 import InfoDisplay from "../molecules/info-display";
+import { orderBy } from "lodash";
+import SortableTableHeader from "../molecules/sortable-table-header";
 
 const PrivateAccount = [
     "3361",
@@ -19,13 +21,15 @@ const PrivateAccount = [
 export default function Table({ rows = [], updateCategory, updateNote, updateDate }) {
     const tableRef = useRef(null);
     const query = useSearchParams();
+    const pathname = usePathname();
     const account = query.get("account");
     const categories = query.get("category") ? query.get("category").split(",") : [];
+
     const [rowIdsToFilter, setRowIdsToFilter] = useState([]);
-    const pathname = usePathname();
+    const [sortCriteria, setSortCriteria] = useState(["date", "asc"]);
+
     const year = pathname.split("/")[1];
     const month = pathname.split("/")[2];
-    const categoriesEmoji = categories.map((category) => Categories[category].emoji);
     const temporalBudget = useMemo(() => Budget[year]?.[month], [year, month]);
     const budget = useMemo(() => {
         if (!temporalBudget) return 0;
@@ -40,8 +44,8 @@ export default function Table({ rows = [], updateCategory, updateNote, updateDat
         }, 0);
     }, [year, month, categories, temporalBudget]);
 
-    const filteredRows = useMemo(() =>
-        rows.filter((row) => {
+    const filteredRows = useMemo(() => {
+        const foo = rows.filter((row) => {
             if (rowIdsToFilter.includes(row.id)) {
                 return false;
             }
@@ -65,7 +69,10 @@ export default function Table({ rows = [], updateCategory, updateNote, updateDat
             }
 
             return accountMatch && categoryMatch;
-        }), [rows, account, categories]);
+        });
+
+        return orderBy(foo, sortCriteria[0], sortCriteria[1]);
+    }, [rows, account, categories, rowIdsToFilter, sortCriteria]);
 
     const totalExpenses = useMemo(() =>
         filteredRows.reduce((acc, row) => row.category !== "income" ? acc + row.amount : acc, 0), [filteredRows]);
@@ -75,19 +82,21 @@ export default function Table({ rows = [], updateCategory, updateNote, updateDat
 
     // useKeyboardControl(tableRef);
 
+    const showFoo = categories.length === 0 || categories.includes("income");
 
     return (
         <>
-            <div className={`grid grid-cols-3 ${categories.length === 0
+            <div className={`grid grid-cols-3 ${showFoo
                 ? "md:grid-cols-6" : "md:grid-cols-3"} gap-2`} dir="rtl">
-                {categories.length === 0 && <InfoDisplay label={keys.total_income} amount={totalIncome} />}
+                {showFoo && <InfoDisplay label={keys.total_income} amount={totalIncome} />}
                 <InfoDisplay label={keys.total_expenses} amount={totalExpenses} />
-                {categories.length === 0 && <InfoDisplay
-                    showColorIndication
-                    label={keys.bottom_line}
-                    amount={totalIncome - totalExpenses} />}
-                {categories.length === 0 && temporalBudget &&
-                    < InfoDisplay
+                {showFoo &&
+                    <InfoDisplay
+                        showColorIndication
+                        label={keys.bottom_line}
+                        amount={totalIncome - totalExpenses} />}
+                {showFoo && temporalBudget &&
+                    <InfoDisplay
                         label={keys.expected_income}
                         amount={temporalBudget.income}
                     />}
@@ -107,12 +116,42 @@ export default function Table({ rows = [], updateCategory, updateNote, updateDat
                 <table ref={tableRef} dir="rtl" data-testid="pasteable-expenses-table" className="w-full">
                     <thead>
                         <tr>
-                            <th>{keys.date}</th>
-                            <th>{keys.name}</th>
-                            <th>{keys.category}</th>
-                            <th>{keys.account}</th>
-                            <th>{keys.amount}</th>
-                            <th>{keys.note}</th>
+                            <SortableTableHeader
+                                label={keys.date}
+                                sortKey="date"
+                                sortCriteria={sortCriteria}
+                                setSortCriteria={setSortCriteria}
+                            />
+                            <SortableTableHeader
+                                label={keys.name}
+                                sortKey="name"
+                                sortCriteria={sortCriteria}
+                                setSortCriteria={setSortCriteria}
+                            />
+                            <SortableTableHeader
+                                label={keys.category}
+                                sortKey="category"
+                                sortCriteria={sortCriteria}
+                                setSortCriteria={setSortCriteria}
+                            />
+                            <SortableTableHeader
+                                label={keys.account}
+                                sortKey="account"
+                                sortCriteria={sortCriteria}
+                                setSortCriteria={setSortCriteria}
+                            />
+                            <SortableTableHeader
+                                label={keys.amount}
+                                sortKey="amount"
+                                sortCriteria={sortCriteria}
+                                setSortCriteria={setSortCriteria}
+                            />
+                            <SortableTableHeader
+                                label={keys.note}
+                                sortKey="note"
+                                sortCriteria={sortCriteria}
+                                setSortCriteria={setSortCriteria}
+                            />
                         </tr>
                     </thead>
                     <tbody>
@@ -128,7 +167,6 @@ export default function Table({ rows = [], updateCategory, updateNote, updateDat
                                 }}
                             />
                         ))}
-
                     </tbody>
                 </table>
             </div>
