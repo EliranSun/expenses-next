@@ -4,7 +4,7 @@ import { TableRow } from "../atoms/table-row";
 import keys from "@/app/he.json";
 import { useRef, useMemo, useState } from "react";
 import { useSearchParams, usePathname } from "next/navigation";
-import { Budget } from "@/constants";
+import { Budget } from "@/constants/budget";
 // import { useKeyboardControl } from "@/hooks/useKeyboardControl";
 import { Categories } from "@/constants";
 import InfoDisplay from "../molecules/info-display";
