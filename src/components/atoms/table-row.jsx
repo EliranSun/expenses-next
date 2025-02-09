@@ -13,9 +13,7 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
     const [date, setDate] = useState(rowData.date || "");
 
     return (
-        <tr
-            onClick={() => onRowClick(rowData)}
-            className="bg-gray-100 dark:bg-transparent even:bg-white dark:even:bg-neutral-800 text-sm">
+        <tr className="bg-gray-100 dark:bg-transparent even:bg-white dark:even:bg-neutral-800 text-sm">
             <TableData>
                 <input
                     type="date"
@@ -63,7 +61,11 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
 
 
             </TableData>
-
+            <TableData>
+                <button onClick={() => onRowClick(rowData)}>
+                    🫣
+                </button>
+            </TableData>
         </tr>
 
     );

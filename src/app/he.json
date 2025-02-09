@@ -9,6 +9,8 @@
     "total_income": "הכנסות",
     "bottom_line": "הכנסות פחות הוצאות",
     "budget": "תקציב הוצאות",
+    "budget_title": "תקצוב לחודש הנבחר",
+    "actual_title": "לפי המסך הנוכחי",
     "all": "כל הקטגוריות",
     "budget_difference": "כמה נשאר מהתקציב",
     "expected_income": "הכנסה צפויה",

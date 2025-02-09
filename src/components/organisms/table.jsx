@@ -86,31 +86,44 @@ export default function Table({ rows = [], updateCategory, updateNote, updateDat
 
     return (
         <>
-            <div className={`grid grid-cols-3 ${showFoo
-                ? "md:grid-cols-6" : "md:grid-cols-3"} gap-2`} dir="rtl">
-                {showFoo && <InfoDisplay label={keys.total_income} amount={totalIncome} />}
-                <InfoDisplay label={keys.total_expenses} amount={totalExpenses} />
-                {showFoo &&
-                    <InfoDisplay
-                        showColorIndication
-                        label={keys.bottom_line}
-                        amount={totalIncome - totalExpenses} />}
-                {showFoo && temporalBudget &&
-                    <InfoDisplay
-                        label={keys.expected_income}
-                        amount={temporalBudget.income}
-                    />}
-                <InfoDisplay
-                    label={keys.budget || "Budget"}
-                    amount={budget}
-                />
-                <InfoDisplay
-                    label={keys.budget_difference || "Budget difference"}
-                    amount={categories.length === 0 && temporalBudget
-                        ? temporalBudget.income - budget
-                        : budget - totalExpenses}
-                    showColorIndication
-                />
+            <div className={`w-full md:w-2/3 flex flex-col md:flex-row justify-between`} dir="rtl">
+                <div className="relative flex flex-col border-2">
+                    <span className="absolute -top-6 right-0">
+                        {keys.actual_title}
+                    </span>
+                    <div className="grid grid-cols-3 gap-1 border-2 ">
+                        {showFoo && <InfoDisplay label={keys.total_income} amount={totalIncome} />}
+                        <InfoDisplay label={keys.total_expenses} amount={totalExpenses} />
+                        {showFoo &&
+                            <InfoDisplay
+                                showColorIndication
+                                label={keys.bottom_line}
+                                amount={totalIncome - totalExpenses} />}
+                    </div>
+                </div>
+                <div className="relative flex flex-col border-2">
+                    <span className="absolute -top-6 right-0">
+                        {keys.budget_title}
+                    </span>
+                    <div className="grid grid-cols-3 gap-1">
+                        {showFoo && temporalBudget &&
+                            <InfoDisplay
+                                label={keys.expected_income}
+                                amount={temporalBudget.income}
+                            />}
+                        <InfoDisplay
+                            label={keys.budget || "Budget"}
+                            amount={budget}
+                        />
+                        <InfoDisplay
+                            label={keys.budget_difference || "Budget difference"}
+                            amount={categories.length === 0 && temporalBudget
+                                ? temporalBudget.income - budget
+                                : budget - totalExpenses}
+                            showColorIndication
+                        />
+                    </div>
+                </div>
             </div>
             <div className="w-full min-h-fit max-h-[66vh] max-w-[95vw] overflow-x-auto pb-96">
                 <table ref={tableRef} dir="rtl" data-testid="pasteable-expenses-table" className="w-full">
