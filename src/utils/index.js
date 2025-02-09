@@ -31,3 +31,17 @@ export const parseTextToRows = (text) => {
         .filter((row) => row.name && row.amount)
         .sort((a, b) => new Date(b.date) - new Date(a.date));
 };
+export const formatDateToDB = (date) => {
+    const splitDate = date.split("-");
+    const year = splitDate[0].slice(2);
+    const month = splitDate[1];
+    const day = splitDate[2];
+    return `${day}/${month}/${year}`;
+}; export const formatDateFromDB = (date) => {
+    const splitDate = date.split("/");
+    const year = `20${splitDate[2]}`;
+    const month = splitDate[1];
+    const day = splitDate[0];
+    return `${year}-${month}-${day}`;
+};
+

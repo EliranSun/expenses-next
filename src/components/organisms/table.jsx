@@ -40,14 +40,27 @@ export default function Table({ rows = [], updateCategory, updateNote, updateDat
     }, [year, month, categories]);
 
     const filteredRows = useMemo(() =>
-        rows.filter((row) =>
-            (account ?
-                account === "private"
-                    ? PrivateAccount.includes(row.account)
-                    : !PrivateAccount.includes(row.account)
-                : true) &&
-            (categories.length && row.category ? categories.includes(row.category) : true)
-        ), [rows, account, categories]);
+        rows.filter((row) => {
+            let accountMatch = true;
+            if (account) {
+                if (account === "private") {
+                    accountMatch = PrivateAccount.includes(row.account);
+                } else {
+                    accountMatch = !PrivateAccount.includes(row.account);
+                }
+            }
+
+            let categoryMatch = true;
+            if (!row.category) {
+                return true;
+            }
+
+            if (categories.length && row.category) {
+                categoryMatch = categories.includes(row.category);
+            }
+
+            return accountMatch && categoryMatch;
+        }), [rows, account, categories]);
 
     const totalExpenses = useMemo(() =>
         filteredRows.reduce((acc, row) => row.category !== "income" ? acc + row.amount : acc, 0), [filteredRows]);

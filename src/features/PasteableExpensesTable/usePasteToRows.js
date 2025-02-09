@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { parseTextToRows } from "@/utils";
+import { formatDateFromDB } from '@/utils';
 
-export default function usePasteToRows(expenses = [], pasteFilterLogic = () => { }) {
+export default function usePasteToRows(expenses = [], pasteFilterLogic = () => { }, existingExpenses = []) {
     const [rows, setRows] = useState(expenses);
 
     useEffect(() => {
@@ -9,9 +10,31 @@ export default function usePasteToRows(expenses = [], pasteFilterLogic = () => {
             const pastedData = event.clipboardData.getData('Text');
             const parsedRows = parseTextToRows(pastedData);
 
+            console.log("usePasteToRows", {
+                existingExpenses: existingExpenses.length,
+                expenses: expenses.length,
+                parsedRows: parsedRows.length,
+            });
+
+            const filteredRows = parsedRows
+                .filter(pasteFilterLogic)
+                .filter(row => {
+                    const existingExpense = existingExpenses.find(expense =>
+                        expense.name === row.name &&
+                        expense.amount === row.amount &&
+                        expense.date === formatDateFromDB(row.date) &&
+                        expense.account === row.account
+                    );
+
+                    debugger;
+                    return !existingExpense;
+                });
+
+            console.log("filteredRows", filteredRows.length);
+
             setRows([
                 ...expenses,
-                ...parsedRows.filter(pasteFilterLogic).map(row => {
+                ...filteredRows.map(row => {
                     const splitDate = row.date.split("/");
                     const year = splitDate[2];
                     const month = splitDate[1];
@@ -34,7 +57,7 @@ export default function usePasteToRows(expenses = [], pasteFilterLogic = () => {
         return () => {
             document.removeEventListener('paste', handlePaste);
         };
-    }, [expenses, pasteFilterLogic]);
+    }, [expenses, pasteFilterLogic, existingExpenses]);
 
     return [rows];
 }

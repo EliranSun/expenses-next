@@ -1,38 +1,10 @@
 import { neon } from '@neondatabase/serverless';
 import PasteableExpensesTable from '@/features/PasteableExpensesTable';
-import { updateCategory, formatDateToDB } from '@/utils/db';
+import { updateCategory, fetchExpenses } from '@/utils/db';
+import { formatDateToDB } from '@/utils';
 
 export default async function YearMonthPage({ params }) {
   const { year, month } = await params;
-
-  async function fetchExpenses() {
-    const sql = neon(`${process.env.DATABASE_URL}`);
-    const existingExpenses = await sql('SELECT name, amount, date, account, category, id, note FROM expenses');
-    const mappedExpenses = existingExpenses.map(expense => {
-      const splitDate = expense.date.split("/");
-      const year = splitDate[2];
-      const month = splitDate[1];
-      const day = splitDate[0];
-
-      return {
-        ...expense,
-        date: `20${year}-${month}-${day}`,
-        month,
-        year,
-        timestamp: new Date(`20${year}`, month - 1, day).getTime()
-      };
-    })
-      .filter(expense => expense.month === month && expense.year === year)
-      .sort((a, b) => {
-        if (a.timestamp === b.timestamp) {
-          return a.name.localeCompare(b.name);
-        }
-        return a.timestamp - b.timestamp;
-      });
-
-    return mappedExpenses;
-  }
-
 
   async function updateExpenses(rows) {
     'use server';
@@ -92,7 +64,7 @@ export default async function YearMonthPage({ params }) {
     ]);
   }
 
-  const existingExpenses = await fetchExpenses();
+  const existingExpenses = await fetchExpenses(year, month);
 
   return (
     <div className="flex flex-col gap-1 w-full h-full items-center justify-center">

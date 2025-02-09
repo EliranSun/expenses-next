@@ -1,20 +1,40 @@
 import { neon } from '@neondatabase/serverless';
+import { formatDateFromDB, formatDateToDB } from '.';
 
-export const formatDateToDB = (date) => {
-    const splitDate = date.split("-");
-    const year = splitDate[0].slice(2);
-    const month = splitDate[1];
-    const day = splitDate[2];
-    return `${day}/${month}/${year}`;
-};
+export async function fetchExpenses(year, month) {
+    const sql = neon(`${process.env.DATABASE_URL}`);
+    const existingExpenses = await sql('SELECT name, amount, date, account, category, id, note FROM expenses');
 
-export const formatDateFromDB = (date) => {
-    const splitDate = date.split("/");
-    const year = `20${splitDate[2]}`;
-    const month = splitDate[1];
-    const day = splitDate[0];
-    return `${year}-${month}-${day}`;
-};
+    const mappedExpenses = existingExpenses.map(expense => {
+        const splitDate = expense.date.split("/");
+        const year = splitDate[2];
+        const month = splitDate[1];
+        const day = splitDate[0];
+
+        return {
+            ...expense,
+            date: `20${year}-${month}-${day}`,
+            month,
+            year,
+            timestamp: new Date(`20${year}`, month - 1, day).getTime()
+        };
+    })
+        .filter(expense => {
+            if (year && month) {
+                return expense.month === month && expense.year === year;
+            }
+            return true;
+        })
+        .sort((a, b) => {
+            if (a.timestamp === b.timestamp) {
+                return a.name.localeCompare(b.name);
+            }
+            return a.timestamp - b.timestamp;
+        });
+
+    return mappedExpenses;
+}
+
 
 export async function getUnhandledExpenses() {
     const sql = neon(`${process.env.DATABASE_URL}`);

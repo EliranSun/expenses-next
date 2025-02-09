@@ -8,6 +8,7 @@ import { Navbar } from "@/components/molecules/date-navbar";
 
 export default function TextToExpensesTable({
     expenses = [],
+    existingExpenses = [],
     onSave,
     updateCategory,
     updateNote,
@@ -25,19 +26,19 @@ export default function TextToExpensesTable({
         );
     }, [expenses]));
 
-    const [rows] = usePasteToRows(expenses, pasteFilterLogic);
+    const [rows] = usePasteToRows(expenses, pasteFilterLogic, existingExpenses);
 
     console.log({ expenses, rows });
 
     return (
         <Suspense fallback={<div>Loading...</div>}>
             <Navbar year={year} month={month} />
-            {/* <button
+            <button
                 className="bg-blue-500 text-white px-4 py-2 rounded-md fixed bottom-10 left-8"
                 onClick={() => onSave(rows)}>Save {rows.length}</button>
             <button
                 className="bg-red-500 text-white px-4 py-2 rounded-md fixed bottom-10 left-36"
-                onClick={() => deleteExpenses(rows.map(row => row.id))}>Delete {rows.length}</button> */}
+                onClick={() => deleteExpenses(rows.map(row => row.id))}>Delete {rows.length}</button>
             <Table
                 rows={rows}
                 updateCategory={updateCategory}
