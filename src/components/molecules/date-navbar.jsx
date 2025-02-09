@@ -16,6 +16,18 @@ const preserveQueryParams = (path, newParams = {}) => {
     return `${path}?${query.toString()}`;
 };
 
+const Years = ['22', '23', '24', '25', '26'];
+const Months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+
+const NavbarRow = ({ children }) => {
+    return (
+        <ul className="flex flex-wrap gap-2 md:grid md:grid-cols-12 md:gap-4 
+        w-full border-2 border-b border-gray-400 py-1">
+            {children}
+        </ul>
+    );
+};
+
 export const Navbar = ({ year, month }) => {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -24,25 +36,26 @@ export const Navbar = ({ year, month }) => {
 
     return (
         <div className='flex flex-col text-sm cursor-pointer'>
-            <ul className="grid grid-cols-12 gap-4 w-full border-b border-gray-200">
-                {['22', '23', '24', '25', '26'].map((y) => (
+            <NavbarRow>
+                {Years.map((y) => (
                     <li
                         key={y}
                         onClick={() => router.push(preserveQueryParams(`/${y}/${month}`))}
 
                         className={(y === year ? "bg-amber-500 text-white" : "")}>{`20${y}`}</li>
                 ))}
-            </ul>
+            </NavbarRow>
 
-            <ul className="grid grid-cols-12 gap-4 border-b border-gray-200">
-                {['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'].map((m) => (
+            <NavbarRow>
+                {Months.map((m) => (
                     <li
                         key={m}
                         onClick={() => router.push(preserveQueryParams(`/${year}/${m}`))}
                         className={(m === month ? "bg-amber-500 text-white" : "")}>{m}</li>
                 ))}
-            </ul>
-            <ul className="flex items-center gap-px border-b border-gray-200">
+            </NavbarRow>
+
+            <NavbarRow>
                 {Object.entries(Categories).map(([key, value]) => (
                     <li
                         key={key}
@@ -59,13 +72,12 @@ export const Navbar = ({ year, month }) => {
                             router.push(preserveQueryParams(`/${year}/${month}`, { category: newCategory }));
                         }}
                         className={`flex text-xs px-1 ${categories.includes(key) ? "bg-amber-500 text-white" : ""}`}>
-                        {/* {value.emoji} */}
-                        {/* {value.name} */}
-                        blah
+                        {value.emoji} {value.name}
                     </li>
                 ))}
-            </ul>
-            <ul className="flex items-center gap-4 border-b border-gray-200">
+            </NavbarRow>
+
+            <NavbarRow>
                 <li
                     className={`${account === "all" ? "bg-amber-500 text-white" : ""}`}
                     onClick={() => router.push(preserveQueryParams(`/${year}/${month}`, { account: null }))}>
@@ -81,7 +93,7 @@ export const Navbar = ({ year, month }) => {
                     onClick={() => router.push(preserveQueryParams(`/${year}/${month}`, { account: "shared" }))}>
                     Shared
                 </li>
-            </ul>
+            </NavbarRow>
         </div>
     );
 };

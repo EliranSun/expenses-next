@@ -1,5 +1,5 @@
 'use client';
-import keys from "@/app/gi.json";
+import keys from "@/app/he.json";
 import { Categories } from "@/constants";
 
 export const CategoriesDropdown = ({ value = "", onChange }) => {

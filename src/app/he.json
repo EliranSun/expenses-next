@@ -8,6 +8,8 @@
     "total_expenses": "הוצאות",
     "total_income": "הכנסות",
     "bottom_line": "שורה תחתונה",
+    "budget": "תקציב",
+    "budget_difference": "הפרש",
     "categories": {
         "income": "הכנסה",
         "self": "עצמי",
