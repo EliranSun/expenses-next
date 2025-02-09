@@ -17,4 +17,6 @@ export const Categories = {
     fees: { name: "עמלות", emoji: "💸", color: "#FF4500" },
     games: { name: "משחקים", emoji: "🎮", color: "#800080" },
     tech: { name: "טכנולוגיה", emoji: "💻", color: "#0000FF" },
+    online: { name: "קנייה אונליין", emoji: "🛍️", color: "#0000FF" },
+    entertainment: { name: "בידור", emoji: "🎬", color: "#FFD700" },
 };

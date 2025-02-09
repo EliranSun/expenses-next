@@ -5,8 +5,8 @@
     "account": "חשבון",
     "category": "קטגוריה",
     "note": "הערה",
-    "total_expenses": "סך כל הוצאות",
-    "total_income": "סך כל הכנסות",
+    "total_expenses": "הוצאות",
+    "total_income": "הכנסות",
     "bottom_line": "שורה תחתונה",
     "categories": {
         "income": "הכנסה",
@@ -25,6 +25,8 @@
         "car": "רכב",
         "fees": "ביטוחים/עמלות",
         "games": "משחקים",
-        "tech": "טכנולוגיה"
+        "tech": "טכנולוגיה",
+        "online": "קנייה אונליין",
+        "entertainment": "בידור"
     }
 }
