@@ -2,7 +2,7 @@
 
 import { TableRow } from "../atoms/table-row";
 import keys from "@/app/he.json";
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useState } from "react";
 import { useSearchParams, usePathname } from "next/navigation";
 import { Budget } from "@/constants";
 // import { useKeyboardControl } from "@/hooks/useKeyboardControl";
@@ -21,26 +21,31 @@ export default function Table({ rows = [], updateCategory, updateNote, updateDat
     const query = useSearchParams();
     const account = query.get("account");
     const categories = query.get("category") ? query.get("category").split(",") : [];
+    const [rowIdsToFilter, setRowIdsToFilter] = useState([]);
     const pathname = usePathname();
     const year = pathname.split("/")[1];
     const month = pathname.split("/")[2];
-
     const categoriesEmoji = categories.map((category) => Categories[category].emoji);
-
+    const temporalBudget = useMemo(() => Budget[year]?.[month], [year, month]);
     const budget = useMemo(() => {
-        const temporalBudget = Budget[year]?.[month];
         if (!temporalBudget) return 0;
 
         return Object.keys(temporalBudget).reduce((acc, key) => {
+            if (key === "income") return acc;
+
             if (categories.length > 0 ? categories.includes(key) : true) {
                 acc += temporalBudget[key];
             }
             return acc;
         }, 0);
-    }, [year, month, categories]);
+    }, [year, month, categories, temporalBudget]);
 
     const filteredRows = useMemo(() =>
         rows.filter((row) => {
+            if (rowIdsToFilter.includes(row.id)) {
+                return false;
+            }
+
             let accountMatch = true;
             if (account) {
                 if (account === "private") {
@@ -73,21 +78,32 @@ export default function Table({ rows = [], updateCategory, updateNote, updateDat
 
     return (
         <>
-            <div className="grid grid-cols-3 md:grid-cols-5 gap-2" dir="rtl">
-                <InfoDisplay label={keys.total_income} amount={totalIncome} />
+            <div className={`grid grid-cols-3 ${categories.length === 0
+                ? "md:grid-cols-6" : "md:grid-cols-3"} gap-2`} dir="rtl">
+                {categories.length === 0 && <InfoDisplay label={keys.total_income} amount={totalIncome} />}
                 <InfoDisplay label={keys.total_expenses} amount={totalExpenses} />
-                <InfoDisplay label={keys.bottom_line} amount={totalIncome - totalExpenses} />
+                {categories.length === 0 && <InfoDisplay
+                    showColorIndication
+                    label={keys.bottom_line}
+                    amount={totalIncome - totalExpenses} />}
+                {categories.length === 0 && <InfoDisplay
+                    label={keys.expected_income}
+                    amount={temporalBudget.income}
+                />}
                 <InfoDisplay
                     label={keys.budget || "Budget"}
                     amount={budget}
-                    additionalText={categories.length > 0 ? categoriesEmoji.join(", ") : "all"}
+                    additionalText={categories.length > 0 ? categoriesEmoji.join(", ") : keys.all}
                 />
                 <InfoDisplay
                     label={keys.budget_difference || "Budget difference"}
-                    amount={budget - totalExpenses}
+                    amount={categories.length === 0
+                        ? temporalBudget.income - budget
+                        : budget - totalExpenses}
+                    showColorIndication
                 />
             </div>
-            <div className="w-full min-h-fit max-h-[66vh] max-w-[95vw] overflow-x-auto">
+            <div className="w-full min-h-fit max-h-[66vh] max-w-[95vw] overflow-x-auto pb-96">
                 <table ref={tableRef} dir="rtl" data-testid="pasteable-expenses-table" className="w-full">
                     <thead>
                         <tr>
@@ -107,6 +123,9 @@ export default function Table({ rows = [], updateCategory, updateNote, updateDat
                                 updateCategory={updateCategory}
                                 updateNote={updateNote}
                                 updateDate={updateDate}
+                                onRowClick={() => {
+                                    setRowIdsToFilter([...rowIdsToFilter, row.id]);
+                                }}
                             />
                         ))}
 

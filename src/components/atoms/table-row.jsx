@@ -7,13 +7,15 @@ const TableData = ({ children, className }) => {
 }
 
 
-export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate }) => {
+export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate, onRowClick }) => {
     const [category, setCategory] = useState(rowData.category || "");
     const [note, setNote] = useState(rowData.note || "");
     const [date, setDate] = useState(rowData.date || "");
 
     return (
-        <tr className="bg-gray-100 dark:bg-transparent even:bg-white dark:even:bg-neutral-800 text-sm">
+        <tr
+            onClick={() => onRowClick(rowData)}
+            className="bg-gray-100 dark:bg-transparent even:bg-white dark:even:bg-neutral-800 text-sm">
             <TableData>
                 <input
                     type="date"
@@ -39,7 +41,12 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate 
                     }} />
             </TableData>
             <TableData className="w-28 max-w-28 text-sm overflow-hidden whitespace-nowrap">{rowData.account}</TableData>
-            <TableData><CurrencyAmount amount={rowData.amount} /></TableData>
+            <TableData>
+                <CurrencyAmount
+                    isPositive={rowData.category === "income"}
+                    isNegative={rowData.category !== "income"}
+                    amount={rowData.amount} />
+            </TableData>
             <TableData>
                 <input
                     type="text"
