@@ -24,7 +24,26 @@ export const Categories = {
 export const Budget = {
     '25': {
         '01': {
-            income: 10000,
+            self: 1000,
+            restaurants: 1000,
+            house: 1000,
+            groceries: 1000,
+            vacation: 1000,
+            wedding: 1000,
+            workout: 1000,
+            subscriptions: 1000,
+            animals: 1000,
+            transportation: 1000,
+            gifts: 1000,
+            savings: 1000,
+            car: 1000,
+            fees: 1000,
+            games: 1000,
+            tech: 1000,
+            online: 1000,
+            entertainment: 1000,
+        },
+        '02': {
             self: 1000,
             restaurants: 1000,
             house: 1000,
