@@ -1,5 +1,3 @@
-export const fetchCache = 'force-no-store';
-
 import PasteableExpensesTable from '@/features/PasteableExpensesTable';
 import { deleteExpenses, fetchExpenses, getUnhandledExpenses, insertExpenses, updateCategory, deleteExpense } from '@/utils/db';
 
