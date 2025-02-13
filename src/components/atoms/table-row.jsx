@@ -77,7 +77,10 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
                 {rowData.id && <button
                     onMouseEnter={() => setIsDeleteHovered(true)}
                     onMouseLeave={() => setIsDeleteHovered(false)}
-                    onClick={() => deleteExpense(rowData.id)}>
+                    onClick={async () => {
+                        await deleteExpense(rowData.id);
+                        window.location.reload();
+                    }}>
                     מחק
                 </button>}
             </TableData>
