@@ -1,6 +1,6 @@
 export const getDuplicates = (expenses = []) => {
     const groupedExpenses = expenses.reduce((acc, expense) => {
-        const key = `${expense.name}-${expense.date}-${expense.amount}`;
+        const key = `${expense.name}-${expense.date}-${expense.amount}-${expense.account}`;
         if (!acc[key]) {
             acc[key] = [];
         }
