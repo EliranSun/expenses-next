@@ -1,6 +1,6 @@
 import { neon } from '@neondatabase/serverless';
 import PasteableExpensesTable from '@/features/PasteableExpensesTable';
-import { updateCategory, fetchExpenses } from '@/utils/db';
+import { updateCategory, fetchExpenses, deleteExpense } from '@/utils/db';
 import { formatDateToDB } from '@/utils';
 
 export default async function YearMonthPage({ params }) {
@@ -76,6 +76,7 @@ export default async function YearMonthPage({ params }) {
           updateCategory={updateCategory}
           updateNote={updateNote}
           updateDate={updateDate}
+          deleteExpense={deleteExpense}
           expenses={existingExpenses} />
       </main>
     </div>

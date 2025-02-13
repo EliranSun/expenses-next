@@ -15,7 +15,8 @@ export default function TextToExpensesTable({
     updateDate,
     year,
     month,
-    deleteExpenses
+    deleteExpenses,
+    deleteExpense
 }) {
     const pasteFilterLogic = useCallback((row) => !expenses.some(expense => {
         return expense.id === row.id || (
@@ -44,7 +45,7 @@ export default function TextToExpensesTable({
                 updateCategory={updateCategory}
                 updateNote={updateNote}
                 updateDate={updateDate}
-
+                deleteExpense={deleteExpense}
             />
         </Suspense>
     );

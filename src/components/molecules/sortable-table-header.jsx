@@ -6,8 +6,11 @@ export default function SortableTableHeader({ label, sortKey, sortCriteria, setS
     return (
         <th onClick={() => {
             const sortOrder = isCurrentSortKey && sortCriteria[1] === 'asc' ? 'desc' : 'asc';
-            console.log([sortKey, sortOrder]);
             setSortCriteria([sortKey, sortOrder]);
+            // add to query params
+            const url = new URL(window.location.href);
+            url.searchParams.set('sort', `${sortKey}:${sortOrder}`);
+            window.history.pushState({}, '', url);
         }}>
             {label} {isCurrentSortKey ? (sortCriteria[1] === 'asc' ? '↑' : '↓') : ''}
         </th>

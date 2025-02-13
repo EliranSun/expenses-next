@@ -1,14 +1,13 @@
 import { CategoriesDropdown } from "../molecules/categories-dropdown";
 import { CurrencyAmount } from "./currency-amount";
 import { useState } from "react";
-import { deleteExpense } from "@/utils/db";
 
 const TableData = ({ children, className }) => {
     return <td className={`px-2 ${className}`}>{children}</td>
 }
 
 
-export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate, onRowClick }) => {
+export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate, onRowClick, deleteExpense }) => {
     const [isDeleteHovered, setIsDeleteHovered] = useState(false);
     const [isHideHovered, setIsHideHovered] = useState(false);
     const [category, setCategory] = useState(rowData.category || "");

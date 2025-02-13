@@ -18,7 +18,13 @@ const PrivateAccount = [
     "500-489746"
 ];
 
-export default function Table({ rows = [], updateCategory, updateNote, updateDate }) {
+export default function Table({
+    rows = [],
+    updateCategory,
+    updateNote,
+    updateDate,
+    deleteExpense
+}) {
     const tableRef = useRef(null);
     const query = useSearchParams();
     const pathname = usePathname();
@@ -26,7 +32,9 @@ export default function Table({ rows = [], updateCategory, updateNote, updateDat
     const categories = query.get("category") ? query.get("category").split(",") : [];
 
     const [rowIdsToFilter, setRowIdsToFilter] = useState([]);
-    const [sortCriteria, setSortCriteria] = useState(["date", "asc"]);
+
+    const querySort = query.get("sort");
+    const [sortCriteria, setSortCriteria] = useState(querySort ? querySort.split(":") : ["date", "asc"]);
 
     const year = pathname.split("/")[1];
     const month = pathname.split("/")[2];
@@ -173,6 +181,7 @@ export default function Table({ rows = [], updateCategory, updateNote, updateDat
                                 key={row.id || (row.name + row.amount + row.account + row.date)}
                                 rowData={row}
                                 updateCategory={updateCategory}
+                                deleteExpense={deleteExpense}
                                 updateNote={updateNote}
                                 updateDate={updateDate}
                                 onRowClick={() => {
