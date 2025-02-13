@@ -37,6 +37,10 @@ export async function fetchExpenses(year, month) {
 
 
 export async function getUnhandledExpenses() {
+    if (process.env.NODE_ENV === 'development') {
+        return [];
+    }
+
     const sql = neon(`${process.env.DATABASE_URL}`);
 
     const existingExpenses = await sql(`
@@ -85,7 +89,12 @@ export async function updateCategory(id, category) {
         category,
         id
     ]);
+}
 
+export async function deleteExpense(id) {
+    'use server';
+    const sql = neon(`${process.env.DATABASE_URL}`);
+    await sql('DELETE FROM expenses WHERE id = $1', [id]);
 }
 
 
