@@ -18,7 +18,8 @@ export default async function Home() {
           updateCategory={updateCategory}
           deleteExpense={deleteExpense}
         />
-        <textarea className='border-2 border-gray-300 rounded-md p-2' />
+        <textarea
+          className='border-2 border-gray-300 rounded-md p-2' />
       </main>
     </div>
   );
