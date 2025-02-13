@@ -1,5 +1,5 @@
 import PasteableExpensesTable from '@/features/PasteableExpensesTable';
-import { deleteExpenses, fetchExpenses, getUnhandledExpenses, insertExpenses, updateCategory } from '@/utils/db';
+import { deleteExpenses, fetchExpenses, getUnhandledExpenses, insertExpenses, updateCategory, deleteExpense } from '@/utils/db';
 
 export default async function Home() {
   const [unhandledExpenses, existingExpenses] = await Promise.all([
@@ -16,6 +16,7 @@ export default async function Home() {
           onSave={insertExpenses}
           deleteExpenses={deleteExpenses}
           updateCategory={updateCategory}
+          deleteExpense={deleteExpense}
         />
         <textarea className='border-2 border-gray-300 rounded-md p-2' />
       </main>
