@@ -1,5 +1,3 @@
-export const fetchCache = 'force-no-store';
-
 import { neon } from '@neondatabase/serverless';
 import { formatDateFromDB, formatDateToDB } from '.';
 
