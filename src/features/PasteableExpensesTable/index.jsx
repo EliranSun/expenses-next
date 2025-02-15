@@ -4,7 +4,7 @@ import Table from "@/components/organisms/table";
 import usePasteToRows from "@/features/PasteableExpensesTable/usePasteToRows";
 import { useCallback } from "react";
 import { Suspense } from "react";
-import { Navbar } from "@/components/molecules/date-navbar";
+import { Navbar } from "@/components/molecules/navbar";
 
 export default function TextToExpensesTable({
     expenses = [],

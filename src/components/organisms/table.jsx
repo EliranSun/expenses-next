@@ -30,15 +30,13 @@ export default function Table({
     const pathname = usePathname();
     const account = query.get("account");
     const categories = query.get("category") ? query.get("category").split(",") : [];
-
-    const [rowIdsToFilter, setRowIdsToFilter] = useState([]);
-
     const querySort = query.get("sort");
-    const [sortCriteria, setSortCriteria] = useState(querySort ? querySort.split(":") : ["date", "asc"]);
-
     const year = pathname.split("/")[1];
     const month = pathname.split("/")[2];
-    const temporalBudget = useMemo(() => Budget[year]?.[month], [year, month]);
+
+    const [rowIdsToFilter, setRowIdsToFilter] = useState([]);
+    const [sortCriteria, setSortCriteria] = useState(querySort ? querySort.split(":") : ["date", "asc"]);
+    const temporalBudget = useMemo(() => Budget[year]?.[month]?.[account] || 0, [year, month, account]);
     const budget = useMemo(() => {
         if (!temporalBudget) return 0;
 

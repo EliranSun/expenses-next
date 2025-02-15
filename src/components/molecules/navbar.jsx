@@ -93,6 +93,11 @@ export const Navbar = ({ year, month }) => {
                     onClick={() => router.push(preserveQueryParams(`/${year}/${month}`, { account: "shared" }))}>
                     Shared
                 </li>
+                <li
+                    className={`${account === "wife" ? "bg-amber-500 text-white" : ""}`}
+                    onClick={() => router.push(preserveQueryParams(`/${year}/${month}`, { account: "wife" }))}>
+                    Wife
+                </li>
             </NavbarRow>
         </div>
     );
