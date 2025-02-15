@@ -18,6 +18,15 @@ const PrivateAccount = [
     "500-489746"
 ];
 
+const SharedAccount = [
+    "9325",
+    "754-320766",
+];
+
+const WifeAccount = [
+];
+
+
 export default function Table({
     rows = [],
     updateCategory,
@@ -60,8 +69,13 @@ export default function Table({
             if (account) {
                 if (account === "private") {
                     accountMatch = PrivateAccount.includes(row.account);
+                } else if (account === "shared") {
+                    accountMatch = SharedAccount.includes(row.account);
+                } else if (account === "wife") {
+                    accountMatch = WifeAccount.includes(row.account);
                 } else {
-                    accountMatch = !PrivateAccount.includes(row.account);
+                    // all
+                    accountMatch = true;
                 }
             }
 
