@@ -3,7 +3,6 @@ import { updateCategory, fetchExpenses, deleteExpense, updateNote, updateDate, u
 
 export default async function YearMonthPage({ params }) {
   const { year, month } = await params;
-
   const existingExpenses = await fetchExpenses(year, month);
 
   return (

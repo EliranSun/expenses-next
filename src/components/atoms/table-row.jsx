@@ -32,7 +32,9 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
                     }} />
 
             </TableData>
-            <TableData className="w-40 max-w-40 text-xs overflow-hidden whitespace-nowrap">{rowData.name}</TableData>
+            <TableData className="w-40 max-w-40 text-xs overflow-hidden whitespace-nowrap">
+                {rowData.name}
+            </TableData>
             <TableData>
                 <CategoriesDropdown
                     value={category}
@@ -42,7 +44,9 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
                         updateCategory(rowData.id, value);
                     }} />
             </TableData>
-            <TableData className="w-28 max-w-28 text-sm overflow-hidden whitespace-nowrap">{rowData.account}</TableData>
+            <TableData className="w-28 max-w-28 text-sm overflow-hidden whitespace-nowrap">
+                {rowData.account}
+            </TableData>
             <TableData>
                 <CurrencyAmount
                     isPositive={rowData.category === "income"}

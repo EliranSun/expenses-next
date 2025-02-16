@@ -1,25 +1,15 @@
-import PasteableExpensesTable from '@/features/PasteableExpensesTable';
-import { deleteExpenses, fetchExpenses, getUnhandledExpenses, insertExpenses, updateCategory, deleteExpense } from '@/utils/db';
+import { fetchExpenses } from '@/utils/db';
+import { Navbar } from '@/components/molecules/navbar';
+import PlainSearchableTable from '@/features/PlainSearchableTable';
 
 export default async function Home() {
-  const [unhandledExpenses, existingExpenses] = await Promise.all([
-    getUnhandledExpenses(),
-    fetchExpenses()
-  ]);
+  const allExpenses = await fetchExpenses();
 
   return (
     <div className="flex flex-col gap-1 w-full h-full items-center justify-center">
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <PasteableExpensesTable
-          existingExpenses={existingExpenses}
-          expenses={unhandledExpenses}
-          onSave={insertExpenses}
-          deleteExpenses={deleteExpenses}
-          updateCategory={updateCategory}
-          deleteExpense={deleteExpense}
-        />
-        <textarea
-          className='border-2 border-gray-300 rounded-md p-2' />
+        <Navbar />
+        <PlainSearchableTable items={allExpenses} />
       </main>
     </div>
   );

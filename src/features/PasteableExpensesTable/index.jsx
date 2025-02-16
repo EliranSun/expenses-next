@@ -2,9 +2,10 @@
 
 import Table from "@/components/organisms/table";
 import usePasteToRows from "@/features/PasteableExpensesTable/usePasteToRows";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { Suspense } from "react";
 import { Navbar } from "@/components/molecules/navbar";
+import Search from "@/features/Search";
 
 export default function TextToExpensesTable({
     expenses = [],
@@ -28,20 +29,22 @@ export default function TextToExpensesTable({
     }, [expenses]));
 
     const [rows] = usePasteToRows(expenses, pasteFilterLogic, existingExpenses);
-
-    console.log({ expenses, rows });
+    const [searchResults, setSearchResults] = useState(rows);
 
     return (
         <Suspense fallback={<div>Loading...</div>}>
             <Navbar year={year} month={month} />
+            <Search items={rows} onSearch={setSearchResults} />
             <button
                 className="bg-blue-500 text-white px-4 py-2 rounded-md fixed bottom-10 left-8"
                 onClick={() => onSave(rows)}>Save {rows.length}</button>
             <button
                 className="bg-red-500 text-white px-4 py-2 rounded-md fixed bottom-10 left-36"
-                onClick={() => deleteExpenses(rows.map(row => row.id))}>Delete {rows.length}</button>
+                onClick={() => deleteExpenses(rows.map(row => row.id))}>
+                Delete {rows.length}
+            </button>
             <Table
-                rows={rows}
+                rows={searchResults}
                 updateCategory={updateCategory}
                 updateNote={updateNote}
                 updateDate={updateDate}

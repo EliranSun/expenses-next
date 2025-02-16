@@ -23,6 +23,11 @@ export async function fetchExpenses(year, month) {
             if (year && month) {
                 return expense.month === month && expense.year === year;
             }
+
+            if (year) {
+                return expense.year === year;
+            }
+
             return true;
         })
         .sort((a, b) => {
