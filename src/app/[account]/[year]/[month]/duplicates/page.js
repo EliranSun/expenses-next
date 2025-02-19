@@ -4,7 +4,7 @@ import { getDuplicates } from './utils';
 export default async function YearMonthPage({ params }) {
     const { year, month } = await params;
 
-    const existingExpenses = await fetchExpenses(year, month);
+    const existingExpenses = await fetchExpenses({ year, month });
     const duplicates = getDuplicates(existingExpenses);
 
     return (

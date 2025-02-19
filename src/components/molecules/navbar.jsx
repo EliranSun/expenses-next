@@ -3,8 +3,8 @@ import { useRouter } from 'next/navigation';
 import { Categories } from '@/constants';
 import { useSearchParams } from 'next/navigation';
 import { usePathname } from 'next/navigation';
-// Utility function to preserve and update query parameters
-const preserveQueryParams = (path, newParams = {}) => {
+
+const buildPath = (path, newParams = {}) => {
     const query = new URLSearchParams(window.location.search);
     Object.entries(newParams).forEach(([key, value]) => {
         if (value === null) {
@@ -40,44 +40,72 @@ export const Navbar = () => {
     const searchParams = useSearchParams();
     const pathname = usePathname();
     const categories = searchParams.get("category") ? searchParams.get("category").split(",") : [];
-    const account = searchParams.get("account");
-    const year = pathname.split("/")[1];
-    const month = pathname.split("/")[2];
-
-    console.log({ pathname, year, month });
+    const accountOrFunctionality = pathname.split("/")[1];
+    const year = pathname.split("/")[2];
+    const month = pathname.split("/")[3];
 
     return (
-        <div className='flex flex-col text-sm cursor-pointer'>
+        <div className='w-full flex flex-col text-sm cursor-pointer'>
             <NavbarRow>
                 <NavbarItem
                     isSelected={pathname === '/'}
-                    onClick={() => router.push(preserveQueryParams(`/`))}>ALL</NavbarItem>
+                    onClick={() => router.push(buildPath(`/`))}>🏠</NavbarItem>
                 <NavbarItem
-                    isSelected={year.toLowerCase() === 'add'}
-                    onClick={() => router.push(preserveQueryParams(`/add`))}>ADD</NavbarItem>
+                    isSelected={accountOrFunctionality === 'add'}
+                    onClick={() => router.push(buildPath(`/add`))}>➕</NavbarItem>
             </NavbarRow>
             <NavbarRow>
-                {Years.map((y) => (
+                <NavbarItem
+                    isSelected={accountOrFunctionality === 'all'}
+                    onClick={() => router.push(buildPath("/all"))}>
+                    All
+                </NavbarItem>
+                <NavbarItem
+                    isSelected={accountOrFunctionality === "private"}
+                    className={`${accountOrFunctionality === "private" ? "bg-amber-500 text-white" : ""}`}
+                    onClick={() => router.push(buildPath("/private"))}>
+                    Private
+                </NavbarItem>
+                <NavbarItem
+                    isSelected={accountOrFunctionality === "shared"}
+                    className={`${accountOrFunctionality === "shared" ? "bg-amber-500 text-white" : ""}`}
+                    onClick={() => router.push(buildPath("/shared"))}>
+                    Shared
+                </NavbarItem>
+                <NavbarItem
+                    isSelected={accountOrFunctionality === "wife"}
+                    className={`${accountOrFunctionality === "wife" ? "bg-amber-500 text-white" : ""}`}
+                    onClick={() => router.push(buildPath("/wife"))}>
+                    Wife
+                </NavbarItem>
+            </NavbarRow>
+            <NavbarRow>
+                {Years.map((yearNumber) => (
                     <NavbarItem
-                        key={y}
-                        isSelected={year.toLowerCase() === y.toLowerCase()}
-                        onClick={() => router.push(preserveQueryParams(`/${y}`))}
-                    >{`20${y}`}</NavbarItem>
+                        key={yearNumber}
+                        isSelected={year?.toLowerCase() === yearNumber.toLowerCase()}
+                        onClick={() => router.push(buildPath(`/${accountOrFunctionality}/${yearNumber}`))}
+                    >
+                        {`20${yearNumber}`}
+                    </NavbarItem>
                 ))}
             </NavbarRow>
             <NavbarRow>
-                {Months.map((m) => (
+                {Months.map((monthNumber) => (
                     <NavbarItem
-                        key={m}
-                        isSelected={month?.toLowerCase() === m.toLowerCase()}
-                        onClick={() => router.push(preserveQueryParams(`/${year}/${m}`))}
-                    >{m}</NavbarItem>
+                        key={monthNumber}
+                        isSelected={month?.toLowerCase() === monthNumber.toLowerCase()}
+                        onClick={() => router.push(buildPath(`/${accountOrFunctionality}/${year}/${monthNumber}`))}>
+                        {monthNumber}
+                    </NavbarItem>
                 ))}
             </NavbarRow>
             <NavbarRow>
                 {Object.entries(Categories).map(([key, value]) => (
                     <NavbarItem
                         key={key}
+                        isSelected={categories.includes(key)}
+                        className={`flex text-xs ${categories.includes(key) ? "bg-amber-500 text-white" : ""}`}
                         onClick={() => {
                             const categoryIndex = categories.indexOf(key);
 
@@ -88,36 +116,14 @@ export const Navbar = () => {
                             }
 
                             const newCategory = categories.length ? categories.join(",") : null;
-                            router.push(preserveQueryParams(`/${year}/${month}`, { category: newCategory }));
-                        }}
-                        className={`flex text-xs ${categories.includes(key) ? "bg-amber-500 text-white" : ""}`}>
-                        {value.name}
+                            const existingPath = `/${accountOrFunctionality}/${year}/${month}`;
+                            router.push(buildPath(existingPath, { category: newCategory }));
+                        }}>
+                        {value.emoji}{value.name.slice(0, 2)}
                     </NavbarItem>
                 ))}
             </NavbarRow>
 
-            <NavbarRow>
-                <NavbarItem
-                    className={`${account === "all" ? "bg-amber-500 text-white" : ""}`}
-                    onClick={() => router.push(preserveQueryParams(`/${year}/${month}`, { account: null }))}>
-                    All
-                </NavbarItem>
-                <NavbarItem
-                    className={`${account === "private" ? "bg-amber-500 text-white" : ""}`}
-                    onClick={() => router.push(preserveQueryParams(`/${year}/${month}`, { account: "private" }))}>
-                    Private
-                </NavbarItem>
-                <NavbarItem
-                    className={`${account === "shared" ? "bg-amber-500 text-white" : ""}`}
-                    onClick={() => router.push(preserveQueryParams(`/${year}/${month}`, { account: "shared" }))}>
-                    Shared
-                </NavbarItem>
-                <NavbarItem
-                    className={`${account === "wife" ? "bg-amber-500 text-white" : ""}`}
-                    onClick={() => router.push(preserveQueryParams(`/${year}/${month}`, { account: "wife" }))}>
-                    Wife
-                </NavbarItem>
-            </NavbarRow>
         </div>
     );
 };

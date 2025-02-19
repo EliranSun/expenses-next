@@ -1,9 +1,31 @@
 import { neon } from '@neondatabase/serverless';
 import { formatDateFromDB, formatDateToDB } from '.';
+import { Accounts } from '@/constants/account';
 
-export async function fetchExpenses(year, month) {
+export async function fetchExpenses({ account, year, month }) {
     const sql = neon(`${process.env.DATABASE_URL}`);
-    const existingExpenses = await sql('SELECT name, amount, date, account, category, id, note FROM expenses');
+
+    // Construct the base query
+    let query = 'SELECT name, amount, date, account, category, id, note FROM expenses';
+    const conditions = [];
+    const params = [];
+
+    // Add conditions based on provided parameters
+    if (account) {
+        if (!Accounts[account] || Accounts[account].length === 0) {
+            console.log("No account provided");
+            return [];
+        }
+
+        query += ' WHERE account IN (';
+        const accountPlaceholders = Accounts[account].map((_, index) => `$${index + 1}`).join(', ');
+        query += accountPlaceholders + ')';
+        params.push(...Accounts[account]);
+    }
+
+    console.log({ query, params });
+
+    const existingExpenses = await sql(query, params);
 
     const mappedExpenses = existingExpenses.map(expense => {
         const splitDate = expense.date.split("/");

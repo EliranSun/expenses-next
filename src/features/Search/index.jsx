@@ -29,8 +29,8 @@ export default function Search({ items = [], onSearch }) {
 
     useEffect(() => {
         const url = new URL(window.location.href);
-        const search = url.searchParams.get("search");
-        setSearch(search || "");
+        const search = url.searchParams.get("search") || "";
+        setSearch(search);
         onSearch(filterItems(items, search));
     }, []);
 

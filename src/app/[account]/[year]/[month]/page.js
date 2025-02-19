@@ -3,7 +3,7 @@ import { updateCategory, fetchExpenses, deleteExpense, updateNote, updateDate, u
 
 export default async function YearMonthPage({ params }) {
   const { year, month } = await params;
-  const existingExpenses = await fetchExpenses(year, month);
+  const existingExpenses = await fetchExpenses({ year, month });
 
   return (
     <div className="flex flex-col gap-1 w-full h-full items-center justify-center">
