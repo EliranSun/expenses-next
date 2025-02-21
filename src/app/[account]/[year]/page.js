@@ -2,9 +2,9 @@ import PasteableExpensesTable from '@/features/PasteableExpensesTable';
 import { updateCategory, fetchExpenses, deleteExpense, updateNote, updateDate, updateExpenses } from '@/utils/db';
 
 export default async function YearPage({ params }) {
-    const { year } = await params;
+    const { year, account } = await params;
 
-    const existingExpenses = await fetchExpenses({ year });
+    const existingExpenses = await fetchExpenses({ year, account });
 
     return (
         <div className="flex flex-col gap-1 w-full h-full items-center justify-center">
