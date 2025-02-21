@@ -2,7 +2,7 @@ import { neon } from '@neondatabase/serverless';
 import { formatDateFromDB, formatDateToDB } from '.';
 import { Accounts } from '@/constants/account';
 
-export async function fetchExpenses({ account, year, month }) {
+export async function fetchExpenses({ account, year, month } = {}) {
     const sql = neon(`${process.env.DATABASE_URL}`);
 
     // Construct the base query
