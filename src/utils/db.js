@@ -23,8 +23,6 @@ export async function fetchExpenses({ account, year, month } = {}) {
         params.push(...Accounts[account]);
     }
 
-    console.log({ query, params });
-
     const existingExpenses = await sql(query, params);
 
     const mappedExpenses = existingExpenses.map(expense => {

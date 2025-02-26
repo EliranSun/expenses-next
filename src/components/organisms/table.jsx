@@ -2,8 +2,8 @@
 
 import { TableRow } from "../atoms/table-row";
 import keys from "@/app/he.json";
-import { useRef, useMemo, useState } from "react";
-import { useSearchParams, usePathname } from "next/navigation";
+import { useRef, useMemo, useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Budget } from "@/constants/budget";
 import InfoDisplay from "../molecules/info-display";
 import { orderBy } from "lodash";
@@ -19,16 +19,16 @@ export default function Table({
 }) {
     const tableRef = useRef(null);
     const query = useSearchParams();
-    const pathname = usePathname();
     const account = query.get("account");
     const categories = query.get("category") ? query.get("category").split(",") : [];
     const querySort = query.get("sort");
-    const year = pathname.split("/")[1];
-    const month = pathname.split("/")[2];
+    const year = query.get("year");
+    const month = query.get("month");
 
     const [rowIdsToFilter, setRowIdsToFilter] = useState([]);
     const [sortCriteria, setSortCriteria] = useState(querySort ? querySort.split(":") : ["date", "asc"]);
     const temporalBudget = useMemo(() => Budget[year]?.[month]?.[account] || 0, [year, month, account]);
+
     const budget = useMemo(() => {
         if (!temporalBudget) return 0;
 
@@ -87,9 +87,13 @@ export default function Table({
 
     const showFoo = categories.length === 0 || categories.includes("income");
 
+    useEffect(() => {
+        console.log(filteredRows.filter((row) => row.amount < 0));
+    }, [filteredRows]);
+
     return (
         <>
-            <div className={`w-full md:w-2/3 flex flex-col md:flex-row justify-between`} dir="rtl">
+            <div className={`w-full flex flex-col md:flex-row justify-between`} dir="rtl">
                 <div className="relative flex flex-col border-2">
                     <span className="absolute -top-6 right-0">
                         {keys.actual_title}
@@ -128,7 +132,7 @@ export default function Table({
                     </div>
                 </div>
             </div>
-            <div className="w-full min-h-fit max-h-[66vh] max-w-[95vw] overflow-x-auto pb-96">
+            <div className="w-full h-full border-2 overflow-auto pb-80">
                 <table ref={tableRef} dir="rtl" data-testid="pasteable-expenses-table" className="w-full">
                     <thead>
                         <tr>
