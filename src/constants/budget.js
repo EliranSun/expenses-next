@@ -71,5 +71,28 @@ export const Budget = {
                 entertainment: 1000,
             }
         },
+        '05': {
+            private: {
+                income: 15000,
+                self: 600,
+                restaurants: 1000,
+                house: 5800,
+                groceries: 1000,
+                vacation: 0,
+                wedding: 0,
+                workout: 800,
+                subscriptions: 100,
+                animals: 300,
+                transportation: 100,
+                gifts: 100,
+                savings: 500,
+                car: 250,
+                fees: 750,
+                games: 0,
+                tech: 0,
+                online: 0,
+                entertainment: 0,
+            }
+        }
     },
 };
