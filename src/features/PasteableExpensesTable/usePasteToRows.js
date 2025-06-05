@@ -2,19 +2,13 @@ import { useState, useEffect } from "react";
 import { parseTextToRows } from "@/utils";
 import { formatDateFromDB } from '@/utils';
 
-export default function usePasteToRows(expenses = [], pasteFilterLogic = () => { }, existingExpenses = []) {
+export default function usePasteToRows(expenses = [], pasteFilterLogic = () => { }, existingExpenses = [], onSave = () => { }) {
     const [rows, setRows] = useState(expenses);
 
     useEffect(() => {
         const handlePaste = (event) => {
             const pastedData = event.clipboardData.getData('Text');
             const parsedRows = parseTextToRows(pastedData);
-
-            console.log("usePasteToRows", {
-                existingExpenses: existingExpenses.length,
-                expenses: expenses.length,
-                parsedRows: parsedRows.length,
-            });
 
             const filteredRows = parsedRows
                 .filter(pasteFilterLogic)
@@ -26,13 +20,10 @@ export default function usePasteToRows(expenses = [], pasteFilterLogic = () => {
                         expense.account === row.account
                     );
 
-                    debugger;
                     return !existingExpense;
                 });
 
-            console.log("filteredRows", filteredRows.length);
-
-            setRows([
+            const newRows = [
                 ...expenses,
                 ...filteredRows.map(row => {
                     const splitDate = row.date.split("/");
@@ -48,7 +39,10 @@ export default function usePasteToRows(expenses = [], pasteFilterLogic = () => {
                     };
                 })
 
-            ]);
+            ];
+
+            onSave(newRows);
+            setRows(newRows);
         };
 
 

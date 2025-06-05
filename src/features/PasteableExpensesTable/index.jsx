@@ -28,7 +28,7 @@ export default function TextToExpensesTable({
         );
     }, [expenses]));
 
-    const [rows] = usePasteToRows(expenses, pasteFilterLogic, existingExpenses);
+    const [rows] = usePasteToRows(expenses, pasteFilterLogic, existingExpenses, onSave);
     const [searchResults, setSearchResults] = useState(rows);
 
     return (
@@ -38,13 +38,13 @@ export default function TextToExpensesTable({
                     <Navbar year={year} month={month} />
                 </div>
                 {/* <button
-                className="bg-blue-500 text-white px-4 py-2 rounded-md fixed bottom-10 left-8"
-                onClick={() => onSave(rows)}>Save {rows.length}</button>
-            <button
-                className="bg-red-500 text-white px-4 py-2 rounded-md fixed bottom-10 left-36"
-                onClick={() => deleteExpenses(rows.map(row => row.id))}>
-                Delete {rows.length}
-            </button> */}
+                    className="bg-blue-500 text-white px-4 py-2 rounded-md fixed bottom-10 left-8"
+                    onClick={() => onSave(rows)}>Save {rows.length}</button>
+                <button
+                    className="bg-red-500 text-white px-4 py-2 rounded-md fixed bottom-10 left-36"
+                    onClick={() => deleteExpenses(rows.map(row => row.id))}>
+                    Delete {rows.length}
+                </button> */}
                 <div className="w-3/4 flex flex-col gap-8">
                     <Search items={rows} onSearch={setSearchResults} />
                     <Table
