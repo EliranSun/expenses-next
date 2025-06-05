@@ -61,7 +61,7 @@ export async function fetchExpenses({ account, year, month } = {}) {
 }
 
 
-export async function getUnhandledExpenses() {
+export async function getUnhandledExpenses({ year, month, account } = {}) {
     const sql = neon(`${process.env.DATABASE_URL}`);
 
     const existingExpenses = await sql(`
@@ -70,10 +70,31 @@ export async function getUnhandledExpenses() {
         WHERE category IS NULL OR date IS NULL OR date = ''
     `);
 
-    return existingExpenses.map(expense => ({
-        ...expense,
-        date: formatDateFromDB(expense.date)
-    }));
+    return existingExpenses.map(expense => {
+        const splitDate = expense.date.split("/");
+        const year = splitDate[2];
+        const month = splitDate[1];
+        const day = splitDate[0];
+
+        return {
+            ...expense,
+            date: formatDateFromDB(expense.date),
+            month,
+            year,
+            timestamp: new Date(`20${year}`, month - 1, day).getTime()
+        }
+    })
+        .filter(expense => {
+            if (year && month) {
+                return expense.month === month && expense.year === year;
+            }
+
+            if (year) {
+                return expense.year === year;
+            }
+
+            return true;
+        });
 }
 
 export async function deleteExpenses(ids) {

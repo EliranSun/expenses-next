@@ -25,9 +25,11 @@ const Years = ['22', '23', '24', '25', '26', '27', '28'];
 const Months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
 const Accounts = ['all', 'private', 'shared', 'wife'];
 
-const NavbarRow = ({ children, cols = 12 }) => {
+const NavbarRow = ({ children, cols }) => {
     return (
-        <ul className={classNames("flex flex-wrap gap-1 md:grid bg-gray-100 rounded-md m-1 w-full", {
+        <ul className={classNames("gap-1 bg-gray-100 rounded-md m-1 w-full", {
+            "md:flex flex-wrap": !cols,
+            "md:grid": cols > 0,
             "md:grid-cols-12": cols === 12 || !cols,
             "md:grid-cols-4": cols === 4,
             "md:grid-cols-6": cols === 6,
@@ -44,7 +46,7 @@ const NavbarRow = ({ children, cols = 12 }) => {
 
 const NavbarItem = ({ children, isSelected, className, ...rest }) => {
     return (
-        <li {...rest} className={`hover:bg-amber-500 hover:text-white p-2 w-full shrink-0
+        <li {...rest} className={`hover:bg-amber-500 hover:text-white p-2
             ${isSelected ? "bg-amber-500 text-white rounded-md" : ""} ${className}`}>{children}</li>
     );
 };
@@ -67,15 +69,15 @@ export const Navbar = () => {
     };
 
     return (
-        <div className='w-full flex flex-col text-sm cursor-pointer'>
-            <NavbarRow>
+        <div className='flex flex-col text-sm cursor-pointer'>
+            {/* <NavbarRow>
                 <NavbarItem
                     isSelected={pathname === '/'}
                     onClick={() => router.push('/')}>🏠</NavbarItem>
                 <NavbarItem
                     isSelected={pathname === '/add'}
                     onClick={() => router.push('/add')}>➕</NavbarItem>
-            </NavbarRow>
+            </NavbarRow> */}
             <NavbarRow cols={4}>
                 {Accounts.map((accountName) => (
                     <NavbarItem
@@ -86,7 +88,7 @@ export const Navbar = () => {
                     </NavbarItem>
                 ))}
             </NavbarRow>
-            <NavbarRow cols={Years.length}>
+            <NavbarRow>
                 {Years.map((yearNumber) => (
                     <NavbarItem
                         key={yearNumber}

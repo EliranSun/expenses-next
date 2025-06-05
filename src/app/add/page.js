@@ -1,26 +1,31 @@
 import PasteableExpensesTable from '@/features/PasteableExpensesTable';
-import { deleteExpenses, fetchExpenses, getUnhandledExpenses, insertExpenses, updateCategory, deleteExpense } from '@/utils/db';
+import {
+    deleteExpenses, fetchExpenses,
+    getUnhandledExpenses, insertExpenses, updateCategory, deleteExpense, updateNote
+} from '@/utils/db';
+import Link from 'next/link';
+export default async function Home({ searchParams }) {
+    const { year, month, account } = await searchParams;
 
-export default async function Home() {
     const [unhandledExpenses, existingExpenses] = await Promise.all([
-        getUnhandledExpenses(),
-        fetchExpenses()
+        getUnhandledExpenses({ year, month, account }),
+        fetchExpenses({ year, month, account })
     ]);
 
     return (
-        <div className="flex flex-col gap-1 w-full h-full items-center justify-center">
-            <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-                <PasteableExpensesTable
-                    existingExpenses={existingExpenses}
-                    expenses={unhandledExpenses}
-                    onSave={insertExpenses}
-                    deleteExpenses={deleteExpenses}
-                    updateCategory={updateCategory}
-                    deleteExpense={deleteExpense}
-                />
-                <textarea
-                    className='border-2 border-gray-300 rounded-md p-2' />
-            </main>
+        <div>
+            <h1 className="text-2xl font-bold w-full text-center mt-4">ADD</h1>
+            <Link href="/">HOME</Link>
+
+            <PasteableExpensesTable
+                existingExpenses={existingExpenses}
+                expenses={unhandledExpenses}
+                onSave={insertExpenses}
+                deleteExpenses={deleteExpenses}
+                updateCategory={updateCategory}
+                deleteExpense={deleteExpense}
+                updateNote={updateNote}
+            />
         </div>
     );
 }

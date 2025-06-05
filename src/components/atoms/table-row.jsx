@@ -3,7 +3,7 @@ import { CurrencyAmount } from "./currency-amount";
 import { useState } from "react";
 
 const TableData = ({ children, className }) => {
-    return <td className={`px-2 ${className}`}>{children}</td>
+    return <td className={`px-4 ${className}`}>{children}</td>
 }
 
 
@@ -16,7 +16,7 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
 
     return (
         <tr className={`bg-gray-100 dark:bg-transparent
-         even:bg-white dark:even:bg-neutral-800 text-sm
+         even:bg-white dark:even:bg-neutral-800
          ${isDeleteHovered ? "text-red-500" : ""}
          ${isHideHovered ? "text-gray-500" : ""}`}>
             <TableData>
@@ -32,15 +32,15 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
                     }} />
 
             </TableData>
-            <TableData className="w-40 max-w-40 text-xs overflow-hidden whitespace-nowrap">
+            <TableData className="w-20">
                 {rowData.name}
             </TableData>
             <TableData>
                 <CategoriesDropdown
                     value={category}
-                    onChange={(value) => {
+                    onCategoryChange={(value) => {
                         console.log("Changing category:", value);
-                        setCategory(value);
+                        setCategory(value === category ? "" : value);
                         updateCategory(rowData.id, value);
                     }} />
             </TableData>
@@ -69,7 +69,7 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
 
 
             </TableData>
-            <TableData>
+            {/* <TableData>
                 <button
                     onMouseEnter={() => setIsHideHovered(true)}
                     onMouseLeave={() => setIsHideHovered(false)}
@@ -87,7 +87,7 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
                     }}>
                     מחק
                 </button>}
-            </TableData>
+            </TableData> */}
         </tr>
 
     );

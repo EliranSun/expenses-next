@@ -2,26 +2,21 @@
 import keys from "@/app/he.json";
 import { Categories } from "@/constants";
 
-export const CategoriesDropdown = ({ value = "", onChange }) => {
+export const CategoriesDropdown = ({ value = "", onCategoryChange }) => {
     return (
-        <select
-            className="bg-transparent text-xs w-20"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}>
-            <option value="" className="dark:bg-neutral-800">
-                -
-            </option>
+        <div className="flex flex-row-reverse flex-wrap gap-2 w-full text-right items-end justify-end">
             {Object
                 .entries(keys.categories)
+                .filter(([key, category]) => value === "" ? true : value === key)
                 .sort((a, b) => a[1].localeCompare(b[1]))
                 .map(([key, value]) => (
-                    <option
+                    <button
                         key={key}
-                        className="dark:bg-neutral-800"
-                        value={key}>
+                        className="dark:bg-neutral-800 hover:bg-amber-500 hover:text-white p-1"
+                        onClick={() => onCategoryChange(key)}>
                         {Categories[key].emoji} {value}
-                    </option>
+                    </button>
                 ))}
-        </select>
+        </div>
     );
 };

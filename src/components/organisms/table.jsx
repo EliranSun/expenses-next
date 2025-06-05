@@ -2,13 +2,14 @@
 
 import { TableRow } from "../atoms/table-row";
 import keys from "@/app/he.json";
-import { useRef, useMemo, useState, useEffect } from "react";
+import { useRef, useMemo, useState, Fragment } from "react";
 import { useSearchParams } from "next/navigation";
 import { Budget } from "@/constants/budget";
 import InfoDisplay from "../molecules/info-display";
 import { orderBy } from "lodash";
 import SortableTableHeader from "../molecules/sortable-table-header";
 import { PrivateAccount, SharedAccount, WifeAccount } from "@/constants/account";
+import { CategoriesDropdown } from "../molecules/categories-dropdown";
 
 export default function Table({
     rows = [],
@@ -87,12 +88,8 @@ export default function Table({
 
     const showFoo = categories.length === 0 || categories.includes("income");
 
-    useEffect(() => {
-        console.log(filteredRows.filter((row) => row.amount < 0));
-    }, [filteredRows]);
-
     return (
-        <>
+        <div>
             <div className={`w-full flex flex-col md:flex-row justify-between`} dir="rtl">
                 <div className="relative flex flex-col border-2">
                     <span className="absolute -top-6 right-0">
@@ -132,7 +129,8 @@ export default function Table({
                     </div>
                 </div>
             </div>
-            <div className="w-full h-full border-2 overflow-auto pb-80">
+            <div className="w-full h-full border-2 overflow-auto">
+                {filteredRows.length}
                 <table ref={tableRef} dir="rtl" data-testid="pasteable-expenses-table" className="w-full">
                     <thead>
                         <tr>
@@ -176,21 +174,29 @@ export default function Table({
                     </thead>
                     <tbody>
                         {filteredRows.map((row) => (
-                            <TableRow
-                                key={row.id || (row.name + row.amount + row.account + row.date)}
-                                rowData={row}
-                                updateCategory={updateCategory}
-                                deleteExpense={deleteExpense}
-                                updateNote={updateNote}
-                                updateDate={updateDate}
-                                onRowClick={() => {
-                                    setRowIdsToFilter([...rowIdsToFilter, row.id]);
-                                }}
-                            />
+                            <Fragment key={row.id || (row.name + row.amount + row.account + row.date)}>
+                                <TableRow
+                                    rowData={row}
+                                    updateCategory={updateCategory}
+                                    deleteExpense={deleteExpense}
+                                    updateNote={updateNote}
+                                    updateDate={updateDate}
+                                    onRowClick={() => {
+                                        setRowIdsToFilter([...rowIdsToFilter, row.id]);
+                                    }}
+                                />
+                                {/* <CategoriesDropdown
+                                    value={row.category}
+                                    onChange={(value) => {
+                                        console.log("Changing category:", value);
+                                        updateCategory(row.id, value);
+                                    }} /> */}
+                            </Fragment>
                         ))}
                     </tbody>
+
                 </table>
             </div>
-        </>
+        </div>
     );
 }

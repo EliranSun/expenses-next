@@ -1,5 +1,6 @@
-import { fetchExpenses } from '@/utils/db';
+import { fetchExpenses, updateCategory } from '@/utils/db';
 import PlainSearchableTable from '@/features/PlainSearchableTable';
+import Link from 'next/link';
 
 export default async function Home({ searchParams }) {
   const { year, month, account } = await searchParams;
@@ -8,10 +9,15 @@ export default async function Home({ searchParams }) {
   console.log({ year, month, account });
 
   return (
-    <div className="flex flex-col gap-1 w-full h-full items-center justify-center">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <PlainSearchableTable items={existingExpenses} />
-      </main>
+    <div className="p-8">
+
+      <Link href="/add">Add</Link>
+      <h1 className="text-2xl font-bold w-full text-center mt-4">HOME</h1>
+
+      <PlainSearchableTable
+        items={existingExpenses}
+        updateCategory={updateCategory}
+      />
     </div>
   );
 }

@@ -5,7 +5,7 @@ import Search from '@/features/Search';
 import Table from '@/components/organisms/table';
 import { Navbar } from '@/components/molecules/navbar';
 
-export default function PlainSearchableTable({ items = [] }) {
+export default function PlainSearchableTable({ items = [], updateCategory }) {
     const [searchResults, setSearchResults] = useState(items);
 
     useEffect(() => {
@@ -14,13 +14,13 @@ export default function PlainSearchableTable({ items = [] }) {
 
     return (
         <Suspense fallback={<div>Loading...</div>}>
-            <div className='flex flex-col md:flex-row-reverse gap-8 m-4 md:h-[95vh] overflow-hidden'>
-                <div className='w-full md:w-1/3'>
+            <div className='w-full flex flex-col md:flex-row-reverse gap-8 m-4 overflow-hidden'>
+                <div className='w-full md:w-1/4'>
                     <Navbar />
                 </div>
-                <div className="px-4 md:px-0w-full md:w-2/3 space-y-8">
+                <div className="px-4 md:px-0w-full md:w-3/4 space-y-8">
                     <Search items={items} onSearch={setSearchResults} />
-                    <Table rows={searchResults} />
+                    <Table rows={searchResults} updateCategory={updateCategory} />
                 </div>
             </div>
         </Suspense>
