@@ -1,4 +1,4 @@
-import { fetchExpenses, updateCategory } from '@/utils/db';
+import { fetchExpenses, updateCategory, updateNote } from '@/utils/db';
 import PlainSearchableTable from '@/features/PlainSearchableTable';
 import Link from 'next/link';
 
@@ -17,6 +17,7 @@ export default async function Home({ searchParams }) {
       <PlainSearchableTable
         items={existingExpenses}
         updateCategory={updateCategory}
+        updateNote={updateNote}
       />
     </div>
   );
