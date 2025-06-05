@@ -95,7 +95,7 @@ export default function Table({
                     <span className="absolute -top-6 right-0">
                         {keys.actual_title}
                     </span>
-                    <div className="grid grid-cols-3 gap-1 border-2 ">
+                    <div className="grid grid-cols-4 gap-1 border-2 ">
                         {showFoo && <InfoDisplay label={keys.total_income} amount={totalIncome} />}
                         <InfoDisplay label={keys.total_expenses} amount={totalExpenses} />
                         {showFoo &&
@@ -103,13 +103,19 @@ export default function Table({
                                 showColorIndication
                                 label={keys.bottom_line}
                                 amount={totalIncome - totalExpenses} />}
+
+                        <InfoDisplay
+                            showColorIndication
+                            showPercentage
+                            amount={Math.round((totalIncome - totalExpenses) / totalIncome * 100)}
+                        />
                     </div>
                 </div>
                 <div className="relative flex flex-col border-2">
                     <span className="absolute -top-6 right-0">
                         {keys.budget_title}
                     </span>
-                    <div className="grid grid-cols-3 gap-1">
+                    <div className="grid grid-cols-4 gap-1">
                         {showFoo && temporalBudget &&
                             <InfoDisplay
                                 label={keys.expected_income}
@@ -120,11 +126,16 @@ export default function Table({
                             amount={budget}
                         />
                         <InfoDisplay
+                            showColorIndication
                             label={keys.budget_difference || "Budget difference"}
                             amount={categories.length === 0 && temporalBudget
                                 ? temporalBudget.income - budget
                                 : budget - totalExpenses}
+                        />
+                        <InfoDisplay
                             showColorIndication
+                            showPercentage
+                            amount={Math.round((temporalBudget.income - budget) / temporalBudget.income * 100)}
                         />
                     </div>
                 </div>
