@@ -110,13 +110,19 @@ export default function Table({
             const year = date.getFullYear();
             const month = date.getMonth();
 
+            const amount = expense.category === "income" 
+                ? expense.amount < 0 // some income is negative, like refunds
+                    ? expense.amount * -1 
+                    : expense.amount 
+                : -expense.amount;
+
             temp = {
                 ...temp,
                 [year]: {
                     ...(temp[year] || {}),
                     [month]: temp[year]?.[month]
-                        ? temp[year]?.[month] + expense.amount
-                        : expense.amount
+                        ? temp[year]?.[month] + amount
+                        : amount
                 }
             }
         });
