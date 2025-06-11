@@ -179,7 +179,7 @@ export default function Table({
                 </div>
             </div>
             <div className="flex justify-between border p-4">
-                {Object.entries(expensesByMonth['2025']).reverse().map(([month, amount]) => (
+                {expensesByMonth && expensesByMonth['2025'] && Object.entries(expensesByMonth['2025']).reverse().map(([month, amount]) => (
                     <div className="flex flex-col justify-center items-center">
                         <span className="font-bold">{formatAmount(amount)}</span>
                         <span>{Months[month]}</span>
