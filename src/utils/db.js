@@ -108,10 +108,13 @@ export async function insertExpenses(rows) {
     'use server';
     const sql = neon(`${process.env.DATABASE_URL}`);
     const values = rows.map(row => [row.name, row.amount, formatDateToDB(row.date), row.account, row.category, row.id]);
+
+
     const query = `
         INSERT INTO expenses (name, amount, date, account, category, id) 
         VALUES ${values.map((_, i) => `($${i * 6 + 1}, $${i * 6 + 2}, $${i * 6 + 3}, $${i * 6 + 4}, $${i * 6 + 5}, $${i * 6 + 6})`).join(', ')}
     `;
+
     await sql(query, values.flat());
 }
 

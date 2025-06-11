@@ -41,6 +41,11 @@ export default function usePasteToRows(expenses = [], pasteFilterLogic = () => {
 
             ];
 
+            if (newRows.length === 0) {
+                alert("No new expenses found");
+                return;
+            }
+
             onSave(newRows);
             setRows(newRows);
         };
