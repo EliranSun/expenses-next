@@ -3,6 +3,10 @@ import { formatDateFromDB, formatDateToDB } from '.';
 import { Accounts } from '@/constants/account';
 
 export async function fetchExpenses({ account, year, month } = {}) {
+    if (process.env.NODE_ENV !== "production") {
+        return [];
+    }
+
     const sql = neon(`${process.env.DATABASE_URL}`);
 
     // Construct the base query
@@ -57,6 +61,7 @@ export async function fetchExpenses({ account, year, month } = {}) {
             return a.timestamp - b.timestamp;
         });
 
+    console.log({ mappedExpenses });
     return mappedExpenses;
 }
 
