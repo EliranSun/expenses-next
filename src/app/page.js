@@ -6,8 +6,6 @@ export default async function Home({ searchParams }) {
   const { year, month, account } = await searchParams;
   const existingExpenses = await fetchExpenses({ year, month, account });
 
-  console.log({ year, month, account, existingExpenses });
-
   return (
     <div className="p-8">
 

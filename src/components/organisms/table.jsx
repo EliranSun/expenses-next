@@ -9,7 +9,22 @@ import InfoDisplay from "../molecules/info-display";
 import { orderBy } from "lodash";
 import SortableTableHeader from "../molecules/sortable-table-header";
 import { PrivateAccount, SharedAccount, WifeAccount } from "@/constants/account";
-import { CategoriesDropdown } from "../molecules/categories-dropdown";
+
+const formatAmount = amount => new Intl.NumberFormat("he-IL", { style: "currency", currency: "ILS" }).format(amount);
+const Months = {
+    0: "ינואר",
+    1: "פברואר",
+    2: "מרץ",
+    3: "אפריל",
+    4: "מאי",
+    5: "יוני",
+    6: "יולי",
+    7: "אוגוסט",
+    8: "ספטמבר",
+    9: "אוקטובר",
+    10: "נובמבר",
+    11: "דצמבר",
+};
 
 export default function Table({
     rows = [],
@@ -63,13 +78,13 @@ export default function Table({
                 }
             }
 
-            let categoryMatch = true;
-            if (!row.category) {
-                return true;
-            }
+            let categoryMatch = false;
 
-            if (categories.length && row.category) {
-                categoryMatch = categories.includes(row.category);
+            if (categories.length > 0) {
+                if (row.category) categoryMatch = categories.includes(row.category);
+            } else {
+                // return all if no category selected
+                categoryMatch = true;
             }
 
             return accountMatch && categoryMatch;
@@ -88,6 +103,29 @@ export default function Table({
 
     const showFoo = categories.length === 0 || categories.includes("income");
 
+    const expensesByMonth = useMemo(() => {
+        let temp = {};
+        filteredRows.forEach(expense => {
+            const date = new Date(expense.timestamp);
+            const year = date.getFullYear();
+            const month = date.getMonth();
+
+            temp = {
+                ...temp,
+                [year]: {
+                    ...(temp[year] || {}),
+                    [month]: temp[year]?.[month]
+                        ? temp[year]?.[month] + expense.amount
+                        : expense.amount
+                }
+            }
+        });
+
+        return temp;
+    }, [filteredRows]);
+
+    console.log({expensesByMonth});
+ 
     return (
         <div>
             <div className={`w-full flex flex-col md:flex-row justify-between`} dir="rtl">
@@ -139,6 +177,14 @@ export default function Table({
                         />
                     </div>
                 </div>
+            </div>
+            <div className="flex justify-between border p-4">
+                {Object.entries(expensesByMonth['2025']).reverse().map(([month, amount]) => (
+                    <div className="flex flex-col justify-center items-center">
+                        <span className="font-bold">{formatAmount(amount)}</span>
+                        <span>{Months[month]}</span>
+                    </div>
+                ))}
             </div>
             <div className="w-full h-full border-2 overflow-auto">
                 {filteredRows.length}
@@ -205,7 +251,6 @@ export default function Table({
                             </Fragment>
                         ))}
                     </tbody>
-
                 </table>
             </div>
         </div>
