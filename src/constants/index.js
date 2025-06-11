@@ -3,7 +3,7 @@ export const Categories = {
     income: { name: "הכנסה", emoji: "💰", color: "#FFD700" },
     house: { name: "בית", emoji: "🏠", color: "#FF6347" },
     self: { name: "עצמי", emoji: "👤", color: "#9370DB" },
-    self: { name: "תחביבים", emoji: "🎭", color: "#9370DB" },
+    hobbies: { name: "תחביבים", emoji: "🎭", color: "#9370DB" },
     subscriptions: { name: "מינויים", emoji: "📺", color: "#1E90FF" },
     restaurants: { name: "מסעדות/קפה", emoji: "🍴", color: "#FF8C00" },
     groceries: { name: "מצרכים", emoji: "🛒", color: "#FFDAB9" },
