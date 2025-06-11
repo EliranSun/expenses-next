@@ -9,6 +9,7 @@ export default function PlainSearchableTable({ items = [], updateCategory, updat
     const [searchResults, setSearchResults] = useState(items);
 
     useEffect(() => {
+        console.log({ items });
         setSearchResults(items);
     }, [items]);
 
