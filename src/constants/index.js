@@ -20,5 +20,6 @@ export const Categories = {
     tech: { name: "טכנולוגיה", emoji: "💻", color: "#0000FF" },
     online: { name: "קנייה אונליין", emoji: "🛍️", color: "#0000FF" },
     entertainment: { name: "בידור", emoji: "🎬", color: "#FFD700" },
+    baby: { name: "בבה", emoji: "👶", color: "#FFD700" },
 };
 
