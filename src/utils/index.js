@@ -81,7 +81,11 @@ export const groupExpensesByMonth = (expenses, isPrivate = true) => {
                         totalIncome: isIncome ? (temp[year]?.[month]?.totalIncome ?? 0) + amount : (temp[year]?.[month]?.totalIncome ?? 0),
                         totalExpenses: !isIncome ? (temp[year]?.[month]?.totalExpenses ?? 0) + amount : (temp[year]?.[month]?.totalExpenses ?? 0),
                         total: (temp[year]?.[month]?.total ?? 0) + amount,
-                        expenses: [...(temp[year]?.[month]?.expenses || []), expense]
+                        expenses: [...(temp[year]?.[month]?.expenses || []), expense],
+                        categoryTotals: {
+                            ...(temp[year]?.[month]?.categoryTotals || {}),
+                            [expense.category]: ((temp[year]?.[month]?.categoryTotals || {})[expense.category] ?? 0) + amount
+                        }
                     }
                 }
             }

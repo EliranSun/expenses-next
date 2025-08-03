@@ -69,6 +69,16 @@ export default async function MoneyPage({ searchParams }) {
                                                 <Currency amount={data.totalIncome} label="הכנסה" />
                                                 <Currency amount={data.totalExpenses} label="הוצאה" />
                                                 <Currency amount={data.total} label="סכהכל" />
+                                                <div className="flex flex-col gap-2 border p-2">
+                                                    {Object.entries(data.categoryTotals)
+                                                        .sort((a, b) => a[1] - b[1])
+                                                        .map(([category, amount]) => {
+                                                            return <Currency
+                                                                key={category}
+                                                                amount={amount}
+                                                                label={category.slice(0, 4)} />
+                                                        })}
+                                                </div>
                                                 <TopExpenses expenses={data.expenses} />
                                             </div>
                                         )
