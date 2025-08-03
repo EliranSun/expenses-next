@@ -3,7 +3,8 @@ import {
     deleteExpenses, fetchExpenses,
     getUnhandledExpenses, insertExpenses, updateCategory, deleteExpense, updateNote
 } from '@/utils/db';
-import Link from 'next/link';
+import { MainNavBar } from '@/components/molecules/MainNavBar';
+
 export default async function Home({ searchParams }) {
     const { year, month, account } = await searchParams;
 
@@ -13,9 +14,8 @@ export default async function Home({ searchParams }) {
     ]);
 
     return (
-        <div>
-            <h1 className="text-2xl font-bold w-full text-center mt-4">ADD</h1>
-            <Link href="/">HOME</Link>
+        <div className="p-8">
+            <MainNavBar />
 
             <PasteableExpensesTable
                 existingExpenses={existingExpenses}

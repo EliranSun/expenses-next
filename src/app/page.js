@@ -1,6 +1,6 @@
 import { fetchExpenses, updateCategory, updateNote } from '@/utils/db';
 import PlainSearchableTable from '@/features/PlainSearchableTable';
-import Link from 'next/link';
+import { MainNavBar } from '@/components/molecules/MainNavBar';
 
 export default async function Home({ searchParams }) {
   const { year, month, account } = await searchParams;
@@ -8,10 +8,7 @@ export default async function Home({ searchParams }) {
 
   return (
     <div className="p-8">
-
-      <Link href="/add">Add</Link>
-      <h1 className="text-2xl font-bold w-full text-center mt-4">HOME</h1>
-
+      <MainNavBar />
       <PlainSearchableTable
         items={existingExpenses}
         updateCategory={updateCategory}

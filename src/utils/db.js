@@ -12,7 +12,7 @@ export async function fetchExpenses({ account, year, month } = {}) {
 
             // console.log({ '': expense.date, splitDate, expenseYear, expenseMonth });
 
-            if (year && month) return expenseYear === year && expenseMonth === month; 
+            if (year && month) return expenseYear === year && expenseMonth === month;
             if (year) return expenseYear === year;
             return true
         });

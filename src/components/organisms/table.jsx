@@ -8,7 +8,7 @@ import { Budget } from "@/constants/budget";
 import InfoDisplay from "../molecules/info-display";
 import { orderBy } from "lodash";
 import SortableTableHeader from "../molecules/sortable-table-header";
-import { PrivateAccount, SharedAccount, WifeAccount } from "@/constants/account";
+import { PrivateAccounts, SharedAccount, WifeAccount } from "@/constants/account";
 
 const formatAmount = amount => new Intl.NumberFormat("he-IL", { style: "currency", currency: "ILS" }).format(amount);
 const Months = {
@@ -67,7 +67,7 @@ export default function Table({
             let accountMatch = true;
             if (account) {
                 if (account === "private") {
-                    accountMatch = PrivateAccount.includes(row.account);
+                    accountMatch = PrivateAccounts.includes(row.account);
                 } else if (account === "shared") {
                     accountMatch = SharedAccount.includes(row.account);
                 } else if (account === "wife") {
@@ -110,10 +110,10 @@ export default function Table({
             const year = date.getFullYear();
             const month = date.getMonth();
 
-            const amount = expense.category === "income" 
+            const amount = expense.category === "income"
                 ? expense.amount < 0 // some income is negative, like refunds
-                    ? expense.amount * -1 
-                    : expense.amount 
+                    ? expense.amount * -1
+                    : expense.amount
                 : -expense.amount;
 
             temp = {
@@ -130,8 +130,8 @@ export default function Table({
         return temp;
     }, [filteredRows]);
 
-    console.log({expensesByMonth});
- 
+    console.log({ expensesByMonth });
+
     return (
         <div>
             <div className={`w-full flex flex-col md:flex-row justify-between`} dir="rtl">
