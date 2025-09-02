@@ -69,15 +69,7 @@ export const Navbar = () => {
     };
 
     return (
-        <div className='flex flex-col text-sm cursor-pointer'>
-            {/* <NavbarRow>
-                <NavbarItem
-                    isSelected={pathname === '/'}
-                    onClick={() => router.push('/')}>🏠</NavbarItem>
-                <NavbarItem
-                    isSelected={pathname === '/add'}
-                    onClick={() => router.push('/add')}>➕</NavbarItem>
-            </NavbarRow> */}
+        <div className='flex md:flex-col text-sm cursor-pointer'>
             <NavbarRow cols={4}>
                 {Accounts.map((accountName) => (
                     <NavbarItem

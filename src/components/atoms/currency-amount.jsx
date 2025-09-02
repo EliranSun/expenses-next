@@ -2,9 +2,11 @@
 
 import { useMemo } from "react";
 
-export const CurrencyAmount = ({ amount = 100, isPositive = false, isNegative = false }) => {
+export const CurrencyAmount = ({ amount = 100, isPositive = false, isNegative = false, short = false }) => {
     const currencyAmount = useMemo(() => {
         return Math.round(amount).toLocaleString('he-IL', {
+            compactDisplay: short ? 'short' : 'long',
+            notation: short ? 'compact' : 'standard',
             style: 'currency',
             currency: 'ILS',
             minimumFractionDigits: 0,

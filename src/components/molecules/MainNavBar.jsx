@@ -17,7 +17,7 @@ const NavbarItem = ({ href, children }) => {
 
 export const MainNavBar = () => {
     return (
-        <div className="flex gap-2 font-bold w-full text-center mt-4">
+        <div className="flex gap-2 font-bold w-full text-center md:mt-4 justify-center md:justify-start">
             <NavbarItem href="/">HOME</NavbarItem>
             <NavbarItem href="/add">ADD</NavbarItem>
             <NavbarItem href="/money">WHERE IS MY MONEY</NavbarItem>

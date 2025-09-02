@@ -31,15 +31,15 @@ export default function Table({
     updateCategory,
     updateNote,
     updateDate,
-    deleteExpense
+    deleteExpense,
+    year,
+    month
 }) {
     const tableRef = useRef(null);
     const query = useSearchParams();
     const account = query.get("account");
     const categories = query.get("category") ? query.get("category").split(",") : [];
     const querySort = query.get("sort");
-    const year = query.get("year");
-    const month = query.get("month");
 
     const [rowIdsToFilter, setRowIdsToFilter] = useState([]);
     const [sortCriteria, setSortCriteria] = useState(querySort ? querySort.split(":") : ["date", "asc"]);
@@ -101,7 +101,7 @@ export default function Table({
 
     // useKeyboardControl(tableRef);
 
-    const showFoo = categories.length === 0 || categories.includes("income");
+    const showIncome = categories.length === 0 || categories.includes("income");
 
     const expensesByMonth = useMemo(() => {
         let temp = {};
@@ -135,32 +135,38 @@ export default function Table({
     return (
         <div>
             <div className={`w-full flex flex-col md:flex-row justify-between`} dir="rtl">
-                <div className="relative flex flex-col border-2">
-                    <span className="absolute -top-6 right-0">
-                        {keys.actual_title}
-                    </span>
-                    <div className="grid grid-cols-4 gap-1 border-2 ">
-                        {showFoo && <InfoDisplay label={keys.total_income} amount={totalIncome} />}
-                        <InfoDisplay label={keys.total_expenses} amount={totalExpenses} />
-                        {showFoo &&
-                            <InfoDisplay
-                                showColorIndication
-                                label={keys.bottom_line}
-                                amount={totalIncome - totalExpenses} />}
-
+                <div className="relative flex flex-col">
+                    <h1 className="text-xl font-bold">
+                        {new Date(year, month - 1, 1).toLocaleDateString("he-IL", {
+                            year: "numeric",
+                            month: "long"
+                        })}, {keys.bottom_line}
+                    </h1>
+                    <div className="flex gap-2 border rounded-xl p-4 my-2 text-xl" dir="ltr">
+                        <InfoDisplay amount={totalIncome} round isVisible={showIncome} />
+                        <span>-</span>
+                        <InfoDisplay amount={totalExpenses} round />
+                        <span>=</span>
                         <InfoDisplay
                             showColorIndication
-                            showPercentage
-                            amount={Math.round((totalIncome - totalExpenses) / totalIncome * 100)}
-                        />
+                            round
+                            isVisible={showIncome}
+                            amount={totalIncome - totalExpenses} />
+                        <span className="flex">
+                            (<InfoDisplay
+                                showColorIndication
+                                showPercentage
+                                amount={Math.round((totalIncome - totalExpenses) / totalIncome * 100)}
+                            />)
+                        </span>
                     </div>
                 </div>
-                <div className="relative flex flex-col border-2">
+                <div className="relative flex-col border-2 hidden md:flex">
                     <span className="absolute -top-6 right-0">
                         {keys.budget_title}
                     </span>
                     <div className="grid grid-cols-4 gap-1">
-                        {showFoo && temporalBudget &&
+                        {showIncome && temporalBudget &&
                             <InfoDisplay
                                 label={keys.expected_income}
                                 amount={temporalBudget.income}
@@ -184,14 +190,14 @@ export default function Table({
                     </div>
                 </div>
             </div>
-            <div className="flex justify-between border p-4">
+            {/* <div className="flex justify-between border p-4">
                 {expensesByMonth && expensesByMonth['2025'] && Object.entries(expensesByMonth['2025']).reverse().map(([month, amount]) => (
                     <div className="flex flex-col justify-center items-center">
                         <span className="font-bold">{formatAmount(amount)}</span>
                         <span>{Months[month]}</span>
                     </div>
                 ))}
-            </div>
+            </div> */}
             <div className="w-full h-full border-2 overflow-auto">
                 {filteredRows.length}
                 <table ref={tableRef} dir="rtl" data-testid="pasteable-expenses-table" className="w-full">
