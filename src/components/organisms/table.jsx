@@ -11,7 +11,7 @@ import SortableTableHeader from "../molecules/sortable-table-header";
 import { PrivateAccounts, SharedAccount, WifeAccount } from "@/constants/account";
 import { Inter } from 'next/font/google';
 import Search from "@/features/Search";
-import { CalendarIcon, CoinsIcon, CopyRight, ShoppingCartIcon, TrendDownIcon, TrendUpIcon } from "@phosphor-icons/react";
+import { CalendarIcon, CoinsIcon, CopyRight, PersonIcon, ShoppingCartIcon, TrendDownIcon, TrendUpIcon, UsersIcon } from "@phosphor-icons/react";
 import { Categories } from "@/constants";
 import classNames from "classnames";
 
@@ -50,7 +50,7 @@ export default function Table({
     const [selectedCategories, setSelectedCategories] = useState([]);
     const tableRef = useRef(null);
     const query = useSearchParams();
-    const account = query.get("account");
+    const [account, setAccount] = useState(query.get("account"));
     const categories = query.get("category") ? query.get("category").split(",") : [];
     const querySort = query.get("sort");
 
@@ -207,6 +207,15 @@ export default function Table({
                         <CalendarIcon size={24} />
                         {sortCriteria[1] === "asc" ? "↑" : "↓"}
                     </button>
+                    <button
+                        className="bg-blue-500 text-white px-4 py-2 rounded-xl flex items-center gap-2"
+                        onClick={() => {
+                            setAccount(account === "private" ? "shared" : "private");
+                        }}>
+                        {account === "private" ? <PersonIcon size={24} /> : <UsersIcon size={24} />}
+                        {/* {account === "private" ? "Private" : "Shared"} */}
+                    </button>
+
                     <div className="flex gap-2 overflow-x-auto">
                         {Object.entries(Categories).map(([key, value]) => (
                             <button
