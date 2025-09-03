@@ -12,7 +12,7 @@ export default async function Home({ searchParams }) {
   });
 
   return (
-    <div className="md:p-8 p-4">
+    <div className="p-4">
       <MainNavBar />
       <PlainSearchableTable
         year={Number(year) + 2000 || today.getFullYear()}

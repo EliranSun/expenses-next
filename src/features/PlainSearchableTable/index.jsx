@@ -14,16 +14,17 @@ export default function PlainSearchableTable({ items = [], updateCategory, updat
 
     return (
         <Suspense fallback={<div>Loading...</div>}>
-            <div className='w-full flex flex-col md:flex-row-reverse gap-8 md:m-4 overflow-hidden'>
-                <div className='w-full md:w-1/4 order-last md:order-first'>
+            <div className='max-w-screen-lg mx-auto w-full flex flex-col md:flex-row gap-8 overflow-hidden'>
+                {/* <div className='w-full md:w-1/4 order-last md:order-first'>
                     <Navbar />
-                </div>
-                <div className="px-0 w-full md:w-3/4 space-y-8 my-4">
-                    <Search items={items} onSearch={setSearchResults} />
+                </div> */}
+                <div className="px-0 w-full space-y-8 my-4">
                     <Table
                         year={year}
                         month={month}
                         rows={searchResults}
+                        searchItems={items}
+                        onSearch={setSearchResults}
                         updateCategory={updateCategory}
                         updateNote={updateNote} />
                 </div>

@@ -9,6 +9,16 @@ import InfoDisplay from "../molecules/info-display";
 import { orderBy } from "lodash";
 import SortableTableHeader from "../molecules/sortable-table-header";
 import { PrivateAccounts, SharedAccount, WifeAccount } from "@/constants/account";
+import { Inter } from 'next/font/google';
+import Search from "@/features/Search";
+import { CalendarIcon, CoinsIcon, CopyRight, ShoppingCartIcon, TrendDownIcon, TrendUpIcon } from "@phosphor-icons/react";
+import { Categories } from "@/constants";
+import classNames from "classnames";
+
+const interFont = Inter({
+    subsets: ["latin"],
+    weight: ["400", "700"],
+});
 
 const formatAmount = amount => new Intl.NumberFormat("he-IL", { style: "currency", currency: "ILS" }).format(amount);
 const Months = {
@@ -33,8 +43,11 @@ export default function Table({
     updateDate,
     deleteExpense,
     year,
-    month
+    month,
+    searchItems,
+    onSearch
 }) {
+    const [selectedCategories, setSelectedCategories] = useState([]);
     const tableRef = useRef(null);
     const query = useSearchParams();
     const account = query.get("account");
@@ -87,6 +100,13 @@ export default function Table({
                 categoryMatch = true;
             }
 
+            if (selectedCategories.length > 0) {
+                if (row.category) categoryMatch = selectedCategories.includes(row.category);
+            } else {
+                // return all if no category selected
+                categoryMatch = true;
+            }
+
             return accountMatch && categoryMatch;
         });
 
@@ -133,137 +153,92 @@ export default function Table({
     console.log({ expensesByMonth });
 
     return (
-        <div>
-            <div className={`w-full flex flex-col md:flex-row justify-between`} dir="rtl">
-                <div className="relative flex flex-col">
-                    <h1 className="text-xl font-bold">
-                        {new Date(year, month - 1, 1).toLocaleDateString("he-IL", {
-                            year: "numeric",
-                            month: "long"
-                        })}, {keys.bottom_line}
-                    </h1>
-                    <div className="flex gap-2 border rounded-xl p-4 my-2 text-xl" dir="ltr">
-                        <InfoDisplay amount={totalIncome} round isVisible={showIncome} />
-                        <span>-</span>
-                        <InfoDisplay amount={totalExpenses} round />
-                        <span>=</span>
-                        <InfoDisplay
-                            showColorIndication
-                            round
-                            isVisible={showIncome}
-                            amount={totalIncome - totalExpenses} />
-                        <span className="flex">
-                            (<InfoDisplay
-                                showColorIndication
-                                showPercentage
-                                amount={Math.round((totalIncome - totalExpenses) / totalIncome * 100)}
-                            />)
-                        </span>
-                    </div>
+        <div className="flex justify-center flex-row-reverse gap-4 space-y-4">
+            <div className="w-1/3 flex flex-col items-center gap-8">
+                <h1 className={`text-3xl text-right font-bold ${interFont.className}`}>
+                    {new Date(year, month - 1, 1).toLocaleDateString("he-IL", {
+                        year: "numeric",
+                        month: "long"
+                    })}<br />
+                    {keys.bottom_line}
+                </h1>
+                <div className="flex flex-col gap-2 text-3xl w-full" dir="ltr">
+                    <InfoDisplay
+                        amount={totalIncome}
+                        round
+                        label="Income"
+                        isVisible={showIncome}
+                        icon={<CoinsIcon size={32} />} />
+                    <InfoDisplay
+                        label="Expenses"
+                        amount={totalExpenses}
+                        round
+                        icon={<ShoppingCartIcon size={32} />} />
+                    <InfoDisplay
+                        label="Bottom Line"
+                        showColorIndication
+                        round
+                        isVisible={showIncome}
+                        amount={totalIncome - totalExpenses}
+                        percentage={Math.round((totalIncome - totalExpenses) / totalIncome * 100)}
+                        icon={totalIncome - totalExpenses > 0
+                            ? <TrendUpIcon size={32} />
+                            : <TrendDownIcon size={32} />} />
                 </div>
-                <div className="relative flex-col border-2 hidden md:flex">
-                    <span className="absolute -top-6 right-0">
-                        {keys.budget_title}
-                    </span>
-                    <div className="grid grid-cols-4 gap-1">
-                        {showIncome && temporalBudget &&
-                            <InfoDisplay
-                                label={keys.expected_income}
-                                amount={temporalBudget.income}
-                            />}
-                        <InfoDisplay
-                            label={keys.budget || "Budget"}
-                            amount={budget}
-                        />
-                        <InfoDisplay
-                            showColorIndication
-                            label={keys.budget_difference || "Budget difference"}
-                            amount={categories.length === 0 && temporalBudget
-                                ? temporalBudget.income - budget
-                                : budget - totalExpenses}
-                        />
-                        <InfoDisplay
-                            showColorIndication
-                            showPercentage
-                            amount={Math.round((temporalBudget.income - budget) / temporalBudget.income * 100)}
-                        />
-                    </div>
-                </div>
+
             </div>
-            {/* <div className="flex justify-between border p-4">
-                {expensesByMonth && expensesByMonth['2025'] && Object.entries(expensesByMonth['2025']).reverse().map(([month, amount]) => (
-                    <div className="flex flex-col justify-center items-center">
-                        <span className="font-bold">{formatAmount(amount)}</span>
-                        <span>{Months[month]}</span>
-                    </div>
-                ))}
-            </div> */}
-            <div className="w-full h-full border-2 overflow-auto">
-                {filteredRows.length}
-                <table ref={tableRef} dir="rtl" data-testid="pasteable-expenses-table" className="w-full">
-                    <thead>
-                        <tr>
-                            <SortableTableHeader
-                                label={keys.date}
-                                sortKey="date"
-                                sortCriteria={sortCriteria}
-                                setSortCriteria={setSortCriteria}
-                            />
-                            <SortableTableHeader
-                                label={keys.name}
-                                sortKey="name"
-                                sortCriteria={sortCriteria}
-                                setSortCriteria={setSortCriteria}
-                            />
-                            <SortableTableHeader
-                                label={keys.category}
-                                sortKey="category"
-                                sortCriteria={sortCriteria}
-                                setSortCriteria={setSortCriteria}
-                            />
-                            <SortableTableHeader
-                                label={keys.account}
-                                sortKey="account"
-                                sortCriteria={sortCriteria}
-                                setSortCriteria={setSortCriteria}
-                            />
-                            <SortableTableHeader
-                                label={keys.amount}
-                                sortKey="amount"
-                                sortCriteria={sortCriteria}
-                                setSortCriteria={setSortCriteria}
-                            />
-                            <SortableTableHeader
-                                label={keys.note}
-                                sortKey="note"
-                                sortCriteria={sortCriteria}
-                                setSortCriteria={setSortCriteria}
-                            />
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredRows.map((row) => (
-                            <Fragment key={row.id || (row.name + row.amount + row.account + row.date)}>
-                                <TableRow
-                                    rowData={row}
-                                    updateCategory={updateCategory}
-                                    deleteExpense={deleteExpense}
-                                    updateNote={updateNote}
-                                    updateDate={updateDate}
-                                    onRowClick={() => {
-                                        setRowIdsToFilter([...rowIdsToFilter, row.id]);
-                                    }}
-                                />
-                                {/* <CategoriesDropdown
-                                    value={row.category}
-                                    onChange={(value) => {
-                                        console.log("Changing category:", value);
-                                        updateCategory(row.id, value);
-                                    }} /> */}
-                            </Fragment>
+
+            <div dir="rtl" className="w-full bg-white rounded-xl p-4 space-y-2 h-[80vh] overflow-auto">
+                <Search items={searchItems} onSearch={onSearch} />
+                <div className="flex gap-2">
+                    <button
+                        className="bg-yellow-500 text-white px-4 py-2 rounded-xl flex items-center gap-2"
+                        onClick={() => {
+                            setSortCriteria(["amount", sortCriteria[1] === "asc" ? "desc" : "asc"]);
+                        }}>
+                        <CoinsIcon size={24} />
+                        {sortCriteria[0] === "asc" ? "↑" : "↓"}
+                    </button>
+                    <button
+                        className="bg-green-500 text-white px-4 py-2 rounded-xl flex items-center gap-2"
+                        onClick={() => {
+                            setSortCriteria(["date", sortCriteria[1] === "asc" ? "desc" : "asc"]);
+                        }}>
+                        <CalendarIcon size={24} />
+                        {sortCriteria[1] === "asc" ? "↑" : "↓"}
+                    </button>
+                    <div className="flex gap-2 overflow-x-auto">
+                        {Object.entries(Categories).map(([key, value]) => (
+                            <button
+                                key={key}
+                                className={classNames({
+                                    "border border-gray-300 px-4": true,
+                                    "py-2 rounded-xl flex items-center gap-2": true,
+                                    "bg-gray-300": selectedCategories.includes(key)
+                                })}
+                                onClick={() => {
+                                    setSelectedCategories(selectedCategories.includes(key) ? selectedCategories.filter(category => category !== key) : [...selectedCategories, key]);
+                                }}>
+                                {value.emoji}
+                            </button>
                         ))}
-                    </tbody>
-                </table>
+                    </div>
+                </div>
+                <div className="flex flex-col gap-2">
+                    {filteredRows.map((row) => (
+                        <TableRow
+                            key={row.id || (row.name + row.amount + row.account + row.date)}
+                            rowData={row}
+                            updateCategory={updateCategory}
+                            deleteExpense={deleteExpense}
+                            updateNote={updateNote}
+                            updateDate={updateDate}
+                            onRowClick={() => {
+                                setRowIdsToFilter([...rowIdsToFilter, row.id]);
+                            }}
+                        />
+                    ))}
+                </div>
             </div>
         </div>
     );

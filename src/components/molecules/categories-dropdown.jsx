@@ -7,7 +7,7 @@ export const CategoriesDropdown = ({ value = "", onCategoryChange }) => {
         <div className="flex flex-row-reverse flex-wrap gap-2 w-full text-right items-end justify-end">
             {Object
                 .entries(keys.categories)
-                .filter(([key, category]) => value === "" ? true : value === key)
+                .filter(([key]) => value === "" ? true : value === key)
                 .sort((a, b) => a[1].localeCompare(b[1]))
                 .map(([key, value]) => (
                     <button

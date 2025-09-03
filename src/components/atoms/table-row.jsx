@@ -2,8 +2,8 @@ import { CategoriesDropdown } from "../molecules/categories-dropdown";
 import { CurrencyAmount } from "./currency-amount";
 import { useState } from "react";
 
-const TableData = ({ children, className }) => {
-    return <td className={`px-4 ${className}`}>{children}</td>
+const DataDisplay = ({ children, className }) => {
+    return <div className={`items-center justify-center p-2 flex ${className}`}>{children}</div>
 }
 
 
@@ -15,80 +15,63 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
     const [date, setDate] = useState(rowData.date || "");
 
     return (
-        <tr className={`bg-gray-100 dark:bg-transparent
-         even:bg-white dark:even:bg-neutral-800
-         ${isDeleteHovered ? "text-red-500" : ""}
-         ${isHideHovered ? "text-gray-500" : ""}`}>
-            <TableData>
-                <input
-                    type="date"
-                    className="bg-transparent"
-                    value={date}
-                    onBlur={() => {
-                        updateDate(rowData.id, date);
-                    }}
-                    onChange={(e) => {
-                        setDate(e.target.value);
-                    }} />
-
-            </TableData>
-            <TableData className="w-20">
+        <div dir="rtl" className="flex flex-col gap-2 bg-gray-100
+         dark:bg-transparent rounded-xl py-2 px-4 w-full">
+            <h1 className="text-xl">
                 {rowData.name}
-            </TableData>
-            <TableData>
-                <CategoriesDropdown
-                    value={category}
-                    onCategoryChange={(value) => {
-                        console.log("Changing category:", value);
-                        setCategory(value === category ? "" : value);
-                        updateCategory(rowData.id, value);
-                    }} />
-            </TableData>
-            <TableData className="w-28 max-w-28 text-sm overflow-hidden whitespace-nowrap">
-                {rowData.account}
-            </TableData>
-            <TableData>
-                <CurrencyAmount
-                    isPositive={rowData.category === "income"}
-                    isNegative={rowData.category !== "income"}
-                    amount={rowData.amount} />
-            </TableData>
-            <TableData>
-                <input
-                    type="text"
-                    className="bg-transparent"
-                    defaultValue={note}
-                    onBlur={() => {
-                        console.log("Changing note:", note);
-                        updateNote(rowData.id, note);
-                    }}
-                    onChange={(e) => {
-                        console.log("Changing note:", e.target.value);
-                        setNote(e.target.value);
-                    }} />
+            </h1>
+            <div className="flex gap-2  rounded-xl">
+                <DataDisplay className="w-24 bg-white rounded-xl shadow shrink-0 text-center">
+                    <CurrencyAmount
+                        isPositive={rowData.category === "income"}
+                        isNegative={rowData.category !== "income"}
+                        amount={rowData.amount} />
+                </DataDisplay>
+                <DataDisplay>
+                    {new Date(rowData.date).toLocaleDateString("he-IL", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric"
+                    })}
+                    {/* <input
+                        type="date"
+                        className="bg-transparent"
+                        value={date}
+                        onBlur={() => {
+                            updateDate(rowData.id, date);
+                        }}
+                        onChange={(e) => {
+                            setDate(e.target.value);
+                        }} /> */}
 
-
-            </TableData>
-            {/* <TableData>
-                <button
-                    onMouseEnter={() => setIsHideHovered(true)}
-                    onMouseLeave={() => setIsHideHovered(false)}
-                    onClick={() => onRowClick(rowData)}>
-                    הסתר
-                </button>
-            </TableData>
-            <TableData>
-                {rowData.id && <button
-                    onMouseEnter={() => setIsDeleteHovered(true)}
-                    onMouseLeave={() => setIsDeleteHovered(false)}
-                    onClick={async () => {
-                        await deleteExpense(rowData.id);
-                        window.location.reload();
-                    }}>
-                    מחק
-                </button>}
-            </TableData> */}
-        </tr>
-
+                </DataDisplay>
+                <DataDisplay className="shrink-0 w-40">
+                    <CategoriesDropdown
+                        value={category}
+                        onCategoryChange={(value) => {
+                            console.log("Changing category:", value);
+                            setCategory(value === category ? "" : value);
+                            updateCategory(rowData.id, value);
+                        }} />
+                </DataDisplay>
+                <DataDisplay>
+                    <input
+                        type="text"
+                        className="bg-transparent"
+                        defaultValue={note}
+                        onBlur={() => {
+                            console.log("Changing note:", note);
+                            updateNote(rowData.id, note);
+                        }}
+                        onChange={(e) => {
+                            console.log("Changing note:", e.target.value);
+                            setNote(e.target.value);
+                        }} />
+                </DataDisplay>
+                {/* <DataDisplay>
+                    {rowData.account.slice(0, 4)}
+                </DataDisplay> */}
+            </div>
+        </div>
     );
 };

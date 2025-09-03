@@ -14,6 +14,11 @@
     "all": "כל הקטגוריות",
     "budget_difference": "כמה נשאר מהתקציב",
     "expected_income": "הכנסה צפויה",
+    "home": "בית",
+    "add": "הוסף",
+    "whereIsMyMoney": "איפה הכסף?",
+    "income": "הכנסות",
+    "expenses": "הוצאות",
     "categories": {
         "income": "הכנסה",
         "self": "בשבילי",
