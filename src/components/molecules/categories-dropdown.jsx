@@ -15,8 +15,7 @@ export const CategoriesDropdown = ({ value = "", onCategoryChange }) => {
                     <button
                         key={key}
                         className="dark:bg-neutral-800 hover:bg-amber-500 hover:text-white
-                        text-right
-                        p-1"
+                        text-right p-1"
                         onClick={() => onCategoryChange(key)}>
                         {Categories[key].emoji} {value.slice(0, 10)}
                     </button>
