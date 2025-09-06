@@ -6,8 +6,8 @@ export default async function Home({ searchParams }) {
   const today = new Date();
   const { year, month, account } = await searchParams;
   const existingExpenses = await fetchExpenses({
-    year: year || today.getFullYear(),
-    month: month || today.getMonth() + 1,
+    year,
+    month,
     account
   });
 
