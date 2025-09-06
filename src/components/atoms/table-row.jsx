@@ -20,7 +20,7 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
             <h1 className="text-xl">
                 {rowData.name}
             </h1>
-            <div className="flex gap-2  rounded-xl">
+            <div className="flex gap-2 rounded-xl">
                 <DataDisplay className="w-24 bg-white rounded-xl shadow shrink-0 text-center">
                     <CurrencyAmount
                         isPositive={rowData.category === "income"}
@@ -43,9 +43,8 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
                         onChange={(e) => {
                             setDate(e.target.value);
                         }} /> */}
-
                 </DataDisplay>
-                <DataDisplay className="shrink-0 w-40">
+                <DataDisplay className={`shrink-0 w-40 ${category ? "" : "hidden"}`}>
                     <CategoriesDropdown
                         value={category}
                         onCategoryChange={(value) => {
@@ -72,6 +71,17 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
                     {rowData.account.slice(0, 4)}
                 </DataDisplay> */}
             </div>
+
+
+            <DataDisplay className={`shrink-0 w-full ${category ? "hidden" : ""}`}>
+                <CategoriesDropdown
+                    value={category}
+                    onCategoryChange={(value) => {
+                        console.log("Changing category:", value);
+                        setCategory(value === category ? "" : value);
+                        updateCategory(rowData.id, value);
+                    }} />
+            </DataDisplay>
         </div>
     );
 };

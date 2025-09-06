@@ -4,7 +4,9 @@ import { Categories } from "@/constants";
 
 export const CategoriesDropdown = ({ value = "", onCategoryChange }) => {
     return (
-        <div className="flex flex-row-reverse flex-wrap gap-2 w-full text-right items-end justify-end">
+        <div className={value
+            ? "w-full border border-gray-300 rounded-xl p-2"
+            : "grid grid-cols-4 gap-2 w-full bg-white rounded-xl p-2"}>
             {Object
                 .entries(keys.categories)
                 .filter(([key]) => value === "" ? true : value === key)
@@ -12,9 +14,11 @@ export const CategoriesDropdown = ({ value = "", onCategoryChange }) => {
                 .map(([key, value]) => (
                     <button
                         key={key}
-                        className="dark:bg-neutral-800 hover:bg-amber-500 hover:text-white p-1"
+                        className="dark:bg-neutral-800 hover:bg-amber-500 hover:text-white
+                        text-right
+                        p-1"
                         onClick={() => onCategoryChange(key)}>
-                        {Categories[key].emoji} {value}
+                        {Categories[key].emoji} {value.slice(0, 10)}
                     </button>
                 ))}
         </div>

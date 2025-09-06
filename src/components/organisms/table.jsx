@@ -153,7 +153,7 @@ export default function Table({
     console.log({ expensesByMonth });
 
     return (
-        <div className="flex justify-center flex-row-reverse gap-4 space-y-4">
+        <div className="flex justify-center flex-row-reverse gap-4">
             <div className="w-1/3 flex flex-col items-center gap-8">
                 <h1 className={`text-3xl text-right font-bold ${interFont.className}`}>
                     {new Date(year, month - 1, 1).toLocaleDateString("he-IL", {
