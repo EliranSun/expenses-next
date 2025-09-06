@@ -14,9 +14,8 @@ export default async function Home({ searchParams }) {
     ]);
 
     return (
-        <div className="p-8">
+        <div className="p-4">
             <MainNavBar />
-
             <PasteableExpensesTable
                 existingExpenses={existingExpenses}
                 expenses={unhandledExpenses}

@@ -2,10 +2,8 @@
 
 import Table from "@/components/organisms/table";
 import usePasteToRows from "@/features/PasteableExpensesTable/usePasteToRows";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { Suspense } from "react";
-import { Navbar } from "@/components/molecules/navbar";
-import Search from "@/features/Search";
 
 export default function TextToExpensesTable({
     expenses = [],
@@ -14,9 +12,6 @@ export default function TextToExpensesTable({
     updateCategory,
     updateNote,
     updateDate,
-    year,
-    month,
-    deleteExpenses,
     deleteExpense
 }) {
     const pasteFilterLogic = useCallback((row) => !expenses.some(expense => {
@@ -29,26 +24,13 @@ export default function TextToExpensesTable({
     }, [expenses]));
 
     const [rows] = usePasteToRows(expenses, pasteFilterLogic, existingExpenses, onSave);
-    const [searchResults, setSearchResults] = useState(rows);
 
     return (
         <Suspense fallback={<div>Loading...</div>}>
-            <div className="w-full mx-auto flex flex-row-reverse gap-8 p-8">
-                <div className="w-1/4">
-                    <Navbar year={year} month={month} />
-                </div>
-                {/* <button
-                    className="bg-blue-500 text-white px-4 py-2 rounded-md fixed bottom-10 left-8"
-                    onClick={() => onSave(rows)}>Save {rows.length}</button>
-                <button
-                    className="bg-red-500 text-white px-4 py-2 rounded-md fixed bottom-10 left-36"
-                    onClick={() => deleteExpenses(rows.map(row => row.id))}>
-                    Delete {rows.length}
-                </button> */}
-                <div className="w-3/4 flex flex-col gap-8">
-                    <Search items={rows} onSearch={setSearchResults} />
+            <div className='max-w-screen-lg mx-auto w-full flex flex-col md:flex-row gap-8 overflow-hidden'>
+                <div className="px-0 w-full space-y-8 my-4">
                     <Table
-                        rows={searchResults}
+                        rows={rows}
                         updateCategory={updateCategory}
                         updateNote={updateNote}
                         updateDate={updateDate}

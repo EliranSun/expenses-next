@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 
-export default function Search({ items = [], onSearch }) {
+export default function Search({ items = [], onSearch = () => { } }) {
     const [search, setSearch] = useState("");
 
     const filterItems = useCallback((items, search) => {
