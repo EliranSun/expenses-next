@@ -26,14 +26,18 @@ const InfoDisplay = ({
     round = false,
     icon,
     iconName = "",
-    emoji = ""
+    emoji = "",
+    isPositive = false,
+    isNegative = false
 }) => {
     return (
         <div className={classNames("flex items-center", {
             "bg-white grow p-2 md:p-8 rounded-xl shadow-md": true,
             "hidden": !isVisible,
             "flex-col": !icon,
-            "justify-between": icon
+            "justify-between": icon,
+            "text-green-700": isPositive,
+            "text-red-700": isNegative
         })}>
             {icon && <span>{icon}</span>}
             {iconName && IconNames[iconName] && <span><Icon iconName={iconName} /></span>}

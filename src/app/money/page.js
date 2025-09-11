@@ -34,13 +34,15 @@ const TopExpenses = ({ expenses }) => {
                 {expenses
                     .filter(expense => expense.category !== "income")
                     .sort((a, b) => b.amount - a.amount)
-                    .slice(0, 10)
+                    .slice(0, 20)
                     .map((expense) => {
-                        return <Currency
-                            key={expense.id}
-                            col
-                            amount={expense.amount}
-                            label={expense.name} />
+                        return (
+                            <Currency
+                                key={expense.id}
+                                col
+                                amount={expense.amount}
+                                label={expense.name} />
+                        )
                     })}
             </div>
         </div>
@@ -77,8 +79,6 @@ export default async function MoneyPage({ searchParams }) {
     const nextDate = addMonths(currentDate, 1);
     const prevDate = subMonths(currentDate, 1);
 
-    console.log({ data });
-
     return (
         <div className="p-4" dir="rtl">
             <MainNavBar />
@@ -105,7 +105,7 @@ export default async function MoneyPage({ searchParams }) {
                             </div>
 
                             {data ? <>
-                                <div className="flex md:flex-row flex-col gap-2 font-mono">
+                                <div className="flex flex-col gap-2 font-mono">
                                     <InfoDisplay
                                         amount={data.totalIncome}
                                         label="הכנסות"
@@ -120,7 +120,9 @@ export default async function MoneyPage({ searchParams }) {
                                         amount={data.total}
                                         label="שורה תחתונה"
                                         isVisible
-                                        iconName="trendUp" />
+                                        isPositive={data.total > 0}
+                                        isNegative={data.total < 0}
+                                        iconName={data.total > 0 ? "trendUp" : "trendDown"} />
                                 </div>
 
                                 <ExpensesTileData data={data} />

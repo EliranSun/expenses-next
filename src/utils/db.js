@@ -10,7 +10,6 @@ export async function fetchExpenses({ account, year, month } = {}) {
             const expenseYear = splitDate[0].slice(2, splitDate[0].length)
             const expenseMonth = splitDate[1];
 
-            console.log({ expenseYear, expenseMonth, year, month });
             if (year && month) return expenseYear === year && expenseMonth === month;
             if (year) return expenseYear === year;
             return true
