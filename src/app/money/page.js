@@ -88,7 +88,7 @@ export default async function MoneyPage({ searchParams }) {
                         <div
                             className="w-full flex flex-col  space-y-8 my-8"
                             key={`${year}-${month}`}>
-                            <div className="flex items-center w-full justify-between">
+                            <div className="sticky top-0 py-4 flex items-center w-full justify-between">
                                 <Link
                                     href={`/money?year=${format(prevDate, "yy")}&month=${prevDate.getMonth() + 1}`}
                                     className="bg-white rounded-full size-10 flex items-center justify-center">
