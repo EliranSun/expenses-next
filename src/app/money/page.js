@@ -44,50 +44,58 @@ const TopExpenses = ({ expenses }) => {
         </div>
     )
 }
+
 export default async function MoneyPage({ searchParams }) {
     const { year, month, account } = await searchParams;
     const existingExpenses = await fetchExpenses({ year, month, account });
 
     const expensesByMonth = groupExpensesByMonth(existingExpenses);
 
-    console.log({ expensesByMonth });
+const years = Object.keys(expensesByMonth).map(Number);
+if (years.length === 0) return null;
+
+const latestYearNum = Math.max(...years);
+const latestYear = String(latestYearNum);
+
+const monthsObj = expensesByMonth[latestYear] ?? {};
+const monthKeys = Object.keys(monthsObj).map(Number);
+if (monthKeys.length === 0) return null;
+
+const latestMonthNum = Math.max(...monthKeys);
+const latestMonth = String(latestMonthNum);
+
+const data = monthsObj[latestMonth];
+
     return (
         <div className="p-8" dir="rtl">
             <MainNavBar />
-            <div className="">
-                {Object.entries(expensesByMonth).map(([year, months]) => {
-                    return (
-                        <div key={year}>
-                            <h1 className="text-2xl font-bold">{year}</h1>
-                            <div className="flex gap-2">
-                                {Object
-                                    .entries(months)
-                                    .map(([month, data]) => {
-                                        return (
-                                            <div className="w-full border p-2 flex flex-col font-mono" key={`${year}-${month}`}>
-                                                <h2 className="text-lg font-bold">{format(new Date(year, month), "LLL", { locale: he })}</h2>
-                                                <Currency amount={data.totalIncome} label="הכנסה" />
-                                                <Currency amount={data.totalExpenses} label="הוצאה" />
-                                                <Currency amount={data.total} label="סכהכל" />
-                                                <div className="flex flex-col gap-2 border p-2">
-                                                    {Object.entries(data.categoryTotals)
-                                                        .sort((a, b) => a[1] - b[1])
-                                                        .map(([category, amount]) => {
-                                                            return <Currency
-                                                                key={category}
-                                                                amount={amount}
-                                                                label={category.slice(0, 4)} />
-                                                        })}
-                                                </div>
-                                                <TopExpenses expenses={data.expenses} />
-                                            </div>
-                                        )
-                                    })}
-                            </div>
-                        </div>
-                    )
-                })}
-            </div>
+              <div className="">
+    <div key={latestYear}>
+      <h1 className="text-2xl font-bold">{latestYear}</h1>
+
+      <div className="flex gap-2">
+        <div className="w-full border p-2 flex flex-col font-mono" key={`${latestYear}-${latestMonth}`}>
+          <h2 className="text-lg font-bold">
+            {format(new Date(latestYearNum, latestMonthNum), "LLL", { locale: he })}
+          </h2>
+
+          <Currency amount={data.totalIncome} label="הכנסה" />
+          <Currency amount={data.totalExpenses} label="הוצאה" />
+          <Currency amount={data.total} label="סה״כ" />
+
+          <div className="flex flex-col gap-2 border p-2">
+            {Object.entries(data.categoryTotals)
+              .sort((a, b) => a[1] - b[1])
+              .map(([category, amount]) => (
+                <Currency key={category} amount={amount} label={category.slice(0, 4)} />
+              ))}
+          </div>
+
+          <TopExpenses expenses={data.expenses} />
+        </div>
+      </div>
+    </div>
+  </div>
         </div>
     );
 }
