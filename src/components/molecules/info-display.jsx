@@ -28,8 +28,6 @@ const InfoDisplay = ({
     iconName = "",
     emoji = ""
 }) => {
-    console.log({ iconName });
-
     return (
         <div className={classNames("flex items-center", {
             "bg-white grow p-2 md:p-8 rounded-xl shadow-md": true,
