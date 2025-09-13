@@ -26,6 +26,9 @@ const Currency = ({ amount, label, col = false }) => {
     )
 }
 
+const BudgetData = {};
+
+
 const TopExpenses = ({ expenses }) => {
     return (
         <div className="border p-2 my-4 space-y-2">
