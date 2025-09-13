@@ -5,7 +5,7 @@
 import InfoDisplay from "../molecules/info-display";
 import { Categories } from "@/constants";
 
-export const ExpensesTileData = ({ data }) => {
+export const ExpensesTileData = ({ data, budgetData }) => {
     // const { filteredData, sortCriteria, setSortCriteria } = useSort(data.expenses);
 
     return (
@@ -18,6 +18,7 @@ export const ExpensesTileData = ({ data }) => {
                         <InfoDisplay
                             key={category}
                             amount={amount}
+                            outOf={budgetData.categoryTotals[category]}
                             label={category}
                             isVisible
                             round
