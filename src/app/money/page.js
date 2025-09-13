@@ -136,11 +136,13 @@ export default async function MoneyPage({ searchParams }) {
                                 <div className="flex flex-col gap-2 font-mono">
                                     <InfoDisplay
                                         amount={data.totalIncome}
+                                        outOf={BudgetData.totalIncome}
                                         label="הכנסות"
                                         isVisible
                                         iconName="coins" />
                                     <InfoDisplay
                                         amount={data.totalExpenses}
+                                        outOf={BudgetData.totalExpenses}
                                         label="הוצאות"
                                         isVisible
                                         iconName="shoppingCart" />
@@ -148,35 +150,13 @@ export default async function MoneyPage({ searchParams }) {
                                         amount={data.total}
                                         label="שורה תחתונה"
                                         isVisible
+                                        outOf={BudgetData.total}
                                         isPositive={data.total > 0}
                                         isNegative={data.total < 0}
                                         iconName={data.total > 0 ? "trendUp" : "trendDown"} />
                                 </div>
 
-                                <ExpensesTileData data={data} />
-                                
-                                <div className="flex flex-col gap-2 font-mono">
-                                    <InfoDisplay
-                                        amount={BudgetData.totalIncome}
-                                        label="תקציב הכנסות"
-                                        isVisible
-                                        iconName="coins" />
-                                    <InfoDisplay
-                                        amount={BudgetData.totalExpenses}
-                                        label="תקציב הוצאות"
-                                        isVisible
-                                        iconName="shoppingCart" />
-                                    <InfoDisplay
-                                        amount={BudgetData.total}
-                                        label="שורה תחתונה"
-                                        isVisible
-                                        isPositive={BudgetData.total > 0}
-                                        isNegative={BudgetData.total < 0}
-                                        iconName={BudgetData.total > 0 ? "trendUp" : "trendDown"} />
-                                </div>
-
-                                <ExpensesTileData data={BudgetData} />
-                                
+                                <ExpensesTileData data={data} budgetData={BudgetData}/>
                                 
                                 <TopExpenses expenses={data.expenses} />
                             </> : null}
