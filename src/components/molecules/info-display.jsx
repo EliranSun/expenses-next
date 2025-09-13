@@ -51,12 +51,7 @@ const InfoDisplay = ({
                         short={round}
                         isPositive={showColorIndication && amount > 0}
                         isNegative={showColorIndication && amount < 0} />
-                        {outOf && 
-                            <CurrencyAmount
-                        amount={outOf}
-                        short={round}
-                        isPositive={showColorIndication && outOf > 0}
-                        isNegative={showColorIndication && outOf < 0} />}
+                        {outOf ? <span> / {outOf}</span> : null}
                     {percentage &&
                         !isNaN(percentage) &&
                         percentage !== Infinity &&
