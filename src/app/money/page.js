@@ -26,11 +26,7 @@ const Currency = ({ amount, label, col = false }) => {
     )
 }
 
-const BudgetData = {
-    totalIncome: 15000,
-    totalExpenses: 10000,
-    total: 5000,
-    categoryTotals: {
+const CategoryTotals = {
     income: 15000,
                 self: 1100,
                 restaurants: 1000,
@@ -50,7 +46,24 @@ const BudgetData = {
                 tech: 0,
                 online: 0,
                 entertainment: 1000,
-                }
+};
+
+const totalBudgetIncome = Object
+        .entries(CategoryTotals)
+        .filter(([category]) => category === "income")
+        .reduce(([category, amount], acc) => acc + amount, 0);
+        
+const totalBudgetExpenses = Object
+        .entries(CategoryTotals)
+        .filter(([category]) => category !== "income")
+        .reduce(([category, amount], acc) => acc + amount, 0)
+        
+        
+const BudgetData = {
+    totalIncome: totalBudgetIncome,
+    totalExpenses: totalBudgetExpenses,
+    total: totalBudgetIncome - totalBudgetExpenses,
+    categoryTotals: CategoryTotals,
 };
 
 
