@@ -51,12 +51,12 @@ const CategoryTotals = {
 const totalBudgetIncome = Object
         .entries(CategoryTotals)
         .filter(([category]) => category === "income")
-        .reduce(([category, amount], acc) => acc + amount, 0);
+        .reduce((acc, [category, amount]) => acc + amount, 0);
         
 const totalBudgetExpenses = Object
         .entries(CategoryTotals)
         .filter(([category]) => category !== "income")
-        .reduce(([category, amount], acc) => acc + amount, 0)
+        .reduce((acc, [category, amount]) => acc + amount, 0)
         
         
 const BudgetData = {
