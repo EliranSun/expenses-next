@@ -19,6 +19,7 @@ const Icon = ({ iconName }) => {
 const InfoDisplay = ({
     label,
     amount,
+    outOf,
     additionalText = "",
     showColorIndication = false,
     percentage,
@@ -50,6 +51,12 @@ const InfoDisplay = ({
                         short={round}
                         isPositive={showColorIndication && amount > 0}
                         isNegative={showColorIndication && amount < 0} />
+                        {outOf && 
+                            <CurrencyAmount
+                        amount={outOf}
+                        short={round}
+                        isPositive={showColorIndication && outOf > 0}
+                        isNegative={showColorIndication && outOf < 0} />}
                     {percentage &&
                         !isNaN(percentage) &&
                         percentage !== Infinity &&
