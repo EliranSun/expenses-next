@@ -26,7 +26,31 @@ const Currency = ({ amount, label, col = false }) => {
     )
 }
 
-const BudgetData = {};
+const BudgetData = {
+    totalIncome: 15000,
+    totalExpenses: 10000,
+    total: 5000,
+    
+    income: 15000,
+                self: 1100,
+                restaurants: 1000,
+                house: 800,
+                groceries: 1000,
+                vacation: 0,
+                wedding: 0,
+                workout: 300,
+                subscriptions: 300,
+                animals: 300,
+                transportation: 100,
+                gifts: 100,
+                savings: 6000,
+                car: 250,
+                fees: 750,
+                games: 0,
+                tech: 0,
+                online: 0,
+                entertainment: 1000,
+};
 
 
 const TopExpenses = ({ expenses }) => {
@@ -129,6 +153,30 @@ export default async function MoneyPage({ searchParams }) {
                                 </div>
 
                                 <ExpensesTileData data={data} />
+                                
+                                <div className="flex flex-col gap-2 font-mono">
+                                    <InfoDisplay
+                                        amount={BudgetData.totalIncome}
+                                        label="תקציב הכנסות"
+                                        isVisible
+                                        iconName="coins" />
+                                    <InfoDisplay
+                                        amount={BudgetData.totalExpenses}
+                                        label="תקציב הוצאות"
+                                        isVisible
+                                        iconName="shoppingCart" />
+                                    <InfoDisplay
+                                        amount={BudgetData.total}
+                                        label="שורה תחתונה"
+                                        isVisible
+                                        isPositive={BudgetData.total > 0}
+                                        isNegative={BudgetData.total < 0}
+                                        iconName={BudgetData.total > 0 ? "trendUp" : "trendDown"} />
+                                </div>
+
+                                <ExpensesTileData data={BudgetData} />
+                                
+                                
                                 <TopExpenses expenses={data.expenses} />
                             </> : null}
                         </div>
