@@ -30,7 +30,7 @@ const BudgetData = {
     totalIncome: 15000,
     totalExpenses: 10000,
     total: 5000,
-    
+    categoryTotals: {
     income: 15000,
                 self: 1100,
                 restaurants: 1000,
@@ -50,6 +50,7 @@ const BudgetData = {
                 tech: 0,
                 online: 0,
                 entertainment: 1000,
+                }
 };
 
 
