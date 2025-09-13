@@ -46,7 +46,13 @@ const InfoDisplay = ({
             <div className="flex flex-col items-center justify-center text-center w-full">
                 <span className="text-sm">{label} {additionalText}</span>
                 <div className="flex items-center gap-2">
-                                            {outOf ? <span> / {outOf}</span> : null}
+                                            {outOf ? <span>
+                                                <CurrencyAmount
+                        amount={outOf}
+                        short={round}
+                     /> /
+                                                
+                                                </span> : null}
                     <CurrencyAmount
                         amount={amount}
                         short={round}
