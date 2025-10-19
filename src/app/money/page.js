@@ -100,7 +100,7 @@ export default async function MoneyPage({ searchParams }) {
 
 
     const data = getData(existingExpenses, year, month);
-    console.log({ data });
+    console.log({ existingExpenses, year, month, data });
 
     // Convert 1-based month to 0-based for Date constructor
     const currentDate = new Date(2000 + Number(year), Number(month) - 1);

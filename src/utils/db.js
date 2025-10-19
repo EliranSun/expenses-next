@@ -4,21 +4,21 @@ import { Accounts } from '@/constants/account';
 import expensesMock from "../constants/expenses-mock.json";
 
 export async function fetchExpenses({ account, year, month } = {}) {
-    if (process.env.NODE_ENV !== "production") {
-        return expensesMock.filter(expense => {
-            const splitDate = expense.date.split("-");
-            const expenseYear = splitDate[0].slice(2, splitDate[0].length)
-            const expenseMonth = splitDate[1];
+    // if (process.env.NODE_ENV !== "production") {
+    //     return expensesMock.filter(expense => {
+    //         const splitDate = expense.date.split("-");
+    //         const expenseYear = splitDate[0].slice(2, splitDate[0].length)
+    //         const expenseMonth = splitDate[1];
 
-            if (expense.name === "test me") {
-                console.log("TEST", { expense, expenseYear, expenseMonth, year, month });
-            }
+    //         if (expense.name === "test me") {
+    //             console.log("TEST", { expense, expenseYear, expenseMonth, year, month });
+    //         }
 
-            if (year && month) return Number(expenseYear) === Number(year) && Number(expenseMonth) === Number(month);
-            if (year) return Number(expenseYear) === Number(year);
-            return true
-        });
-    }
+    //         if (year && month) return Number(expenseYear) === Number(year) && Number(expenseMonth) === Number(month);
+    //         if (year) return Number(expenseYear) === Number(year);
+    //         return true
+    //     });
+    // }
 
     const sql = neon(`${process.env.DATABASE_URL}`);
 
@@ -44,25 +44,25 @@ export async function fetchExpenses({ account, year, month } = {}) {
 
     const mappedExpenses = existingExpenses.map(expense => {
         const splitDate = expense.date.split("/");
-        const year = splitDate[2];
-        const month = splitDate[1];
+        const expenseYear = splitDate[2];
+        const expenseMonth = splitDate[1];
         const day = splitDate[0];
 
         return {
             ...expense,
             date: `20${year}-${month}-${day}`,
-            month,
-            year,
+            month: Number(expenseMonth),
+            year: Number(expenseYear),
             timestamp: new Date(`20${year}`, Number(month) - 1, day).getTime()
         };
     })
         .filter(expense => {
             if (year && month) {
-                return expense.month === month && expense.year === year;
+                return Number(expense.month) === Number(month) && Number(expense.year) === Number(year);
             }
 
             if (year) {
-                return expense.year === year;
+                return Number(expense.year) === Number(year);
             }
 
             return true;
