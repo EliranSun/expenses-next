@@ -1,7 +1,12 @@
 import PasteableExpensesTable from '@/features/PasteableExpensesTable';
 import {
-    deleteExpenses, fetchExpenses,
-    getUnhandledExpenses, insertExpenses, updateCategory, deleteExpense, updateNote
+    deleteExpenses,
+    fetchExpenses,
+    getUnhandledExpenses,
+    insertExpenses,
+    updateCategory,
+    deleteExpense,
+    updateNote
 } from '@/utils/db';
 import { MainNavBar } from '@/components/molecules/MainNavBar';
 

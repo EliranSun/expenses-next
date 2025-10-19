@@ -3,7 +3,14 @@
 import { Suspense, useState, useEffect } from 'react';
 import Table from '@/components/organisms/table';
 
-export default function PlainSearchableTable({ items = [], updateCategory, updateNote, year, month }) {
+export default function PlainSearchableTable({
+    items = [],
+    updateCategory,
+    deleteExpenses,
+    updateNote,
+    year,
+    month
+}) {
     const [searchResults, setSearchResults] = useState(items);
 
     useEffect(() => {
@@ -21,6 +28,7 @@ export default function PlainSearchableTable({ items = [], updateCategory, updat
                         searchItems={items}
                         onSearch={setSearchResults}
                         updateCategory={updateCategory}
+                        deleteExpenses={deleteExpenses}
                         updateNote={updateNote} />
                 </div>
             </div>
