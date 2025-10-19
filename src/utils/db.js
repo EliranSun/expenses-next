@@ -79,9 +79,9 @@ export async function fetchExpenses({ account, year, month } = {}) {
 
 
 export async function getUnhandledExpenses({ year, month, account } = {}) {
-    if (process.env.NODE_ENV !== "production") {
-        return expensesMock.filter(expense => expense.category === null || expense.date === null || expense.date === "");
-    }
+    // if (process.env.NODE_ENV !== "production") {
+    //     return expensesMock.filter(expense => expense.category === null || expense.date === null || expense.date === "");
+    // }
 
     const sql = neon(`${process.env.DATABASE_URL}`);
 
@@ -119,7 +119,6 @@ export async function getUnhandledExpenses({ year, month, account } = {}) {
 }
 
 export async function deleteExpenses(ids) {
-
     'use server';
     const sql = neon(`${process.env.DATABASE_URL}`);
     await sql('DELETE FROM expenses WHERE id IN ($1)', [ids]);

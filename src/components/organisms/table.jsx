@@ -239,9 +239,12 @@ export default function Table({
                             key={row.id || (row.name + row.amount + row.account + row.date)}
                             rowData={row}
                             updateCategory={updateCategory}
-                            deleteExpense={deleteExpense}
                             updateNote={updateNote}
                             updateDate={updateDate}
+                            deleteExpense={(id) => {
+                                deleteExpense(id);
+                                setRowIdsToFilter([...rowIdsToFilter, id]);
+                            }}
                             onRowClick={() => {
                                 setRowIdsToFilter([...rowIdsToFilter, row.id]);
                             }}

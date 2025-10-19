@@ -17,6 +17,7 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
     return (
         <div dir="rtl" className="flex flex-col gap-2 bg-gray-100
          dark:bg-transparent rounded-xl py-2 px-4 w-full">
+            <button onClick={() => deleteExpense(rowData.id)}>Delete</button>
             <h1 className="text-xl">
                 {rowData.name}
             </h1>
@@ -33,16 +34,6 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
                         month: "long",
                         day: "numeric"
                     })}
-                    {/* <input
-                        type="date"
-                        className="bg-transparent"
-                        value={date}
-                        onBlur={() => {
-                            updateDate(rowData.id, date);
-                        }}
-                        onChange={(e) => {
-                            setDate(e.target.value);
-                        }} /> */}
                 </DataDisplay>
                 <DataDisplay className={`shrink-0 w-40 ${category ? "" : "hidden"}`}>
                     <CategoriesDropdown

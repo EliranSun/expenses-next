@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { parseTextToRows } from "@/utils";
 import { formatDateFromDB } from '@/utils';
 
-export default function usePasteToRows(expenses = [], pasteFilterLogic = () => { }, existingExpenses = [], onSave = () => { }) {
+export default function usePasteToRows(expenses = [], pasteFilterLogic = () => { }, existingExpenses = []) {
     const [rows, setRows] = useState(expenses);
 
     useEffect(() => {
@@ -46,7 +46,6 @@ export default function usePasteToRows(expenses = [], pasteFilterLogic = () => {
                 return;
             }
 
-            onSave(newRows);
             setRows(newRows);
         };
 

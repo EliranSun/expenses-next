@@ -23,12 +23,18 @@ export default function TextToExpensesTable({
         );
     }, [expenses]));
 
-    const [rows] = usePasteToRows(expenses, pasteFilterLogic, existingExpenses, onSave);
+    const [rows] = usePasteToRows(expenses, pasteFilterLogic, existingExpenses);
 
     return (
         <Suspense fallback={<div>Loading...</div>}>
             <div className='max-w-screen-lg mx-auto w-full flex flex-col md:flex-row gap-8 overflow-hidden'>
+
                 <div className="px-0 w-full space-y-8 my-4">
+                    <button
+                        className="bg-blue-500 text-white px-4 py-2 rounded-xl flex items-center gap-2"
+                        onClick={() => onSave(rows)}>
+                        Save rows to database ({rows.length})
+                    </button>
                     <Table
                         rows={rows}
                         updateCategory={updateCategory}
