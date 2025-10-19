@@ -17,7 +17,11 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
     return (
         <div dir="rtl" className="flex flex-col gap-2 bg-gray-100
          dark:bg-transparent rounded-xl py-2 px-4 w-full">
-            <button onClick={() => deleteExpense(rowData.id)}>Delete</button>
+            <button
+                className="bg-red-500 hover:bg-black p-1 rounded"
+                onClick={() => deleteExpense(rowData.id)}>
+                Delete
+            </button>
             <h1 className="text-xl">
                 {rowData.name}
             </h1>

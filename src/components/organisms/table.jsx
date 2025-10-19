@@ -153,14 +153,13 @@ export default function Table({
     console.log({ expensesByMonth });
 
     return (
-        <div className="flex justify-center flex-row-reverse gap-4">
-            <div className="w-1/3 flex flex-col items-center gap-8">
+        <div className="flex justify-center flex-col md:flex-row-reverse gap-4">
+            <div className="md:w-1/3 flex flex-col items-center gap-8">
                 <h1 className={`text-3xl text-right font-bold ${interFont.className}`}>
                     {new Date(year, month - 1, 1).toLocaleDateString("he-IL", {
                         year: "numeric",
                         month: "long"
                     })}<br />
-                    {keys.bottom_line}
                 </h1>
                 <div className="flex flex-col gap-2 text-3xl w-full" dir="ltr">
                     <InfoDisplay
@@ -242,6 +241,7 @@ export default function Table({
                             updateNote={updateNote}
                             updateDate={updateDate}
                             deleteExpense={(id) => {
+                                console.log(`Deleting ID ${id}`)
                                 deleteExpense(id);
                                 setRowIdsToFilter([...rowIdsToFilter, id]);
                             }}

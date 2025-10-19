@@ -1,4 +1,4 @@
-import { fetchExpenses, updateCategory, updateNote, deleteExpenses } from '@/utils/db';
+import { fetchExpenses, updateCategory, updateNote, deleteExpense } from '@/utils/db';
 import PlainSearchableTable from '@/features/PlainSearchableTable';
 import { MainNavBar } from '@/components/molecules/MainNavBar';
 
@@ -20,7 +20,7 @@ export default async function Home({ searchParams }) {
         items={existingExpenses}
         updateCategory={updateCategory}
         updateNote={updateNote}
-        deleteExpenses={deleteExpenses}
+        deleteExpense={deleteExpense}
       />
     </div>
   );

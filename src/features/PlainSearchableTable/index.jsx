@@ -6,7 +6,7 @@ import Table from '@/components/organisms/table';
 export default function PlainSearchableTable({
     items = [],
     updateCategory,
-    deleteExpenses,
+    deleteExpense,
     updateNote,
     year,
     month
@@ -19,18 +19,17 @@ export default function PlainSearchableTable({
 
     return (
         <Suspense fallback={<div>Loading...</div>}>
-            <div className='max-w-screen-lg mx-auto w-full flex flex-col md:flex-row gap-8 overflow-hidden'>
-                <div className="px-0 w-full space-y-8 my-4">
-                    <Table
-                        year={year}
-                        month={month}
-                        rows={searchResults}
-                        searchItems={items}
-                        onSearch={setSearchResults}
-                        updateCategory={updateCategory}
-                        deleteExpenses={deleteExpenses}
-                        updateNote={updateNote} />
-                </div>
+            <div className="px-0 w-full space-y-8 my-4">
+                <Table
+                    year={year}
+                    month={month}
+                    rows={searchResults}
+                    searchItems={items}
+                    onSearch={setSearchResults}
+                    updateCategory={updateCategory}
+                    deleteExpense={deleteExpense}
+                    updateNote={updateNote}
+                />
             </div>
         </Suspense>
     );
