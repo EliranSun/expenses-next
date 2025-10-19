@@ -17,57 +17,79 @@ const Icon = ({ iconName }) => {
 };
 
 const InfoDisplay = ({
-    label,
-    amount,
-    outOf,
-    additionalText = "",
-    showColorIndication = false,
-    percentage,
-    isVisible = true,
-    round = false,
-    icon,
-    iconName = "",
-    emoji = "",
-    isPositive = false,
-    isNegative = false
+  label,
+  amount,
+  outOf,
+  additionalText = "",
+  showColorIndication = false,
+  isVisible = true,
+  round = false,
+  icon,
+  iconName = "",
+  emoji = "",
+  isPositive = false,
+  isNegative = false,
 }) => {
-    return (
-        <div className={classNames("flex items-center", {
-            "bg-white dark:bg-black grow p-2 md:p-8 rounded-xl shadow-md": true,
-            "hidden": !isVisible,
-            "flex-col": !icon,
-            "justify-between": icon,
-            "text-green-700": isPositive,
-            "text-red-700": isNegative
-        })}>
-            {icon && <span>{icon}</span>}
-            {iconName && IconNames[iconName] && <span><Icon iconName={iconName} /></span>}
-            {emoji && <span>{emoji}</span>}
-            <div className="flex flex-col items-center justify-center text-center w-full">
-                <span className="text-sm">{label} {additionalText}</span>
-                <div className="flex items-center gap-2">
-                                            {outOf ? <span>
-                                                <CurrencyAmount
-                        amount={outOf}
-                        short={round}
-                     /> /
-                                                
-                                                </span> : null}
-                    <CurrencyAmount
-                        amount={amount}
-                        short={round}
-                        isPositive={showColorIndication && amount > 0}
-                        isNegative={showColorIndication && amount < 0} />
+  if (!isVisible) return null;
 
-                    {percentage &&
-                        !isNaN(percentage) &&
-                        percentage !== Infinity &&
-                        percentage !== -Infinity &&
-                        <span className="text-sm">({percentage}%)</span>}
-                </div>
-            </div>
-        </div >
-    );
-}
+  const percentage =
+    outOf && outOf !== 0 ? Math.min((amount / outOf) * 100, 100) : 0;
+
+  return (
+    <div
+      className={classNames(
+        "flex items-center bg-white dark:bg-black grow p-4 md:p-6 rounded-xl shadow-md",
+        {
+          "flex-col": !icon,
+          "justify-between": icon,
+          "text-green-700": isPositive,
+          "text-red-700": isNegative,
+        }
+      )}
+    >
+      {/* Icon / Emoji */}
+      {icon && <span>{icon}</span>}
+      {iconName && IconNames[iconName] && (
+        <span>
+          <Icon iconName={iconName} />
+        </span>
+      )}
+      {emoji && <span>{emoji}</span>}
+
+      {/* Content */}
+      <div className="flex flex-col w-full text-center items-center">
+        {label && (
+          <span className="text-sm mb-2">
+            {label} {additionalText}
+          </span>
+        )}
+
+        {/* Amounts row */}
+        <div className="flex justify-between w-full text-sm mb-1">
+          <CurrencyAmount
+            amount={amount}
+            short={round}
+            isPositive={showColorIndication && amount > 0}
+            isNegative={showColorIndication && amount < 0}
+          />
+          <CurrencyAmount amount={outOf} short={round} />
+        </div>
+
+        {/* Progress bar */}
+        <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-blue-500 dark:bg-blue-400 transition-all duration-300"
+            style={{ width: `${percentage}%` }}
+          />
+        </div>
+
+        {/* Optional percentage text */}
+        <span className="text-xs mt-1 text-gray-500">
+          {Number.isFinite(percentage) ? `${Math.round(percentage)}%` : "—"}
+        </span>
+      </div>
+    </div>
+  );
+};
 
 export default InfoDisplay;
