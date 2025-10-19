@@ -2,63 +2,45 @@ import { MainNavBar } from "@/components/molecules/MainNavBar";
 import { fetchExpenses } from "@/utils/db";
 import { groupExpensesByMonth } from "@/utils";
 import { format, addMonths, subMonths } from "date-fns";
-import classNames from "classnames";
 import { he } from "date-fns/locale";
 import InfoDisplay from "@/components/molecules/info-display";
 import { ExpensesTileData } from "@/components/organisms/ExpensesTileData";
 import Link from "next/link";
-
-const Currency = ({ amount, label, col = false }) => {
-    return (
-        <div className={classNames("flex gap-2", {
-            "flex-col": col
-        })}>
-            <span><b>{label}</b></span>
-            <span>
-                {Intl.NumberFormat("he-IL", {
-                    style: "currency",
-                    currency: "ILS",
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0
-                }).format(Math.abs(Math.round(amount / 10) * 10))}
-            </span>
-        </div>
-    )
-}
+import { Currency } from "./Currency";
 
 const CategoryTotals = {
     income: 15000,
-                self: 1100,
-                restaurants: 1000,
-                house: 800,
-                groceries: 1000,
-                vacation: 0,
-                wedding: 0,
-                workout: 300,
-                subscriptions: 300,
-                animals: 300,
-                transportation: 100,
-                gifts: 100,
-                savings: 6000,
-                car: 250,
-                fees: 750,
-                games: 0,
-                tech: 0,
-                online: 0,
-                entertainment: 1000,
+    self: 1100,
+    restaurants: 1000,
+    house: 800,
+    groceries: 1000,
+    vacation: 0,
+    wedding: 0,
+    workout: 300,
+    subscriptions: 300,
+    animals: 300,
+    transportation: 100,
+    gifts: 100,
+    savings: 6000,
+    car: 250,
+    fees: 750,
+    games: 0,
+    tech: 0,
+    online: 0,
+    entertainment: 1000,
 };
 
 const totalBudgetIncome = Object
-        .entries(CategoryTotals)
-        .filter(([category]) => category === "income")
-        .reduce((acc, [category, amount]) => acc + amount, 0);
-        
+    .entries(CategoryTotals)
+    .filter(([category]) => category === "income")
+    .reduce((acc, [category, amount]) => acc + amount, 0);
+
 const totalBudgetExpenses = Object
-        .entries(CategoryTotals)
-        .filter(([category]) => category !== "income")
-        .reduce((acc, [category, amount]) => acc + amount, 0)
-        
-        
+    .entries(CategoryTotals)
+    .filter(([category]) => category !== "income")
+    .reduce((acc, [category, amount]) => acc + amount, 0)
+
+
 const BudgetData = {
     totalIncome: totalBudgetIncome,
     totalExpenses: totalBudgetExpenses,
@@ -120,6 +102,8 @@ export default async function MoneyPage({ searchParams }) {
     const nextDate = addMonths(currentDate, 1);
     const prevDate = subMonths(currentDate, 1);
 
+    console.log("existingExpenses", existingExpenses);
+
     return (
         <div className="p-4" dir="rtl">
             <MainNavBar />
@@ -169,8 +153,8 @@ export default async function MoneyPage({ searchParams }) {
                                         iconName={data.total > 0 ? "trendUp" : "trendDown"} />
                                 </div>
 
-                                <ExpensesTileData data={data} budgetData={BudgetData}/>
-                                
+                                <ExpensesTileData data={data} budgetData={BudgetData} />
+
                                 <TopExpenses expenses={data.expenses} />
                             </> : null}
                         </div>
