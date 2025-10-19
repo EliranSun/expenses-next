@@ -102,11 +102,10 @@ export default async function MoneyPage({ searchParams }) {
     const nextDate = addMonths(currentDate, 1);
     const prevDate = subMonths(currentDate, 1);
 
-    console.log("existingExpenses", existingExpenses);
 
     return (
         <div className="p-4" dir="rtl">
-            <MainNavBar />
+            <MainNavBar data={existingExpenses} />
             <div className="">
                 <div key={year}>
                     <div className="flex gap-2">
