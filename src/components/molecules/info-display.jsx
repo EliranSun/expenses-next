@@ -33,7 +33,7 @@ const InfoDisplay = ({
 }) => {
     return (
         <div className={classNames("flex items-center", {
-            "bg-white grow p-2 md:p-8 rounded-xl shadow-md": true,
+            "bg-white dark:bg-black grow p-2 md:p-8 rounded-xl shadow-md": true,
             "hidden": !isVisible,
             "flex-col": !icon,
             "justify-between": icon,
