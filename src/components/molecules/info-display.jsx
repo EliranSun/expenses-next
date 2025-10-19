@@ -33,7 +33,7 @@ const InfoDisplay = ({
   if (!isVisible) return null;
 
   const percentage =
-    outOf && outOf !== 0 ? Math.min((amount / outOf) * 100, 100) : 0;
+    outOf && outOf !== 0 ? Math.min((Math.abs(amount) / Math.abs(outOf)) * 100, 100) : 0;
 
   return (
     <div
