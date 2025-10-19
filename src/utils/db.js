@@ -50,10 +50,10 @@ export async function fetchExpenses({ account, year, month } = {}) {
 
         return {
             ...expense,
-            date: `20${year}-${month}-${day}`,
+            date: `20${expenseYear}-${expenseMonth}-${day}`,
             month: Number(expenseMonth),
             year: Number(expenseYear),
-            timestamp: new Date(`20${year}`, Number(month) - 1, day).getTime()
+            timestamp: new Date(`20${expenseYear}`, Number(expenseMonth) - 1, day).getTime()
         };
     })
         .filter(expense => {

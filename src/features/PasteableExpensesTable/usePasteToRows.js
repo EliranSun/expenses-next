@@ -13,12 +13,14 @@ export default function usePasteToRows(expenses = [], pasteFilterLogic = () => {
             const filteredRows = parsedRows
                 .filter(pasteFilterLogic)
                 .filter(row => {
-                    const existingExpense = existingExpenses.find(expense =>
-                        expense.name === row.name &&
-                        expense.amount === row.amount &&
-                        expense.date === formatDateFromDB(row.date) &&
-                        expense.account === row.account
-                    );
+                    const existingExpense = existingExpenses.find(expense => {
+                        return (
+                            expense.name === row.name &&
+                            expense.amount === row.amount &&
+                            expense.date === formatDateFromDB(row.date) &&
+                            expense.account === row.account
+                        );
+                    });
 
                     return !existingExpense;
                 });
