@@ -80,7 +80,10 @@ const getData = (expenses, targetYear, targetMonth) => {
     const monthKey = Number(targetMonth) - 1; // Convert from 1-based to 0-based month
 
     const yearData = expensesByMonth[yearKey];
-    if (!yearData) return null;
+    console.log("TEST 2", { yearData, expensesByMonth, yearKey });
+
+    if (!yearData)
+        return null;
 
     return yearData[monthKey] || null;
 }
@@ -95,7 +98,9 @@ export default async function MoneyPage({ searchParams }) {
         month: Number(month) < 10 ? `0${Number(month)}` : Number(month),
     });
 
+
     const data = getData(existingExpenses, year, month);
+    console.log({ data });
 
     // Convert 1-based month to 0-based for Date constructor
     const currentDate = new Date(2000 + Number(year), Number(month) - 1);
@@ -105,7 +110,7 @@ export default async function MoneyPage({ searchParams }) {
 
     return (
         <div className="p-4" dir="rtl">
-            <MainNavBar data={existingExpenses} />
+            <MainNavBar />
             <div className="">
                 <div key={year}>
                     <div className="flex gap-2">

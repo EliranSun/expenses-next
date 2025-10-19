@@ -10,8 +10,12 @@ export async function fetchExpenses({ account, year, month } = {}) {
             const expenseYear = splitDate[0].slice(2, splitDate[0].length)
             const expenseMonth = splitDate[1];
 
-            if (year && month) return expenseYear === year && expenseMonth === month;
-            if (year) return expenseYear === year;
+            if (expense.name === "test me") {
+                console.log("TEST", { expense, expenseYear, expenseMonth, year, month });
+            }
+
+            if (year && month) return Number(expenseYear) === Number(year) && Number(expenseMonth) === Number(month);
+            if (year) return Number(expenseYear) === Number(year);
             return true
         });
     }
@@ -49,7 +53,7 @@ export async function fetchExpenses({ account, year, month } = {}) {
             date: `20${year}-${month}-${day}`,
             month,
             year,
-            timestamp: new Date(`20${year}`, month - 1, day).getTime()
+            timestamp: new Date(`20${year}`, Number(month) - 1, day).getTime()
         };
     })
         .filter(expense => {

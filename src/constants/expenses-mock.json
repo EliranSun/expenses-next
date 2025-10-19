@@ -12,6 +12,15 @@
         "timestamp": 1710115200000
     },
     {
+        "name": "test me",
+        "date": "2025-10-05",
+        "amount": 178.5,
+        "account": "8580",
+        "category": "groceries",
+        "note": null,
+        "id": "c340890f-0d0b-48bc-83ce-ace14e1939dd"
+    },
+    {
         "name": "ALIEXPRESS",
         "amount": 62.4,
         "date": "2024-04-01",

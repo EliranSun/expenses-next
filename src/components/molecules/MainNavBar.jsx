@@ -16,9 +16,7 @@ const NavbarItem = ({ href, children }) => {
     })}>{children}</Link>
 }
 
-export const MainNavBar = ({ data }) => {
-    console.log({ data });
-
+export const MainNavBar = () => {
     return (
         <div
             dir="rtl"
