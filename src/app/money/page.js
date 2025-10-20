@@ -21,7 +21,7 @@ const CategoryTotals = {
     car: 250,
     transportation: 100,
     gifts: 100,
-    subscriptions: 0,
+    subscriptions: 200,
     vacation: 0,
     entertainment: 0,
     wedding: 0,
