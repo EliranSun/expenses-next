@@ -84,7 +84,7 @@ const InfoDisplay = ({
       "bg-red-500 dark:bg-red-400": percentage >= 100,
     })}
   />
-</div
+</div>
 
         {/* Optional percentage text */}
         <span className="text-xs mt-1 text-gray-500">
