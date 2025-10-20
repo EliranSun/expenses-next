@@ -77,11 +77,14 @@ const InfoDisplay = ({
 
         {/* Progress bar */}
         <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-blue-500 dark:bg-blue-400 transition-all duration-300"
-            style={{ width: `${percentage}%` }}
-          />
-        </div>
+  <div
+    style={{ width: `${percentage}%` }}
+    className={classNames("h-full transition-all duration-300", {
+      "bg-green-500 dark:bg-green-400": percentage < 100,
+      "bg-red-500 dark:bg-red-400": percentage >= 100,
+    })}
+  />
+</div
 
         {/* Optional percentage text */}
         <span className="text-xs mt-1 text-gray-500">
