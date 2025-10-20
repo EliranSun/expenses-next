@@ -67,7 +67,7 @@ const InfoDisplay = ({
         {/* Amounts row */}
         <div className="flex justify-between w-full text-sm mb-1">
           <CurrencyAmount
-            amount={amount}
+            amount={Math.abs(amount)}
             short={round}
             isPositive={showColorIndication && amount > 0}
             isNegative={showColorIndication && amount < 0}
