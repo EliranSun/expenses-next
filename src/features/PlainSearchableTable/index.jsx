@@ -66,8 +66,12 @@ export default function PlainSearchableTable({
                     updateNote={updateNote}
                 /> */}
                 <div className='space-x-4'>
-                    <button onClick={() => setIsShared(false)}>Private</button>
-                    <button onClick={() => setIsShared(true)}>Shared</button>
+                    <button
+                        className={isShared ? "p-1" : "bg-black text-white p-1"}
+                        onClick={() => setIsShared(false)}>Private</button>
+                    <button
+                        className={isShared ? "bg-black text-white p-1" : "p-1"}
+                        onClick={() => setIsShared(true)}>Shared</button>
                 </div>
                 <div className="flex gap-4 overflow-x-auto">
                     {Object.entries(categoricalData.Categories).map(([key, items]) => {
@@ -80,7 +84,7 @@ export default function PlainSearchableTable({
                                         .sort((a, b) => b.amount - a.amount)
                                         .map(item =>
                                             <li
-                                                onClick={prev => setIdsToFilter([...prev, item.id])}
+                                                onClick={() => setIdsToFilter(prev => [...prev, item.id])}
                                                 className='bg-white my-2 p-2 shadow-sm rounded flex flex-col'
                                                 key={item.id}>
                                                 <span className='text-sm underline'>{item.name.slice(0, 15)}</span>
