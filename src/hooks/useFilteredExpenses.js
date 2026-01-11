@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { orderBy } from 'lodash';
-import { PrivateAccounts, SharedAccount, WifeAccount } from "@/constants/account";
+import { PrivateAccounts, SharedAccounts, WifeAccount } from "@/constants/account";
 
 export function useFilteredExpenses({
     rows = [],
@@ -22,7 +22,7 @@ export function useFilteredExpenses({
                 if (account === "private") {
                     accountMatch = PrivateAccounts.includes(row.account);
                 } else if (account === "shared") {
-                    accountMatch = SharedAccount.includes(row.account);
+                    accountMatch = SharedAccounts.includes(row.account);
                 } else if (account === "wife") {
                     accountMatch = WifeAccount.includes(row.account);
                 } else {

@@ -8,7 +8,7 @@ import { Budget } from "@/constants/budget";
 import InfoDisplay from "../molecules/info-display";
 import { orderBy } from "lodash";
 import SortableTableHeader from "../molecules/sortable-table-header";
-import { PrivateAccounts, SharedAccount, WifeAccount } from "@/constants/account";
+import { PrivateAccounts, SharedAccounts, WifeAccount } from "@/constants/account";
 import { Inter } from 'next/font/google';
 import Search from "@/features/Search";
 import { CalendarIcon, CoinsIcon, CopyRight, PersonIcon, ShoppingCartIcon, TrendDownIcon, TrendUpIcon, UsersIcon } from "@phosphor-icons/react";
@@ -82,7 +82,7 @@ export default function Table({
                 if (account === "private") {
                     accountMatch = PrivateAccounts.includes(row.account);
                 } else if (account === "shared") {
-                    accountMatch = SharedAccount.includes(row.account);
+                    accountMatch = SharedAccounts.includes(row.account);
                 } else if (account === "wife") {
                     accountMatch = WifeAccount.includes(row.account);
                 } else {

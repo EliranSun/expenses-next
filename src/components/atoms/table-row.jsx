@@ -1,11 +1,11 @@
 import { CategoriesDropdown } from "../molecules/categories-dropdown";
 import { CurrencyAmount } from "./currency-amount";
 import { useState } from "react";
+import { AccountName } from "@/constants/account";
 
 const DataDisplay = ({ children, className }) => {
     return <div className={`items-center justify-center p-2 flex ${className}`}>{children}</div>
 }
-
 
 export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate, onRowClick, deleteExpense }) => {
     const [isDeleteHovered, setIsDeleteHovered] = useState(false);
@@ -17,14 +17,16 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
     return (
         <div dir="rtl" className="flex flex-col gap-2 bg-gray-100
          dark:bg-transparent rounded-xl py-2 px-4 w-full">
-            <button
-                className="bg-red-500 hover:bg-black p-1 rounded"
-                onClick={() => deleteExpense(rowData.id)}>
-                Delete
-            </button>
-            <h1 className="text-xl">
-                {rowData.name}
-            </h1>
+            <div className="flex justify-between">
+                <h1 className="text-xl">
+                    {rowData.name} - {AccountName[rowData.account]?.translation}
+                </h1>
+                <button
+                    className=" border border-gray-700 shadow p-1 rounded w-fit"
+                    onClick={() => deleteExpense(rowData.id)}>
+                    🗑️
+                </button>
+            </div>
             <div className="flex gap-2 rounded-xl">
                 <DataDisplay className="w-24 bg-white rounded-xl shadow shrink-0 text-center">
                     <CurrencyAmount

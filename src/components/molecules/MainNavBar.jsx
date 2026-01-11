@@ -20,7 +20,8 @@ export const MainNavBar = () => {
     return (
         <div
             dir="rtl"
-            className="flex gap-8 font-bold max-w-screen-lg mx-auto w-full text-center md:mb-4 justify-center md:justify-start">
+            className="flex gap-8 font-bold 
+            w-full text-center my-4 justify-center">
             <NavbarItem href="/">{keys.home}</NavbarItem>
             <NavbarItem href="/add">{keys.add}</NavbarItem>
             <NavbarItem href="/money">{keys.whereIsMyMoney}</NavbarItem>
