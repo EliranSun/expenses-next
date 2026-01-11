@@ -5,7 +5,7 @@ import Table from '@/components/organisms/table';
 import { keyBy } from 'lodash';
 import { PrivateAccounts, SharedAccounts } from '@/constants/account';
 
-const getCategoricalData = (expenses = [], isShared = false) => {
+const getCategoricalData = (expenses = [], isShared = false, idsToFilter = []) => {
     const Categories = {};
     let totalAmount = 0;
 
@@ -14,7 +14,9 @@ const getCategoricalData = (expenses = [], isShared = false) => {
             (SharedAccounts.includes(item.account) && isShared) ||
             (PrivateAccounts.includes(item.account) && !isShared);
 
-        if (shouldAdd) {
+        const isFiltered = idsToFilter.includes(item.id);
+
+        if (shouldAdd && !isFiltered) {
             item.category === "income"
                 ? totalAmount += item.amount
                 : totalAmount -= item.amount;
@@ -42,12 +44,13 @@ export default function PlainSearchableTable({
 }) {
     const [isShared, setIsShared] = useState(true);
     const [searchResults, setSearchResults] = useState(items);
+    const [idsToFilter, setIdsToFilter] = useState([]);
 
     useEffect(() => {
         setSearchResults(items);
     }, [items]);
 
-    const categoricalData = getCategoricalData(searchResults, isShared);
+    const categoricalData = getCategoricalData(searchResults, isShared, idsToFilter);
 
     return (
         <Suspense fallback={<div>Loading...</div>}>
@@ -77,6 +80,7 @@ export default function PlainSearchableTable({
                                         .sort((a, b) => b.amount - a.amount)
                                         .map(item =>
                                             <li
+                                                onClick={prev => setIdsToFilter([...prev, item.id])}
                                                 className='bg-white my-2 p-2 shadow-sm rounded flex flex-col'
                                                 key={item.id}>
                                                 <span className='text-sm underline'>{item.name.slice(0, 15)}</span>
