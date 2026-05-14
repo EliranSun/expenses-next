@@ -1,5 +1,4 @@
 import { neon } from '@neondatabase/serverless';
-import { Accounts, PrivateAccounts } from '@/constants/account';
 import {
     fetchExpenses,
     getUnhandledExpenses,
@@ -10,7 +9,12 @@ import {
     updateNote,
     updateDate,
     updateExpenses,
+    getAccounts,
+    getBudget,
 } from './db';
+
+const PrivateAccounts = ['1111', '5555', '6666'];
+const SharedAccounts = ['2222'];
 
 jest.mock('@neondatabase/serverless', () => ({
     neon: jest.fn(),
@@ -31,7 +35,7 @@ const dbRow = (overrides = {}) => ({
     name: 'foo',
     amount: 10,
     date: '2025-01-01',
-    account: '3361',
+    account: '1111',
     category: 'food',
     id: '1',
     note: null,
@@ -111,31 +115,81 @@ describe('fetchExpenses', () => {
     });
 
     describe('account guard', () => {
-        it('returns [] and does not query when account maps to an empty list', async () => {
+        it('returns [] when account resolves to zero rows in DB', async () => {
+            sqlMock.mockResolvedValueOnce([]); // resolveAccountNumbers
+
             const result = await fetchExpenses({ account: 'wife' });
 
             expect(result).toEqual([]);
-            expect(sqlMock).not.toHaveBeenCalled();
+            expect(sqlMock).toHaveBeenCalledTimes(1);
         });
 
-        it('returns [] for an unknown account key', async () => {
-            const result = await fetchExpenses({ account: 'nope' });
-
-            expect(result).toEqual([]);
-            expect(sqlMock).not.toHaveBeenCalled();
-        });
-
-        it('builds parameterised IN clause for a known account', async () => {
-            sqlMock.mockResolvedValueOnce([]);
+        it('builds parameterised IN clause from DB-resolved account numbers', async () => {
+            sqlMock
+                .mockResolvedValueOnce(PrivateAccounts.map(number => ({ number }))) // resolveAccountNumbers
+                .mockResolvedValueOnce([]); // main query
 
             await fetchExpenses({ account: 'private' });
 
-            const [query, params] = sqlMock.mock.calls[0];
+            const [resolveQuery, resolveParams] = sqlMock.mock.calls[0];
+            expect(resolveQuery).toMatch(/SELECT number FROM accounts WHERE type = \$1/);
+            expect(resolveParams).toEqual(['private']);
+
+            const [query, params] = sqlMock.mock.calls[1];
             const expectedPlaceholders = PrivateAccounts
                 .map((_, i) => `$${i + 1}`)
                 .join(', ');
             expect(query).toContain(`account IN (${expectedPlaceholders})`);
-            expect(params.slice(0, PrivateAccounts.length)).toEqual(Accounts.private);
+            expect(params.slice(0, PrivateAccounts.length)).toEqual(PrivateAccounts);
+        });
+
+        it('queries all accounts when account=all', async () => {
+            sqlMock
+                .mockResolvedValueOnce([{ number: '1111' }, { number: '2222' }])
+                .mockResolvedValueOnce([]);
+
+            await fetchExpenses({ account: 'all' });
+
+            const [resolveQuery, resolveParams] = sqlMock.mock.calls[0];
+            expect(resolveQuery).toMatch(/SELECT number FROM accounts/);
+            expect(resolveQuery).not.toMatch(/WHERE/);
+            expect(resolveParams).toBeUndefined();
+        });
+    });
+
+    describe('getAccounts', () => {
+        it('groups DB rows by type and builds accountName lookup', async () => {
+            sqlMock.mockResolvedValueOnce([
+                { number: '1111', type: 'private', name: 'private', translation: 'פרטי' },
+                { number: '2222', type: 'shared',  name: 'shared',  translation: 'משותף' },
+            ]);
+
+            const accounts = await getAccounts();
+
+            expect(accounts.private).toEqual(['1111']);
+            expect(accounts.shared).toEqual(['2222']);
+            expect(accounts.wife).toEqual([]);
+            expect(accounts.all).toEqual(['1111', '2222']);
+            expect(accounts.accountName['1111']).toEqual({ name: 'private', translation: 'פרטי' });
+        });
+    });
+
+    describe('getBudget', () => {
+        it('groups rows by account_type and parses numeric amounts', async () => {
+            sqlMock.mockResolvedValueOnce([
+                { account_type: 'private', category: 'groceries', amount: '1000.00' },
+                { account_type: 'private', category: 'income',    amount: '15000.00' },
+                { account_type: 'shared',  category: 'house',     amount: '5300.00' },
+            ]);
+
+            const budget = await getBudget(25, 1);
+
+            expect(budget.private).toEqual({ groceries: 1000, income: 15000 });
+            expect(budget.shared).toEqual({ house: 5300 });
+
+            const [query, params] = sqlMock.mock.calls[0];
+            expect(query).toMatch(/WHERE year = \$1 AND month = \$2/);
+            expect(params).toEqual([2025, 1]);
         });
     });
 });
@@ -274,8 +328,8 @@ describe('insertExpenses', () => {
         sqlMock.mockResolvedValueOnce(undefined);
 
         const res = await insertExpenses([
-            { name: 'a', amount: 1, date: '2025-01-01', account: '3361', category: 'food', id: 'i1' },
-            { name: 'b', amount: 2, date: '2025-01-02', account: '3361', category: 'food', id: 'i2' },
+            { name: 'a', amount: 1, date: '2025-01-01', account: '1111', category: 'food', id: 'i1' },
+            { name: 'b', amount: 2, date: '2025-01-02', account: '1111', category: 'food', id: 'i2' },
         ]);
 
         expect(res).toEqual({ ok: true, data: { inserted: 2 } });
@@ -289,7 +343,7 @@ describe('insertExpenses', () => {
     it('returns { ok: false } on driver error', async () => {
         sqlMock.mockRejectedValueOnce(new Error('dup'));
         const res = await insertExpenses([
-            { name: 'a', amount: 1, date: '2025-01-01', account: '3361', category: 'food', id: 'i1' },
+            { name: 'a', amount: 1, date: '2025-01-01', account: '1111', category: 'food', id: 'i1' },
         ]);
         expect(res.ok).toBe(false);
         expect(res.error).toBe('dup');
@@ -310,8 +364,8 @@ describe('updateExpenses', () => {
         sqlMock.transaction.mockResolvedValueOnce(undefined);
 
         const res = await updateExpenses([
-            { id: 'i1', name: 'a', amount: 1, date: '2025-01-01', account: '3361', category: 'food' },
-            { id: 'i2', name: 'b', amount: 2, date: '2025-01-02', account: '3361', category: 'food' },
+            { id: 'i1', name: 'a', amount: 1, date: '2025-01-01', account: '1111', category: 'food' },
+            { id: 'i2', name: 'b', amount: 2, date: '2025-01-02', account: '1111', category: 'food' },
         ]);
 
         expect(res).toEqual({ ok: true, data: { updated: 2 } });
@@ -324,7 +378,7 @@ describe('updateExpenses', () => {
         sqlMock.transaction.mockRejectedValueOnce(new Error('rolled back'));
 
         const res = await updateExpenses([
-            { id: 'i1', name: 'a', amount: 1, date: '2025-01-01', account: '3361', category: 'food' },
+            { id: 'i1', name: 'a', amount: 1, date: '2025-01-01', account: '1111', category: 'food' },
         ]);
 
         expect(res.ok).toBe(false);

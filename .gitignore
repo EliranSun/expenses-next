@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local seed data (real budgets/accounts; never commit)
+scripts/seed-data.local.json

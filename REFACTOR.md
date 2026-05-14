@@ -79,12 +79,12 @@ Fixes the silent failures and the broken SQL.
 
 ## Phase 3 — Get secrets/config out of git (½ day)
 
-- [ ] Move `src/constants/budget.js` (real budget numbers, account codes
+- [x] Move `src/constants/budget.js` (real budget numbers, account codes
       `3361`, `9325`, `170-489748`, `754-320766`) into a `budgets` table in
       Postgres, fetched server-side. Provide a one-off seed script.
-- [ ] Move account-number → logical-account mapping
+- [x] Move account-number → logical-account mapping
       (`src/constants/account.js`) into env or DB.
-- [ ] Confirm `Categories` (with emoji + Hebrew labels) is acceptable to
+- [x] Confirm `Categories` (with emoji + Hebrew labels) is acceptable to
       keep in git as it's display config, not data — otherwise also move
       to DB.
 

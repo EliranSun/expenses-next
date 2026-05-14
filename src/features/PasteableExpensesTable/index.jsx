@@ -13,7 +13,11 @@ export default function TextToExpensesTable({
     updateCategory,
     updateNote,
     updateDate,
-    deleteExpense
+    deleteExpense,
+    accounts,
+    budget,
+    year,
+    month,
 }) {
     const pasteFilterLogic = useCallback((row) => !expenses.some(expense => {
         return expense.id === row.id || (
@@ -42,6 +46,10 @@ export default function TextToExpensesTable({
                         updateNote={updateNote}
                         updateDate={updateDate}
                         deleteExpense={deleteExpense}
+                        accounts={accounts}
+                        budget={budget}
+                        year={year}
+                        month={month}
                     />
                 </div>
             </div>

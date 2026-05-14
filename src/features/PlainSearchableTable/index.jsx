@@ -3,16 +3,15 @@
 import { Suspense, useState, useEffect } from 'react';
 import Table from '@/components/organisms/table';
 import { keyBy } from 'lodash';
-import { PrivateAccounts, SharedAccounts } from '@/constants/account';
 
-const getCategoricalData = (expenses = [], isShared = false, idsToFilter = []) => {
+const getCategoricalData = (expenses, isShared, idsToFilter, privateAccounts, sharedAccounts) => {
     const Categories = {};
     let totalAmount = 0;
 
     expenses.forEach(item => {
         const shouldAdd =
-            (SharedAccounts.includes(item.account) && isShared) ||
-            (PrivateAccounts.includes(item.account) && !isShared);
+            (sharedAccounts.includes(item.account) && isShared) ||
+            (privateAccounts.includes(item.account) && !isShared);
 
         const isFiltered = idsToFilter.includes(item.id);
 
@@ -40,7 +39,8 @@ export default function PlainSearchableTable({
     deleteExpense,
     updateNote,
     year,
-    month
+    month,
+    accounts = { private: [], shared: [] },
 }) {
     const [isShared, setIsShared] = useState(true);
     const [searchResults, setSearchResults] = useState(items);
@@ -50,7 +50,13 @@ export default function PlainSearchableTable({
         setSearchResults(items);
     }, [items]);
 
-    const categoricalData = getCategoricalData(searchResults, isShared, idsToFilter);
+    const categoricalData = getCategoricalData(
+        searchResults,
+        isShared,
+        idsToFilter,
+        accounts.private,
+        accounts.shared,
+    );
 
     return (
         <Suspense fallback={<div>Loading...</div>}>

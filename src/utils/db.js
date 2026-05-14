@@ -1,10 +1,45 @@
 import { neon } from '@neondatabase/serverless';
-import { Accounts } from '@/constants/account';
 
 const DEFAULT_LIMIT = 1000;
 
 function getSql() {
     return neon(`${process.env.DATABASE_URL}`);
+}
+
+export async function getAccounts() {
+    const sql = getSql();
+    const rows = await sql('SELECT number, type, name, translation FROM accounts');
+
+    const byType = { private: [], shared: [], wife: [] };
+    const accountName = {};
+    for (const row of rows) {
+        if (!byType[row.type]) byType[row.type] = [];
+        byType[row.type].push(row.number);
+        accountName[row.number] = { name: row.name, translation: row.translation };
+    }
+
+    return {
+        ...byType,
+        all: [...byType.private, ...byType.shared, ...byType.wife],
+        accountName,
+    };
+}
+
+export async function getBudget(year, month) {
+    const sql = getSql();
+    const rows = await sql(
+        `SELECT account_type, category, amount
+         FROM budgets
+         WHERE year = $1 AND month = $2`,
+        [2000 + Number(year), Number(month)],
+    );
+
+    const byAccountType = {};
+    for (const row of rows) {
+        if (!byAccountType[row.account_type]) byAccountType[row.account_type] = {};
+        byAccountType[row.account_type][row.category] = Number(row.amount);
+    }
+    return byAccountType;
 }
 
 function monthBounds(year, month) {
@@ -39,6 +74,18 @@ function mapRow(expense) {
     };
 }
 
+async function resolveAccountNumbers(sql, accountType) {
+    if (accountType === 'all') {
+        const rows = await sql('SELECT number FROM accounts');
+        return rows.map(r => r.number);
+    }
+    const rows = await sql(
+        'SELECT number FROM accounts WHERE type = $1',
+        [accountType],
+    );
+    return rows.map(r => r.number);
+}
+
 export async function fetchExpenses({ account, year, month, limit = DEFAULT_LIMIT } = {}) {
     const sql = getSql();
 
@@ -46,13 +93,13 @@ export async function fetchExpenses({ account, year, month, limit = DEFAULT_LIMI
     const params = [];
 
     if (account) {
-        if (!Accounts[account] || Accounts[account].length === 0) {
-            console.log('No account provided');
+        const numbers = await resolveAccountNumbers(sql, account);
+        if (numbers.length === 0) {
             return [];
         }
-        const placeholders = Accounts[account].map((_, i) => `$${params.length + i + 1}`).join(', ');
+        const placeholders = numbers.map((_, i) => `$${params.length + i + 1}`).join(', ');
         conditions.push(`account IN (${placeholders})`);
-        params.push(...Accounts[account]);
+        params.push(...numbers);
     }
 
     if (year && month) {
@@ -80,10 +127,13 @@ export async function getUnhandledExpenses({ year, month, account, limit = DEFAU
     const conditions = ['(category IS NULL OR date IS NULL)'];
     const params = [];
 
-    if (account && Accounts[account]?.length) {
-        const placeholders = Accounts[account].map((_, i) => `$${params.length + i + 1}`).join(', ');
-        conditions.push(`account IN (${placeholders})`);
-        params.push(...Accounts[account]);
+    if (account) {
+        const numbers = await resolveAccountNumbers(sql, account);
+        if (numbers.length > 0) {
+            const placeholders = numbers.map((_, i) => `$${params.length + i + 1}`).join(', ');
+            conditions.push(`account IN (${placeholders})`);
+            params.push(...numbers);
+        }
     }
 
     if (year && month) {
