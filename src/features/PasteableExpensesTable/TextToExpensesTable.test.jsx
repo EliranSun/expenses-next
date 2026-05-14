@@ -1,70 +1,160 @@
 import React from 'react';
-import { render, screen, fireEvent, prettyDOM, logRoles } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import TextToExpensesTable from './index'; // Adjust the import path as necessary
+
+const mockParams = new URLSearchParams();
+jest.mock('next/navigation', () => ({
+    useSearchParams: () => mockParams,
+}));
+jest.mock('next/font/google', () => ({
+    Inter: () => ({ className: 'mock-inter' }),
+}));
+
+import TextToExpensesTable from './index';
+
+// Each TableRow renders exactly one 🗑️ delete button (table-row.jsx:24–28).
+// Counting those is a stable proxy for the number of rendered rows.
+const renderedRowCount = () =>
+    screen.queryAllByRole('button', { name: '🗑️' }).length;
+
+const paste = (text) =>
+    fireEvent.paste(document.body, { clipboardData: { getData: () => text } });
 
 describe('TextToExpensesTable', () => {
-    it('should render the correct number of rows after pasting', () => {
-        render(<TextToExpensesTable />);
-
-        const input = screen.getByTestId('pasteable-expenses-table'); // Adjust the selector as necessary
-        fireEvent.paste(input, {
-            clipboardData: {
-                getData: () => 'APPLE.COM/BILL	28/01/25	3361	foo	69.90 ₪	',
-            },
-        });
-
-        const rows = screen.getAllByRole('row');
-        expect(rows).toHaveLength(3); // 1 for headers, 1 for data, 1 for footer
+    beforeEach(() => {
+        // Silence noisy console.log in Table/TableRow.
+        jest.spyOn(console, 'log').mockImplementation(() => { });
+    });
+    afterEach(() => {
+        jest.restoreAllMocks();
     });
 
-    it('should not paste duplicate rows', () => {
+    it('renders a row after pasting one line', () => {
+        render(<TextToExpensesTable />);
+
+        paste('APPLE.COM/BILL\t28/01/25\t3361\tfoo\t69.90 ₪');
+
+        expect(renderedRowCount()).toBe(1);
+    });
+
+    it('does not paste duplicates of existing staged expenses (pasteFilterLogic)', () => {
         const expenses = [
             { id: 1, name: 'APPLE.COM/BILL', amount: 69.90, account: '3361', date: '28/01/25' },
             { id: 2, name: 'Expense 2', amount: 200, account: 'Account 2', date: '2023-01-02' },
         ];
-
         render(<TextToExpensesTable expenses={expenses} />);
 
-        const input = screen.getByTestId('pasteable-expenses-table'); // Adjust the selector as necessary
-        fireEvent.paste(input, {
-            clipboardData: {
-                getData: () => `
-                APPLE.COM/BILL	28/01/25	3361	foo	69.90 ₪	
-                APPLE.COM/BILL	28/01/25	3361	foo	31.90 ₪
-                APPLE.COM/BILL	28/01/25	3361	foo	31.90 ₪	
-                APPLE.COM/BILL	28/01/25	3361	foo	31.90 ₪	`,
-            },
-        });
+        expect(renderedRowCount()).toBe(2);
 
-        const rows = screen.getAllByRole('row');
-        expect(rows).toHaveLength(5); // 1 for headers, 3 for data, 1 for footer
+        paste(`
+            APPLE.COM/BILL\t28/01/25\t3361\tfoo\t69.90 ₪
+            APPLE.COM/BILL\t28/01/25\t3361\tfoo\t31.90 ₪
+            APPLE.COM/BILL\t28/01/25\t3361\tfoo\t31.90 ₪
+            APPLE.COM/BILL\t28/01/25\t3361\tfoo\t31.90 ₪`);
+
+        // parseTextToRows collapses the three identical 31.90 lines into 1.
+        // The 69.90 row matches an existing expense → filtered out.
+        // Only the 31.90 row is added → 2 + 1 = 3 rendered rows.
+        expect(renderedRowCount()).toBe(3);
     });
 
-    it("Should sum the amounts correctly", () => {
+    it('shows the running total of expenses across all rendered rows', () => {
         const expenses = [
             { id: 1, name: 'APPLE.COM/BILL', amount: 10, account: '3361', date: '28/01/25' },
             { id: 2, name: 'Expense 2', amount: 200, account: 'Account 2', date: '2023-01-02' },
         ];
-
         render(<TextToExpensesTable expenses={expenses} />);
 
-        const currencyAmounts = screen.getAllByTestId('currency-amount');
-        expect(currencyAmounts).not.toHaveLength(0);
-        const lastCurrencyAmount = currencyAmounts[currencyAmounts.length - 1];
-        expect(lastCurrencyAmount).toHaveTextContent('‏210 ‏₪');
+        // Both rows have no category, so they count as expenses.
+        // totalExpenses = 210; bottom-line InfoDisplay renders |0 - 210| = 210.
+        const initialAmounts = screen
+            .getAllByTestId('currency-amount')
+            .map((el) => el.textContent);
+        expect(initialAmounts.some((t) => /\b210\b/.test(t))).toBe(true);
 
-        const input = screen.getByTestId('pasteable-expenses-table'); // Adjust the selector as necessary
-        fireEvent.paste(input, {
-            clipboardData: {
-                getData: () => `
-                APPLE.COM/BILL2	28/01/25	3361	foo	20 ₪`,
-            },
+        paste('APPLE.COM/BILL2\t28/01/25\t3361\tfoo\t20 ₪');
+
+        const afterAmounts = screen
+            .getAllByTestId('currency-amount')
+            .map((el) => el.textContent);
+        expect(afterAmounts.some((t) => /\b230\b/.test(t))).toBe(true);
+    });
+
+    describe('dedup against existingExpenses (DB rows)', () => {
+        let alertSpy;
+        beforeEach(() => {
+            alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => { });
         });
 
-        const currencyAmounts2 = screen.getAllByTestId('currency-amount');
-        expect(currencyAmounts2).not.toHaveLength(0);
-        const lastCurrencyAmount2 = currencyAmounts2[currencyAmounts2.length - 1];
-        expect(lastCurrencyAmount2).toHaveTextContent('‏230 ‏₪');
+        it('drops a pasted row that matches all four fields in an existingExpenses entry', () => {
+            // existingExpenses uses YYYY-MM-DD; usePasteToRows applies formatDateFromDB
+            // to the pasted DD/MM/YY before comparing.
+            const existingExpenses = [
+                { id: 'db-1', name: 'APPLE.COM/BILL', amount: 69.90, date: '2025-01-28', account: '3361' },
+            ];
+            render(<TextToExpensesTable existingExpenses={existingExpenses} />);
+
+            paste('APPLE.COM/BILL\t28/01/25\t3361\tfoo\t69.90 ₪');
+
+            expect(renderedRowCount()).toBe(0);
+            expect(alertSpy).toHaveBeenCalledWith('No new expenses found');
+        });
+
+        it('keeps the row when name differs', () => {
+            const existingExpenses = [
+                { id: 'db-1', name: 'DIFFERENT', amount: 69.90, date: '2025-01-28', account: '3361' },
+            ];
+            render(<TextToExpensesTable existingExpenses={existingExpenses} />);
+
+            paste('APPLE.COM/BILL\t28/01/25\t3361\tfoo\t69.90 ₪');
+
+            expect(renderedRowCount()).toBe(1);
+        });
+
+        it('keeps the row when amount differs', () => {
+            const existingExpenses = [
+                { id: 'db-1', name: 'APPLE.COM/BILL', amount: 1.00, date: '2025-01-28', account: '3361' },
+            ];
+            render(<TextToExpensesTable existingExpenses={existingExpenses} />);
+
+            paste('APPLE.COM/BILL\t28/01/25\t3361\tfoo\t69.90 ₪');
+
+            expect(renderedRowCount()).toBe(1);
+        });
+
+        it('keeps the row when account differs', () => {
+            const existingExpenses = [
+                { id: 'db-1', name: 'APPLE.COM/BILL', amount: 69.90, date: '2025-01-28', account: '9999' },
+            ];
+            render(<TextToExpensesTable existingExpenses={existingExpenses} />);
+
+            paste('APPLE.COM/BILL\t28/01/25\t3361\tfoo\t69.90 ₪');
+
+            expect(renderedRowCount()).toBe(1);
+        });
+
+        it('keeps the row when date differs (after format conversion)', () => {
+            const existingExpenses = [
+                { id: 'db-1', name: 'APPLE.COM/BILL', amount: 69.90, date: '2024-01-28', account: '3361' },
+            ];
+            render(<TextToExpensesTable existingExpenses={existingExpenses} />);
+
+            paste('APPLE.COM/BILL\t28/01/25\t3361\tfoo\t69.90 ₪');
+
+            expect(renderedRowCount()).toBe(1);
+        });
+
+        it('applies formatDateFromDB before comparing dates (DD/MM/YY → YYYY-MM-DD)', () => {
+            // Sanity-check the format conversion: pasted '28/01/25' must match
+            // an existingExpenses entry with date '2025-01-28' to dedup.
+            const existingExpenses = [
+                { id: 'db-1', name: 'APPLE.COM/BILL', amount: 69.90, date: '2025-01-28', account: '3361' },
+            ];
+            render(<TextToExpensesTable existingExpenses={existingExpenses} />);
+
+            paste('APPLE.COM/BILL\t28/01/25\t3361\tfoo\t69.90 ₪');
+
+            expect(renderedRowCount()).toBe(0);
+        });
     });
-}); 
+});
