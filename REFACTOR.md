@@ -53,25 +53,25 @@ Grep-verified during the audit: nothing imports these.
 
 Fixes the silent failures and the broken SQL.
 
-- [ ] **Fix bulk delete bug** at `src/utils/db.js:124`. Replace
+- [x] **Fix bulk delete bug** at `src/utils/db.js:124`. Replace
       `WHERE id IN ($1)` with dynamic `$1,$2,…$N` placeholders, matching the
       pattern already used at `:38` and `:135`.
-- [ ] **Wrap multi-row writes in a transaction.** `insertExpenses` and
+- [x] **Wrap multi-row writes in a transaction.** `insertExpenses` and
       `updateExpenses` should either succeed or roll back as a unit.
-- [ ] **Standardise server-action return shape** to
+- [x] **Standardise server-action return shape** to
       `{ ok: true } | { ok: false, error: string }`. Update every action in
       `src/utils/db.js`: `insertExpenses`, `updateExpenses`, `updateCategory`,
       `updateNote`, `updateDate`, `deleteExpense`, `deleteExpenses`. Stop
       silently returning on missing input — return
       `{ ok: false, error: 'missing id' }`.
-- [ ] **Propagate errors to UI.** In every caller
+- [x] **Propagate errors to UI.** In every caller
       (`src/components/atoms/table-row.jsx`,
       `src/features/PasteableExpensesTable/index.jsx`, etc.), `await` the
       action and show a toast or inline error on `!ok`. Today these calls are
       fire-and-forget — see `table-row.jsx:50,60,80`.
-- [ ] **Add a `LIMIT`** (config default 1000) to `fetchExpenses` and
+- [x] **Add a `LIMIT`** (config default 1000) to `fetchExpenses` and
       `getUnhandledExpenses`. Add a `(account, date)` index in Postgres.
-- [ ] **DB migration: convert `expenses.date` to a real `DATE` column.**
+- [x] **DB migration: convert `expenses.date` to a real `DATE` column.**
       One-off SQL migration script committed to `db/migrations/`. After this,
       delete the `DD/MM/YY` split logic at `db.js:46–56` and `:94–106` and
       the `20${year}` hack in `src/utils/index.js`. Move filtering by

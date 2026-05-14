@@ -4,6 +4,7 @@ import Table from "@/components/organisms/table";
 import usePasteToRows from "@/features/PasteableExpensesTable/usePasteToRows";
 import { useCallback } from "react";
 import { Suspense } from "react";
+import { run } from "@/utils/action";
 
 export default function TextToExpensesTable({
     expenses = [],
@@ -32,7 +33,7 @@ export default function TextToExpensesTable({
                 <div className="px-0 w-full space-y-8 my-4">
                     <button
                         className="bg-blue-500 text-white px-4 py-2 rounded-xl flex items-center gap-2"
-                        onClick={() => onSave(rows)}>
+                        onClick={() => run(onSave(rows), { success: `Saved ${rows.length} rows` })}>
                         Save rows to database ({rows.length})
                     </button>
                     <Table
