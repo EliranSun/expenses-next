@@ -1,5 +1,3 @@
-import { PrivateAccounts } from "@/constants/account";
-
 export const parseTextToRows = (text) => {
     if (!text) return [];
 
@@ -49,13 +47,12 @@ export const formatDateFromDB = (date) => {
     return `${year}-${month}-${day}`;
 };
 
-export const groupExpensesByMonth = (expenses, isPrivate = true) => {
+export const groupExpensesByMonth = (expenses, privateAccounts = null) => {
     if (!expenses || !Array.isArray(expenses)) return {};
 
     let temp = {};
     expenses
-        // .filter(expense => expense.name === "משכורת")
-        .filter(expense => isPrivate ? PrivateAccounts.includes(expense.account) : true)
+        .filter(expense => privateAccounts ? privateAccounts.includes(expense.account) : true)
         .forEach(expense => {
             const date = new Date(expense.timestamp);
             const year = date.getFullYear();

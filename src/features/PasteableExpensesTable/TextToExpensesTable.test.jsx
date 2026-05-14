@@ -32,14 +32,14 @@ describe('TextToExpensesTable', () => {
     it('renders a row after pasting one line', () => {
         render(<TextToExpensesTable />);
 
-        paste('APPLE.COM/BILL\t28/01/25\t3361\tfoo\t69.90 ₪');
+        paste('APPLE.COM/BILL\t28/01/25\t1111\tfoo\t69.90 ₪');
 
         expect(renderedRowCount()).toBe(1);
     });
 
     it('does not paste duplicates of existing staged expenses (pasteFilterLogic)', () => {
         const expenses = [
-            { id: 1, name: 'APPLE.COM/BILL', amount: 69.90, account: '3361', date: '28/01/25' },
+            { id: 1, name: 'APPLE.COM/BILL', amount: 69.90, account: '1111', date: '28/01/25' },
             { id: 2, name: 'Expense 2', amount: 200, account: 'Account 2', date: '2023-01-02' },
         ];
         render(<TextToExpensesTable expenses={expenses} />);
@@ -47,10 +47,10 @@ describe('TextToExpensesTable', () => {
         expect(renderedRowCount()).toBe(2);
 
         paste(`
-            APPLE.COM/BILL\t28/01/25\t3361\tfoo\t69.90 ₪
-            APPLE.COM/BILL\t28/01/25\t3361\tfoo\t31.90 ₪
-            APPLE.COM/BILL\t28/01/25\t3361\tfoo\t31.90 ₪
-            APPLE.COM/BILL\t28/01/25\t3361\tfoo\t31.90 ₪`);
+            APPLE.COM/BILL\t28/01/25\t1111\tfoo\t69.90 ₪
+            APPLE.COM/BILL\t28/01/25\t1111\tfoo\t31.90 ₪
+            APPLE.COM/BILL\t28/01/25\t1111\tfoo\t31.90 ₪
+            APPLE.COM/BILL\t28/01/25\t1111\tfoo\t31.90 ₪`);
 
         // parseTextToRows collapses the three identical 31.90 lines into 1.
         // The 69.90 row matches an existing expense → filtered out.
@@ -60,7 +60,7 @@ describe('TextToExpensesTable', () => {
 
     it('shows the running total of expenses across all rendered rows', () => {
         const expenses = [
-            { id: 1, name: 'APPLE.COM/BILL', amount: 10, account: '3361', date: '28/01/25' },
+            { id: 1, name: 'APPLE.COM/BILL', amount: 10, account: '1111', date: '28/01/25' },
             { id: 2, name: 'Expense 2', amount: 200, account: 'Account 2', date: '2023-01-02' },
         ];
         render(<TextToExpensesTable expenses={expenses} />);
@@ -72,7 +72,7 @@ describe('TextToExpensesTable', () => {
             .map((el) => el.textContent);
         expect(initialAmounts.some((t) => /\b210\b/.test(t))).toBe(true);
 
-        paste('APPLE.COM/BILL2\t28/01/25\t3361\tfoo\t20 ₪');
+        paste('APPLE.COM/BILL2\t28/01/25\t1111\tfoo\t20 ₪');
 
         const afterAmounts = screen
             .getAllByTestId('currency-amount')
@@ -90,11 +90,11 @@ describe('TextToExpensesTable', () => {
             // existingExpenses uses YYYY-MM-DD; usePasteToRows applies formatDateFromDB
             // to the pasted DD/MM/YY before comparing.
             const existingExpenses = [
-                { id: 'db-1', name: 'APPLE.COM/BILL', amount: 69.90, date: '2025-01-28', account: '3361' },
+                { id: 'db-1', name: 'APPLE.COM/BILL', amount: 69.90, date: '2025-01-28', account: '1111' },
             ];
             render(<TextToExpensesTable existingExpenses={existingExpenses} />);
 
-            paste('APPLE.COM/BILL\t28/01/25\t3361\tfoo\t69.90 ₪');
+            paste('APPLE.COM/BILL\t28/01/25\t1111\tfoo\t69.90 ₪');
 
             expect(renderedRowCount()).toBe(0);
             expect(alertSpy).toHaveBeenCalledWith('No new expenses found');
@@ -102,22 +102,22 @@ describe('TextToExpensesTable', () => {
 
         it('keeps the row when name differs', () => {
             const existingExpenses = [
-                { id: 'db-1', name: 'DIFFERENT', amount: 69.90, date: '2025-01-28', account: '3361' },
+                { id: 'db-1', name: 'DIFFERENT', amount: 69.90, date: '2025-01-28', account: '1111' },
             ];
             render(<TextToExpensesTable existingExpenses={existingExpenses} />);
 
-            paste('APPLE.COM/BILL\t28/01/25\t3361\tfoo\t69.90 ₪');
+            paste('APPLE.COM/BILL\t28/01/25\t1111\tfoo\t69.90 ₪');
 
             expect(renderedRowCount()).toBe(1);
         });
 
         it('keeps the row when amount differs', () => {
             const existingExpenses = [
-                { id: 'db-1', name: 'APPLE.COM/BILL', amount: 1.00, date: '2025-01-28', account: '3361' },
+                { id: 'db-1', name: 'APPLE.COM/BILL', amount: 1.00, date: '2025-01-28', account: '1111' },
             ];
             render(<TextToExpensesTable existingExpenses={existingExpenses} />);
 
-            paste('APPLE.COM/BILL\t28/01/25\t3361\tfoo\t69.90 ₪');
+            paste('APPLE.COM/BILL\t28/01/25\t1111\tfoo\t69.90 ₪');
 
             expect(renderedRowCount()).toBe(1);
         });
@@ -128,18 +128,18 @@ describe('TextToExpensesTable', () => {
             ];
             render(<TextToExpensesTable existingExpenses={existingExpenses} />);
 
-            paste('APPLE.COM/BILL\t28/01/25\t3361\tfoo\t69.90 ₪');
+            paste('APPLE.COM/BILL\t28/01/25\t1111\tfoo\t69.90 ₪');
 
             expect(renderedRowCount()).toBe(1);
         });
 
         it('keeps the row when date differs (after format conversion)', () => {
             const existingExpenses = [
-                { id: 'db-1', name: 'APPLE.COM/BILL', amount: 69.90, date: '2024-01-28', account: '3361' },
+                { id: 'db-1', name: 'APPLE.COM/BILL', amount: 69.90, date: '2024-01-28', account: '1111' },
             ];
             render(<TextToExpensesTable existingExpenses={existingExpenses} />);
 
-            paste('APPLE.COM/BILL\t28/01/25\t3361\tfoo\t69.90 ₪');
+            paste('APPLE.COM/BILL\t28/01/25\t1111\tfoo\t69.90 ₪');
 
             expect(renderedRowCount()).toBe(1);
         });
@@ -148,11 +148,11 @@ describe('TextToExpensesTable', () => {
             // Sanity-check the format conversion: pasted '28/01/25' must match
             // an existingExpenses entry with date '2025-01-28' to dedup.
             const existingExpenses = [
-                { id: 'db-1', name: 'APPLE.COM/BILL', amount: 69.90, date: '2025-01-28', account: '3361' },
+                { id: 'db-1', name: 'APPLE.COM/BILL', amount: 69.90, date: '2025-01-28', account: '1111' },
             ];
             render(<TextToExpensesTable existingExpenses={existingExpenses} />);
 
-            paste('APPLE.COM/BILL\t28/01/25\t3361\tfoo\t69.90 ₪');
+            paste('APPLE.COM/BILL\t28/01/25\t1111\tfoo\t69.90 ₪');
 
             expect(renderedRowCount()).toBe(0);
         });

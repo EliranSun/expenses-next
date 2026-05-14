@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "test": "jest --watchAll",
-    "test:ci": "jest --ci"
+    "test:ci": "jest --ci",
+    "seed:config": "node scripts/seed-config.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",

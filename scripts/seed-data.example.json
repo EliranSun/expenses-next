@@ -1,0 +1,17 @@
+{
+  "_comment": "Copy this file to seed-data.local.json (gitignored) and fill in real values. Run `npm run seed:config`.",
+  "accounts": [
+    { "number": "0000", "type": "private", "name": "private", "translation": "פרטי" },
+    { "number": "0001", "type": "shared",  "name": "shared",  "translation": "משותף" }
+  ],
+  "budgets": {
+    "25": {
+      "01": {
+        "private": {
+          "income": 0,
+          "groceries": 0
+        }
+      }
+    }
+  }
+}

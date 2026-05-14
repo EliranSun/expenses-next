@@ -4,11 +4,9 @@ import { TableRow } from "../atoms/table-row";
 import keys from "@/app/he.json";
 import { useMemo, useState, Fragment } from "react";
 import { useSearchParams } from "next/navigation";
-import { Budget } from "@/constants/budget";
 import InfoDisplay from "../molecules/info-display";
 import { orderBy } from "lodash";
 import SortableTableHeader from "../molecules/sortable-table-header";
-import { PrivateAccounts, SharedAccounts, WifeAccount } from "@/constants/account";
 import { Inter } from 'next/font/google';
 import Search from "@/features/Search";
 import { CalendarIcon, CoinsIcon, CopyRight, PersonIcon, ShoppingCartIcon, TrendDownIcon, TrendUpIcon, UsersIcon } from "@phosphor-icons/react";
@@ -46,7 +44,9 @@ export default function Table({
     year,
     month,
     searchItems,
-    onSearch
+    onSearch,
+    budget: budgetByAccountType = {},
+    accounts = { private: [], shared: [], wife: [] },
 }) {
     const [selectedCategories, setSelectedCategories] = useState([]);
     const query = useSearchParams();
@@ -56,7 +56,7 @@ export default function Table({
 
     const [rowIdsToFilter, setRowIdsToFilter] = useState([]);
     const [sortCriteria, setSortCriteria] = useState(querySort ? querySort.split(":") : ["date", "asc"]);
-    const temporalBudget = useMemo(() => Budget[year]?.[month]?.[account] || 0, [year, month, account]);
+    const temporalBudget = useMemo(() => budgetByAccountType?.[account] || 0, [budgetByAccountType, account]);
 
     const budget = useMemo(() => {
         if (!temporalBudget) return 0;
@@ -80,13 +80,12 @@ export default function Table({
             let accountMatch = true;
             if (account) {
                 if (account === "private") {
-                    accountMatch = PrivateAccounts.includes(row.account);
+                    accountMatch = accounts.private.includes(row.account);
                 } else if (account === "shared") {
-                    accountMatch = SharedAccounts.includes(row.account);
+                    accountMatch = accounts.shared.includes(row.account);
                 } else if (account === "wife") {
-                    accountMatch = WifeAccount.includes(row.account);
+                    accountMatch = accounts.wife.includes(row.account);
                 } else {
-                    // all
                     accountMatch = true;
                 }
             }
@@ -235,6 +234,7 @@ export default function Table({
                         <TableRow
                             key={row.id || (row.name + row.amount + row.account + row.date)}
                             rowData={row}
+                            accountName={accounts.accountName}
                             updateCategory={updateCategory}
                             updateNote={updateNote}
                             updateDate={updateDate}

@@ -1,14 +1,13 @@
 import { CategoriesDropdown } from "../molecules/categories-dropdown";
 import { CurrencyAmount } from "./currency-amount";
 import { useState } from "react";
-import { AccountName } from "@/constants/account";
 import { run } from "@/utils/action";
 
 const DataDisplay = ({ children, className }) => {
     return <div className={`items-center justify-center p-2 flex ${className}`}>{children}</div>
 }
 
-export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate, onRowClick, deleteExpense }) => {
+export const TableRow = ({ rowData = {}, accountName = {}, updateCategory, updateNote, updateDate, onRowClick, deleteExpense }) => {
     const [isDeleteHovered, setIsDeleteHovered] = useState(false);
     const [isHideHovered, setIsHideHovered] = useState(false);
     const [category, setCategory] = useState(rowData.category || "");
@@ -20,7 +19,7 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
          dark:bg-transparent rounded-xl py-2 px-4 w-full">
             <div className="flex justify-between">
                 <h1 className="text-xl">
-                    {rowData.name} - {AccountName[rowData.account]?.translation}
+                    {rowData.name} - {accountName[rowData.account]?.translation}
                 </h1>
                 <button
                     className=" border border-gray-700 shadow p-1 rounded w-fit"

@@ -1,5 +1,5 @@
 import { MainNavBar } from "@/components/molecules/MainNavBar";
-import { fetchExpenses } from "@/utils/db";
+import { fetchExpenses, getAccounts } from "@/utils/db";
 import { groupExpensesByMonth } from "@/utils";
 import { format, addMonths, subMonths } from "date-fns";
 import { he } from "date-fns/locale";
@@ -72,8 +72,8 @@ const TopExpenses = ({ expenses }) => {
     )
 }
 
-const getData = (expenses, targetYear, targetMonth) => {
-    const expensesByMonth = groupExpensesByMonth(expenses);
+const getData = (expenses, targetYear, targetMonth, privateAccounts) => {
+    const expensesByMonth = groupExpensesByMonth(expenses, privateAccounts);
 
     // Convert target year and month to the format used by groupExpensesByMonth
     const yearKey = 2000 + Number(targetYear); // Convert from 2-digit to 4-digit year
@@ -92,14 +92,17 @@ export default async function MoneyPage({ searchParams }) {
     const defaultYear = new Date().getFullYear().toString().slice(2);
     const defaultMonth = new Date().getMonth() + 1; // Convert to 1-based month for URL params
     const { year = defaultYear, month = defaultMonth, account } = await searchParams;
-    const existingExpenses = await fetchExpenses({
-        year,
-        account,
-        month: Number(month) < 10 ? `0${Number(month)}` : Number(month),
-    });
+    const [existingExpenses, accounts] = await Promise.all([
+        fetchExpenses({
+            year,
+            account,
+            month: Number(month) < 10 ? `0${Number(month)}` : Number(month),
+        }),
+        getAccounts(),
+    ]);
 
 
-    const data = getData(existingExpenses, year, month);
+    const data = getData(existingExpenses, year, month, accounts.private);
     console.log({ existingExpenses, year, month, data });
 
     // Convert 1-based month to 0-based for Date constructor

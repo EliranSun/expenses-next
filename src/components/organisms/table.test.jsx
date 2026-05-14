@@ -26,12 +26,25 @@ const row = (overrides = {}) => {
         id: 'x',
         name: 'X',
         amount: 100,
-        account: '3361',
+        account: '1111',
         category: 'groceries',
         date,
         timestamp: new Date(y, m - 1, d).getTime(),
         ...overrides,
     };
+};
+
+const testAccounts = {
+    private: ['1111', '3333'],
+    shared: ['2222', '4444'],
+    wife: [],
+    all: ['1111', '3333', '2222', '4444'],
+    accountName: {
+        '1111':        { name: 'private', translation: 'פרטי' },
+        '3333':  { name: 'private', translation: 'פרטי' },
+        '2222':        { name: 'shared',  translation: 'משותף' },
+        '4444':  { name: 'shared',  translation: 'משותף' },
+    },
 };
 
 const renderTable = (props = {}) => {
@@ -46,6 +59,8 @@ const renderTable = (props = {}) => {
             month={1}
             searchItems={[]}
             onSearch={() => { }}
+            accounts={testAccounts}
+            budget={{}}
             {...props}
         />
     );
@@ -59,10 +74,10 @@ const visibleRowNames = () => {
 };
 
 const fixtures = [
-    row({ id: 'a', name: 'Alpha', amount: 10, account: '3361', date: '2025-01-10', category: 'groceries' }),
-    row({ id: 'b', name: 'Bravo', amount: 200, account: '9325', date: '2025-01-15', category: 'groceries' }),
-    row({ id: 'c', name: 'Cain', amount: 50, account: '170-489748', date: '2025-01-05', category: 'transportation' }),
-    row({ id: 'd', name: 'Delta', amount: 500, account: '754-320766', date: '2025-01-20', category: 'income' }),
+    row({ id: 'a', name: 'Alpha', amount: 10, account: '1111', date: '2025-01-10', category: 'groceries' }),
+    row({ id: 'b', name: 'Bravo', amount: 200, account: '2222', date: '2025-01-15', category: 'groceries' }),
+    row({ id: 'c', name: 'Cain', amount: 50, account: '3333', date: '2025-01-05', category: 'transportation' }),
+    row({ id: 'd', name: 'Delta', amount: 500, account: '4444', date: '2025-01-20', category: 'income' }),
 ];
 
 beforeEach(() => {
