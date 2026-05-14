@@ -14,6 +14,7 @@ import Search from "@/features/Search";
 import { CalendarIcon, CoinsIcon, CopyRight, PersonIcon, ShoppingCartIcon, TrendDownIcon, TrendUpIcon, UsersIcon } from "@phosphor-icons/react";
 import { Categories } from "@/constants";
 import classNames from "classnames";
+import { run } from "@/utils/action";
 
 const interFont = Inter({
     subsets: ["latin"],
@@ -237,10 +238,11 @@ export default function Table({
                             updateCategory={updateCategory}
                             updateNote={updateNote}
                             updateDate={updateDate}
-                            deleteExpense={(id) => {
-                                console.log(`Deleting ID ${id}`)
-                                deleteExpense(id);
-                                setRowIdsToFilter([...rowIdsToFilter, id]);
+                            deleteExpense={async (id) => {
+                                const res = await run(deleteExpense(id), { success: "Deleted" });
+                                if (res?.ok) {
+                                    setRowIdsToFilter([...rowIdsToFilter, id]);
+                                }
                             }}
                             onRowClick={() => {
                                 setRowIdsToFilter([...rowIdsToFilter, row.id]);

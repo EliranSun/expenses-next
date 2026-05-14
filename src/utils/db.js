@@ -1,202 +1,227 @@
 import { neon } from '@neondatabase/serverless';
-import { formatDateFromDB, formatDateToDB } from '.';
 import { Accounts } from '@/constants/account';
 
-export async function fetchExpenses({ account, year, month } = {}) {
-    const sql = neon(`${process.env.DATABASE_URL}`);
+const DEFAULT_LIMIT = 1000;
 
-    // Construct the base query
-    let query = 'SELECT name, amount, date, account, category, id, note FROM expenses';
+function getSql() {
+    return neon(`${process.env.DATABASE_URL}`);
+}
+
+function monthBounds(year, month) {
+    // year is 2-digit (e.g. 25 -> 2025), month is 1-12
+    const y = 2000 + Number(year);
+    const m = Number(month);
+    const start = `${y}-${String(m).padStart(2, '0')}-01`;
+    const nextYear = m === 12 ? y + 1 : y;
+    const nextMonth = m === 12 ? 1 : m + 1;
+    const end = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`;
+    return { start, end };
+}
+
+function yearBounds(year) {
+    const y = 2000 + Number(year);
+    return { start: `${y}-01-01`, end: `${y + 1}-01-01` };
+}
+
+function mapRow(expense) {
+    // After the DATE-column migration the driver returns date as a
+    // Date object or 'YYYY-MM-DD' string. Normalise to ISO string.
+    const iso = typeof expense.date === 'string'
+        ? expense.date.slice(0, 10)
+        : expense.date.toISOString().slice(0, 10);
+    const [yyyy, mm, dd] = iso.split('-');
+    return {
+        ...expense,
+        date: iso,
+        month: Number(mm),
+        year: Number(yyyy) % 100,
+        timestamp: new Date(Number(yyyy), Number(mm) - 1, Number(dd)).getTime(),
+    };
+}
+
+export async function fetchExpenses({ account, year, month, limit = DEFAULT_LIMIT } = {}) {
+    const sql = getSql();
+
     const conditions = [];
     const params = [];
 
-    // Add conditions based on provided parameters
     if (account) {
         if (!Accounts[account] || Accounts[account].length === 0) {
-            console.log("No account provided");
+            console.log('No account provided');
             return [];
         }
-
-        query += ' WHERE account IN (';
-        const accountPlaceholders = Accounts[account].map((_, index) => `$${index + 1}`).join(', ');
-        query += accountPlaceholders + ')';
+        const placeholders = Accounts[account].map((_, i) => `$${params.length + i + 1}`).join(', ');
+        conditions.push(`account IN (${placeholders})`);
         params.push(...Accounts[account]);
     }
 
-    const existingExpenses = await sql(query, params);
+    if (year && month) {
+        const { start, end } = monthBounds(year, month);
+        conditions.push(`date >= $${params.length + 1}::date AND date < $${params.length + 2}::date`);
+        params.push(start, end);
+    } else if (year) {
+        const { start, end } = yearBounds(year);
+        conditions.push(`date >= $${params.length + 1}::date AND date < $${params.length + 2}::date`);
+        params.push(start, end);
+    }
 
-    const mappedExpenses = existingExpenses.map(expense => {
-        const splitDate = expense.date.split("/");
-        const expenseYear = splitDate[2];
-        const expenseMonth = splitDate[1];
-        const day = splitDate[0];
+    let query = 'SELECT name, amount, date, account, category, id, note FROM expenses';
+    if (conditions.length) query += ` WHERE ${conditions.join(' AND ')}`;
+    query += ` ORDER BY date ASC, name ASC LIMIT $${params.length + 1}`;
+    params.push(limit);
 
-        return {
-            ...expense,
-            date: `20${expenseYear}-${expenseMonth}-${day}`,
-            month: Number(expenseMonth),
-            year: Number(expenseYear),
-            timestamp: new Date(`20${expenseYear}`, Number(expenseMonth) - 1, day).getTime()
-        };
-    })
-        .filter(expense => {
-            if (year && month) {
-                return Number(expense.month) === Number(month) && Number(expense.year) === Number(year);
-            }
-
-            if (year) {
-                return Number(expense.year) === Number(year);
-            }
-
-            return true;
-        })
-        .sort((a, b) => {
-            if (a.timestamp === b.timestamp) {
-                return a.name.localeCompare(b.name);
-            }
-            return a.timestamp - b.timestamp;
-        });
-
-    return mappedExpenses;
+    const rows = await sql(query, params);
+    return rows.map(mapRow);
 }
 
+export async function getUnhandledExpenses({ year, month, account, limit = DEFAULT_LIMIT } = {}) {
+    const sql = getSql();
 
-export async function getUnhandledExpenses({ year, month, account } = {}) {
-    const sql = neon(`${process.env.DATABASE_URL}`);
+    const conditions = ['(category IS NULL OR date IS NULL)'];
+    const params = [];
 
-    const existingExpenses = await sql(`
-        SELECT name, amount, date, account, category, id, note 
-        FROM expenses 
-        WHERE category IS NULL OR date IS NULL OR date = ''
-    `);
+    if (account && Accounts[account]?.length) {
+        const placeholders = Accounts[account].map((_, i) => `$${params.length + i + 1}`).join(', ');
+        conditions.push(`account IN (${placeholders})`);
+        params.push(...Accounts[account]);
+    }
 
-    return existingExpenses.map(expense => {
-        const splitDate = expense.date.split("/");
-        const year = splitDate[2];
-        const month = splitDate[1];
-        const day = splitDate[0];
+    if (year && month) {
+        const { start, end } = monthBounds(year, month);
+        conditions.push(`date >= $${params.length + 1}::date AND date < $${params.length + 2}::date`);
+        params.push(start, end);
+    } else if (year) {
+        const { start, end } = yearBounds(year);
+        conditions.push(`date >= $${params.length + 1}::date AND date < $${params.length + 2}::date`);
+        params.push(start, end);
+    }
 
-        return {
-            ...expense,
-            date: formatDateFromDB(expense.date),
-            month,
-            year,
-            timestamp: new Date(`20${year}`, month - 1, day).getTime()
-        }
-    })
-        .filter(expense => {
-            if (year && month) {
-                return expense.month === month && expense.year === year;
-            }
+    const query = `
+        SELECT name, amount, date, account, category, id, note
+        FROM expenses
+        WHERE ${conditions.join(' AND ')}
+        LIMIT $${params.length + 1}
+    `;
+    params.push(limit);
 
-            if (year) {
-                return expense.year === year;
-            }
-
-            return true;
-        });
+    const rows = await sql(query, params);
+    return rows.map(row => (row.date ? mapRow(row) : { ...row, month: null, year: null, timestamp: null }));
 }
 
 export async function deleteExpenses(ids) {
     'use server';
-    const sql = neon(`${process.env.DATABASE_URL}`);
-    await sql('DELETE FROM expenses WHERE id IN ($1)', [ids]);
+    if (!Array.isArray(ids) || ids.length === 0) {
+        return { ok: false, error: 'missing ids' };
+    }
+    try {
+        const sql = getSql();
+        const placeholders = ids.map((_, i) => `$${i + 1}`).join(', ');
+        await sql(`DELETE FROM expenses WHERE id IN (${placeholders})`, ids);
+        return { ok: true };
+    } catch (error) {
+        console.error('deleteExpenses failed:', error);
+        return { ok: false, error: error.message ?? 'delete failed' };
+    }
 }
 
 export async function insertExpenses(rows) {
     'use server';
-    const sql = neon(`${process.env.DATABASE_URL}`);
-    const values = rows.map(row => [row.name, row.amount, formatDateToDB(row.date), row.account, row.category, row.id]);
-
-
-    const query = `
-        INSERT INTO expenses (name, amount, date, account, category, id) 
-        VALUES ${values.map((_, i) => `($${i * 6 + 1}, $${i * 6 + 2}, $${i * 6 + 3}, $${i * 6 + 4}, $${i * 6 + 5}, $${i * 6 + 6})`).join(', ')}
-    `;
-
-    await sql(query, values.flat());
+    if (!Array.isArray(rows) || rows.length === 0) {
+        return { ok: false, error: 'no rows to insert' };
+    }
+    try {
+        const sql = getSql();
+        const values = rows.map(row => [row.name, row.amount, row.date, row.account, row.category, row.id]);
+        const placeholders = values
+            .map((_, i) => `($${i * 6 + 1}, $${i * 6 + 2}, $${i * 6 + 3}::date, $${i * 6 + 4}, $${i * 6 + 5}, $${i * 6 + 6})`)
+            .join(', ');
+        const query = `
+            INSERT INTO expenses (name, amount, date, account, category, id)
+            VALUES ${placeholders}
+        `;
+        // Single multi-row INSERT is atomic in Postgres.
+        await sql(query, values.flat());
+        return { ok: true, data: { inserted: rows.length } };
+    } catch (error) {
+        console.error('insertExpenses failed:', error);
+        return { ok: false, error: error.message ?? 'insert failed' };
+    }
 }
 
 export async function updateCategory(id, category) {
     'use server';
-
-    if (!category || !id) {
-        console.log("No category provided");
-        return;
+    if (!id) return { ok: false, error: 'missing id' };
+    if (!category) return { ok: false, error: 'missing category' };
+    try {
+        const sql = getSql();
+        await sql('UPDATE expenses SET category = $1 WHERE id = $2', [category, id]);
+        return { ok: true };
+    } catch (error) {
+        console.error('updateCategory failed:', error);
+        return { ok: false, error: error.message ?? 'update failed' };
     }
-
-    console.log("Updating expense category:", id, category);
-    const sql = neon(`${process.env.DATABASE_URL}`);
-
-
-    await sql('UPDATE expenses SET category = $1 WHERE id = $2', [
-        category,
-        id
-    ]);
 }
 
 export async function deleteExpense(id) {
     'use server';
-    const sql = neon(`${process.env.DATABASE_URL}`);
-    await sql('DELETE FROM expenses WHERE id = $1', [id]);
+    if (!id) return { ok: false, error: 'missing id' };
+    try {
+        const sql = getSql();
+        await sql('DELETE FROM expenses WHERE id = $1', [id]);
+        return { ok: true };
+    } catch (error) {
+        console.error('deleteExpense failed:', error);
+        return { ok: false, error: error.message ?? 'delete failed' };
+    }
 }
-
-
 
 export async function updateExpenses(rows) {
     'use server';
-    console.log("Saving expenses:", rows.length);
-    const sql = neon(`${process.env.DATABASE_URL}`);
-
+    if (!Array.isArray(rows) || rows.length === 0) {
+        return { ok: false, error: 'no rows to update' };
+    }
+    const targets = rows.filter(r => r.id);
+    if (targets.length === 0) {
+        return { ok: false, error: 'no rows with ids' };
+    }
     try {
-        for (const row of rows) {
-            if (row.id) {
-                // update existing expense
-                await sql('UPDATE expenses SET name = $1, amount = $2, date = $3, account = $4, category = $5 WHERE id = $6', [
-                    row.name,
-                    row.amount,
-                    formatDateToDB(row.date),
-                    row.account,
-                    row.category,
-                    row.id
-                ]);
-            }
-        }
-        console.log('Rows saved successfully:', rows.length);
+        const sql = getSql();
+        const queries = targets.map(row => sql(
+            'UPDATE expenses SET name = $1, amount = $2, date = $3::date, account = $4, category = $5 WHERE id = $6',
+            [row.name, row.amount, row.date, row.account, row.category, row.id],
+        ));
+        await sql.transaction(queries);
+        return { ok: true, data: { updated: targets.length } };
     } catch (error) {
-        console.error('Error saving rows:', error);
+        console.error('updateExpenses failed:', error);
+        return { ok: false, error: error.message ?? 'update failed' };
     }
 }
 
 export async function updateNote(id, note) {
     'use server';
-
-    if (!note || !id) {
-        console.log("No note provided");
-        return;
+    if (!id) return { ok: false, error: 'missing id' };
+    if (note == null) return { ok: false, error: 'missing note' };
+    try {
+        const sql = getSql();
+        await sql('UPDATE expenses SET note = $1 WHERE id = $2', [note, id]);
+        return { ok: true };
+    } catch (error) {
+        console.error('updateNote failed:', error);
+        return { ok: false, error: error.message ?? 'update failed' };
     }
-
-    console.log("Updating expense note:", id, note);
-    const sql = neon(`${process.env.DATABASE_URL}`);
-
-
-    await sql('UPDATE expenses SET note = $1 WHERE id = $2', [note, id]);
 }
 
 export async function updateDate(id, date) {
     'use server';
-
-    if (!date || !id) {
-        console.log("No date provided");
-        return;
+    if (!id) return { ok: false, error: 'missing id' };
+    if (!date) return { ok: false, error: 'missing date' };
+    try {
+        const sql = getSql();
+        await sql('UPDATE expenses SET date = $1::date WHERE id = $2', [date, id]);
+        return { ok: true };
+    } catch (error) {
+        console.error('updateDate failed:', error);
+        return { ok: false, error: error.message ?? 'update failed' };
     }
-
-    console.log("Updating expense date:", id, date);
-    const formattedDate = formatDateToDB(date);
-    const sql = neon(`${process.env.DATABASE_URL}`);
-
-    await sql('UPDATE expenses SET date = $1 WHERE id = $2', [
-        formattedDate,
-        id
-    ]);
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent, within, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 const mockParams = new URLSearchParams();
@@ -136,8 +136,8 @@ describe('Table — filter', () => {
     });
 
     describe('row hiding on delete', () => {
-        it('hides a deleted row from the rendered list', () => {
-            const deleteExpense = jest.fn();
+        it('hides a deleted row from the rendered list', async () => {
+            const deleteExpense = jest.fn().mockResolvedValue({ ok: true });
             renderTable({ rows: fixtures, deleteExpense });
 
             // Each TableRow has one "🗑️" button. Find the delete button inside the Alpha row.
@@ -148,7 +148,9 @@ describe('Table — filter', () => {
             fireEvent.click(within(alphaRow).getByRole('button', { name: '🗑️' }));
 
             expect(deleteExpense).toHaveBeenCalledWith('a');
-            expect(visibleRowNames().sort()).toEqual(['Bravo', 'Cain', 'Delta']);
+            await waitFor(() =>
+                expect(visibleRowNames().sort()).toEqual(['Bravo', 'Cain', 'Delta'])
+            );
         });
     });
 });

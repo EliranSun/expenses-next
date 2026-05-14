@@ -2,6 +2,7 @@ import { CategoriesDropdown } from "../molecules/categories-dropdown";
 import { CurrencyAmount } from "./currency-amount";
 import { useState } from "react";
 import { AccountName } from "@/constants/account";
+import { run } from "@/utils/action";
 
 const DataDisplay = ({ children, className }) => {
     return <div className={`items-center justify-center p-2 flex ${className}`}>{children}</div>
@@ -45,9 +46,8 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
                     <CategoriesDropdown
                         value={category}
                         onCategoryChange={(value) => {
-                            console.log("Changing category:", value);
                             setCategory(value === category ? "" : value);
-                            updateCategory(rowData.id, value);
+                            run(updateCategory(rowData.id, value));
                         }} />
                 </DataDisplay>
                 <DataDisplay>
@@ -56,8 +56,7 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
                         className="bg-transparent"
                         defaultValue={note}
                         onBlur={() => {
-                            console.log("Changing note:", note);
-                            updateNote(rowData.id, note);
+                            run(updateNote(rowData.id, note));
                         }}
                         onChange={(e) => {
                             console.log("Changing note:", e.target.value);
@@ -74,9 +73,8 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
                 <CategoriesDropdown
                     value={category}
                     onCategoryChange={(value) => {
-                        console.log("Changing category:", value);
                         setCategory(value === category ? "" : value);
-                        updateCategory(rowData.id, value);
+                        run(updateCategory(rowData.id, value));
                     }} />
             </DataDisplay>
         </div>
