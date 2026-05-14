@@ -2,7 +2,7 @@
 
 import { TableRow } from "../atoms/table-row";
 import keys from "@/app/he.json";
-import { useRef, useMemo, useState, Fragment } from "react";
+import { useMemo, useState, Fragment } from "react";
 import { useSearchParams } from "next/navigation";
 import { Budget } from "@/constants/budget";
 import InfoDisplay from "../molecules/info-display";
@@ -48,7 +48,6 @@ export default function Table({
     onSearch
 }) {
     const [selectedCategories, setSelectedCategories] = useState([]);
-    const tableRef = useRef(null);
     const query = useSearchParams();
     const [account, setAccount] = useState(query.get("account"));
     const categories = query.get("category") ? query.get("category").split(",") : [];
@@ -118,8 +117,6 @@ export default function Table({
 
     const totalIncome = useMemo(() =>
         filteredRows.reduce((acc, row) => row.category === "income" ? acc + row.amount : acc, 0), [filteredRows]);
-
-    // useKeyboardControl(tableRef);
 
     const showIncome = categories.length === 0 || categories.includes("income");
 

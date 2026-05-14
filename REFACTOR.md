@@ -37,16 +37,16 @@ Goal: cover the surfaces we're about to change so regressions are caught.
 
 Grep-verified during the audit: nothing imports these.
 
-- [ ] Delete `src/data.js` (223 LOC of stale mock transactions, zero imports).
-- [ ] Delete `src/hooks/useSort.js` (only referenced from commented-out lines
+- [x] Delete `src/data.js` (223 LOC of stale mock transactions, zero imports).
+- [x] Delete `src/hooks/useSort.js` (only referenced from commented-out lines
       in `src/components/organisms/ExpensesTileData.jsx:3,9`).
-- [ ] Delete `src/hooks/useKeyboardControl.js` (only referenced from a
+- [x] Delete `src/hooks/useKeyboardControl.js` (only referenced from a
       commented-out line in `src/components/organisms/table.jsx:122`).
-- [ ] Delete `src/hooks/useFilteredExpenses.js` (exported, zero imports) —
+- [x] Delete `src/hooks/useFilteredExpenses.js` (exported, zero imports) —
       its replacement is written fresh in Phase 4.
-- [ ] Remove the commented-out mock blocks at `src/utils/db.js:7–21` and
+- [x] Remove the commented-out mock blocks at `src/utils/db.js:7–21` and
       `:82–84`.
-- [ ] Remove `src/constants/expenses-mock.json` if no longer imported after
+- [x] Remove `src/constants/expenses-mock.json` if no longer imported after
       the above.
 
 ## Phase 2 — Data layer correctness (1–1.5 days)

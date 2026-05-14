@@ -1,25 +1,8 @@
 import { neon } from '@neondatabase/serverless';
 import { formatDateFromDB, formatDateToDB } from '.';
 import { Accounts } from '@/constants/account';
-import expensesMock from "../constants/expenses-mock.json";
 
 export async function fetchExpenses({ account, year, month } = {}) {
-    // if (process.env.NODE_ENV !== "production") {
-    //     return expensesMock.filter(expense => {
-    //         const splitDate = expense.date.split("-");
-    //         const expenseYear = splitDate[0].slice(2, splitDate[0].length)
-    //         const expenseMonth = splitDate[1];
-
-    //         if (expense.name === "test me") {
-    //             console.log("TEST", { expense, expenseYear, expenseMonth, year, month });
-    //         }
-
-    //         if (year && month) return Number(expenseYear) === Number(year) && Number(expenseMonth) === Number(month);
-    //         if (year) return Number(expenseYear) === Number(year);
-    //         return true
-    //     });
-    // }
-
     const sql = neon(`${process.env.DATABASE_URL}`);
 
     // Construct the base query
@@ -79,10 +62,6 @@ export async function fetchExpenses({ account, year, month } = {}) {
 
 
 export async function getUnhandledExpenses({ year, month, account } = {}) {
-    // if (process.env.NODE_ENV !== "production") {
-    //     return expensesMock.filter(expense => expense.category === null || expense.date === null || expense.date === "");
-    // }
-
     const sql = neon(`${process.env.DATABASE_URL}`);
 
     const existingExpenses = await sql(`
