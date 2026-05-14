@@ -21,17 +21,17 @@ we type the *final* shape of the code rather than a moving target.
 
 Goal: cover the surfaces we're about to change so regressions are caught.
 
-- [ ] Add a `test:ci` script to `package.json` that runs once (not `--watchAll`)
+- [x] Add a `test:ci` script to `package.json` that runs once (not `--watchAll`)
       for CI use.
-- [ ] Test `src/utils/db.js` filter/mapping logic (date split, year/month
+- [x] Test `src/utils/db.js` filter/mapping logic (date split, year/month
       filter, sort). Mock `neon()`; do not hit the real DB.
-- [ ] Test the to-be-extracted filter logic (see Phase 4) — write the tests
+- [x] Test the to-be-extracted filter logic (see Phase 4) — write the tests
       against the current behaviour in `table.jsx` so the extraction in
       Phase 4 is a no-op at the test level.
-- [ ] Extend the existing `usePasteToRows` test
+- [x] Extend the existing `usePasteToRows` test
       (`src/features/PasteableExpensesTable/TextToExpensesTable.test.jsx`)
       with cases for the dedup logic.
-- [ ] Confirm `npm test` (one-shot) passes and runs in <30s.
+- [x] Confirm `npm test` (one-shot) passes and runs in <30s.
 
 ## Phase 1 — Delete dead code (½ day)
 
