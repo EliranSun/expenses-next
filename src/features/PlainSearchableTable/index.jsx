@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect } from 'react';
 import Table from '@/components/organisms/table';
 import { keyBy } from 'lodash';
 import { PrivateAccounts, SharedAccounts } from '@/constants/account';
+import { formatCurrency } from '@/utils/format';
 
 const getCategoricalData = (expenses = [], isShared = false, idsToFilter = []) => {
     const Categories = {};
@@ -30,9 +31,6 @@ const getCategoricalData = (expenses = [], isShared = false, idsToFilter = []) =
 
     return { Categories, totalAmount };
 }
-
-const formatCurrency = amount =>
-    new Intl.NumberFormat("he-IL", { style: "currency", currency: "ILS" }).format(amount);
 
 export default function PlainSearchableTable({
     items = [],

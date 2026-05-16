@@ -1,6 +1,6 @@
 import { fetchExpenses, updateCategory, updateNote, deleteExpense } from '@/utils/db';
 import PlainSearchableTable from '@/features/PlainSearchableTable';
-import { MainNavBar } from '@/components/molecules/MainNavBar';
+import { MainNavBar } from '@/components/molecules/main-nav-bar';
 
 export default async function Home({ searchParams }) {
   const today = new Date();

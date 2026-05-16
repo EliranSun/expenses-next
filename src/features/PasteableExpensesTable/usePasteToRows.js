@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { parseTextToRows } from "@/utils";
 import { formatDateFromDB } from '@/utils';
 
-export default function usePasteToRows(expenses = [], pasteFilterLogic = () => { }, existingExpenses = []) {
+export default function usePasteToRows(expenses = [], pasteFilterLogic = () => { }, existingExpenses = [], containerRef) {
     const [rows, setRows] = useState(expenses);
 
     useEffect(() => {
@@ -51,13 +51,13 @@ export default function usePasteToRows(expenses = [], pasteFilterLogic = () => {
             setRows(newRows);
         };
 
-
-        document.addEventListener('paste', handlePaste);
+        const target = containerRef?.current ?? document;
+        target.addEventListener('paste', handlePaste);
 
         return () => {
-            document.removeEventListener('paste', handlePaste);
+            target.removeEventListener('paste', handlePaste);
         };
-    }, [expenses, pasteFilterLogic, existingExpenses]);
+    }, [expenses, pasteFilterLogic, existingExpenses, containerRef]);
 
     return [rows];
 }

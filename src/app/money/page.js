@@ -1,12 +1,12 @@
-import { MainNavBar } from "@/components/molecules/MainNavBar";
+import { MainNavBar } from "@/components/molecules/main-nav-bar";
 import { fetchExpenses } from "@/utils/db";
 import { groupExpensesByMonth } from "@/utils";
 import { format, addMonths, subMonths } from "date-fns";
 import { he } from "date-fns/locale";
 import InfoDisplay from "@/components/molecules/info-display";
-import { ExpensesTileData } from "@/components/organisms/ExpensesTileData";
+import { ExpensesTileData } from "@/components/organisms/expenses-tile-data";
 import Link from "next/link";
-import { Currency } from "./Currency";
+import { Currency } from "./currency";
 
 const CategoryTotals = {
     income: 15000,
