@@ -2,7 +2,7 @@
 
 import Table from "@/components/organisms/table";
 import usePasteToRows from "@/features/PasteableExpensesTable/usePasteToRows";
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { Suspense } from "react";
 import { run } from "@/utils/action";
 
@@ -15,6 +15,8 @@ export default function TextToExpensesTable({
     updateDate,
     deleteExpense
 }) {
+    const containerRef = useRef(null);
+
     const pasteFilterLogic = useCallback((row) => !expenses.some(expense => {
         return expense.id === row.id || (
             expense.name === row.name &&
@@ -22,13 +24,16 @@ export default function TextToExpensesTable({
             expense.account === row.account &&
             expense.date === row.date
         );
-    }, [expenses]));
+    }), [expenses]);
 
-    const [rows] = usePasteToRows(expenses, pasteFilterLogic, existingExpenses);
+    const [rows] = usePasteToRows(expenses, pasteFilterLogic, existingExpenses, containerRef);
 
     return (
         <Suspense fallback={<div>Loading...</div>}>
-            <div className='max-w-screen-lg mx-auto w-full flex flex-col md:flex-row gap-8 overflow-hidden'>
+            <div
+                ref={containerRef}
+                data-testid="paste-container"
+                className='max-w-screen-lg mx-auto w-full flex flex-col md:flex-row gap-8 overflow-hidden'>
 
                 <div className="px-0 w-full space-y-8 my-4">
                     <button

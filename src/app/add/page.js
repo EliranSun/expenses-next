@@ -8,7 +8,7 @@ import {
     deleteExpense,
     updateNote
 } from '@/utils/db';
-import { MainNavBar } from '@/components/molecules/MainNavBar';
+import { MainNavBar } from '@/components/molecules/main-nav-bar';
 
 export default async function Home({ searchParams }) {
     const { year, month, account } = await searchParams;

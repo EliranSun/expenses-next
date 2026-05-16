@@ -17,8 +17,10 @@ import TextToExpensesTable from './index';
 const renderedRowCount = () =>
     screen.queryAllByRole('button', { name: '🗑️' }).length;
 
-const paste = (text) =>
-    fireEvent.paste(document.body, { clipboardData: { getData: () => text } });
+const paste = (text) => {
+    const container = screen.queryByTestId('paste-container') ?? document.body;
+    fireEvent.paste(container, { clipboardData: { getData: () => text } });
+};
 
 describe('TextToExpensesTable', () => {
     beforeEach(() => {

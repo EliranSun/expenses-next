@@ -66,7 +66,7 @@ describe('fetchExpenses', () => {
         await fetchExpenses({ year: 25, month: 1 });
 
         const [query, params] = sqlMock.mock.calls[0];
-        expect(query).toMatch(/date >= \$\d+::date AND date < \$\d+::date/);
+        expect(query).toMatch(/date::date >= \$\d+::date AND date::date < \$\d+::date/);
         expect(params).toContain('2025-01-01');
         expect(params).toContain('2025-02-01');
     });

@@ -3,39 +3,21 @@
 import { TableRow } from "../atoms/table-row";
 import keys from "@/app/he.json";
 import { useMemo, useState, Fragment } from "react";
-import { useSearchParams } from "next/navigation";
 import { Budget } from "@/constants/budget";
 import InfoDisplay from "../molecules/info-display";
-import { orderBy } from "lodash";
-import SortableTableHeader from "../molecules/sortable-table-header";
-import { PrivateAccounts, SharedAccounts, WifeAccount } from "@/constants/account";
 import { Inter } from 'next/font/google';
 import Search from "@/features/Search";
 import { CalendarIcon, CoinsIcon, CopyRight, PersonIcon, ShoppingCartIcon, TrendDownIcon, TrendUpIcon, UsersIcon } from "@phosphor-icons/react";
 import { Categories } from "@/constants";
 import classNames from "classnames";
 import { run } from "@/utils/action";
+import { useExpensesView } from "@/hooks/useExpensesView";
+import { getBudget } from "@/utils/budget";
 
 const interFont = Inter({
     subsets: ["latin"],
     weight: ["400", "700"],
 });
-
-const formatAmount = amount => new Intl.NumberFormat("he-IL", { style: "currency", currency: "ILS" }).format(amount);
-const Months = {
-    0: "ינואר",
-    1: "פברואר",
-    2: "מרץ",
-    3: "אפריל",
-    4: "מאי",
-    5: "יוני",
-    6: "יולי",
-    7: "אוגוסט",
-    8: "ספטמבר",
-    9: "אוקטובר",
-    10: "נובמבר",
-    11: "דצמבר",
-};
 
 export default function Table({
     rows = [],
@@ -48,70 +30,13 @@ export default function Table({
     searchItems,
     onSearch
 }) {
-    const [selectedCategories, setSelectedCategories] = useState([]);
-    const query = useSearchParams();
-    const [account, setAccount] = useState(query.get("account"));
-    const categories = query.get("category") ? query.get("category").split(",") : [];
-    const querySort = query.get("sort");
-
     const [rowIdsToFilter, setRowIdsToFilter] = useState([]);
-    const [sortCriteria, setSortCriteria] = useState(querySort ? querySort.split(":") : ["date", "asc"]);
-    const temporalBudget = useMemo(() => Budget[year]?.[month]?.[account] || 0, [year, month, account]);
 
-    const budget = useMemo(() => {
-        if (!temporalBudget) return 0;
+    const { rows: filteredRows, filters, setFilters, sort, setSort } = useExpensesView(rows, rowIdsToFilter);
+    const { account, selectedCategories, urlCategories } = filters;
+    const { setAccount, setSelectedCategories } = setFilters;
 
-        return Object.keys(temporalBudget).reduce((acc, key) => {
-            if (key === "income") return acc;
-
-            if (categories.length > 0 ? categories.includes(key) : true) {
-                acc += temporalBudget[key];
-            }
-            return acc;
-        }, 0);
-    }, [year, month, categories, temporalBudget]);
-
-    const filteredRows = useMemo(() => {
-        const foo = rows.filter((row) => {
-            if (rowIdsToFilter.includes(row.id)) {
-                return false;
-            }
-
-            let accountMatch = true;
-            if (account) {
-                if (account === "private") {
-                    accountMatch = PrivateAccounts.includes(row.account);
-                } else if (account === "shared") {
-                    accountMatch = SharedAccounts.includes(row.account);
-                } else if (account === "wife") {
-                    accountMatch = WifeAccount.includes(row.account);
-                } else {
-                    // all
-                    accountMatch = true;
-                }
-            }
-
-            let categoryMatch = false;
-
-            if (categories.length > 0) {
-                if (row.category) categoryMatch = categories.includes(row.category);
-            } else {
-                // return all if no category selected
-                categoryMatch = true;
-            }
-
-            if (selectedCategories.length > 0) {
-                if (row.category) categoryMatch = selectedCategories.includes(row.category);
-            } else {
-                // return all if no category selected
-                categoryMatch = true;
-            }
-
-            return accountMatch && categoryMatch;
-        });
-
-        return orderBy(foo, sortCriteria[0], sortCriteria[1]);
-    }, [rows, account, categories, rowIdsToFilter, sortCriteria]);
+    const budget = getBudget(year, month, account, urlCategories);
 
     const totalExpenses = useMemo(() =>
         filteredRows.reduce((acc, row) => row.category !== "income" ? acc + row.amount : acc, 0), [filteredRows]);
@@ -119,7 +44,7 @@ export default function Table({
     const totalIncome = useMemo(() =>
         filteredRows.reduce((acc, row) => row.category === "income" ? acc + row.amount : acc, 0), [filteredRows]);
 
-    const showIncome = categories.length === 0 || categories.includes("income");
+    const showIncome = urlCategories.length === 0 || urlCategories.includes("income");
 
     const expensesByMonth = useMemo(() => {
         let temp = {};
@@ -129,7 +54,7 @@ export default function Table({
             const month = date.getMonth();
 
             const amount = expense.category === "income"
-                ? expense.amount < 0 // some income is negative, like refunds
+                ? expense.amount < 0
                     ? expense.amount * -1
                     : expense.amount
                 : -expense.amount;
@@ -147,8 +72,6 @@ export default function Table({
 
         return temp;
     }, [filteredRows]);
-
-    console.log({ expensesByMonth });
 
     return (
         <div className="flex justify-center flex-col md:flex-row-reverse gap-4">
@@ -191,18 +114,18 @@ export default function Table({
                     <button
                         className="bg-yellow-500 text-white px-4 py-2 rounded-xl flex items-center gap-2"
                         onClick={() => {
-                            setSortCriteria(["amount", sortCriteria[1] === "asc" ? "desc" : "asc"]);
+                            setSort(["amount", sort[1] === "asc" ? "desc" : "asc"]);
                         }}>
                         <CoinsIcon size={24} />
-                        {sortCriteria[0] === "asc" ? "↑" : "↓"}
+                        {sort[1] === "asc" ? "↑" : "↓"}
                     </button>
                     <button
                         className="bg-green-500 text-white px-4 py-2 rounded-xl flex items-center gap-2"
                         onClick={() => {
-                            setSortCriteria(["date", sortCriteria[1] === "asc" ? "desc" : "asc"]);
+                            setSort(["date", sort[1] === "asc" ? "desc" : "asc"]);
                         }}>
                         <CalendarIcon size={24} />
-                        {sortCriteria[1] === "asc" ? "↑" : "↓"}
+                        {sort[1] === "asc" ? "↑" : "↓"}
                     </button>
                     <button
                         className="bg-blue-500 text-white px-4 py-2 rounded-xl flex items-center gap-2"
@@ -210,7 +133,6 @@ export default function Table({
                             setAccount(account === "private" ? "shared" : "private");
                         }}>
                         {account === "private" ? <PersonIcon size={24} /> : <UsersIcon size={24} />}
-                        {/* {account === "private" ? "Private" : "Shared"} */}
                     </button>
 
                     <div className="flex gap-2 overflow-x-auto">
