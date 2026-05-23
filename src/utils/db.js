@@ -7,6 +7,14 @@ function getSql() {
     return neon(`${process.env.DATABASE_URL}`);
 }
 
+// expenses.date is a text column with mixed legacy formats: some rows are
+// stored as 'YYYY-MM-DD' (ISO) and some as 'DD/MM/YY'. Normalise both to a
+// real DATE value so comparisons and ordering behave consistently.
+const DATE_EXPR = "CASE "
+    + "WHEN date ~ '^\\d{4}-\\d{2}-\\d{2}' THEN date::date "
+    + "WHEN date ~ '^\\d{2}/\\d{2}/\\d{2}$' THEN TO_DATE(date, 'DD/MM/YY') "
+    + "END";
+
 function monthBounds(year, month) {
     // year is 2-digit (e.g. 25 -> 2025), month is 1-12
     const y = 2000 + Number(year);
@@ -57,17 +65,17 @@ export async function fetchExpenses({ account, year, month, limit = DEFAULT_LIMI
 
     if (year && month) {
         const { start, end } = monthBounds(year, month);
-        conditions.push(`date::date >= $${params.length + 1}::date AND date::date < $${params.length + 2}::date`);
+        conditions.push(`${DATE_EXPR} >= $${params.length + 1}::date AND ${DATE_EXPR} < $${params.length + 2}::date`);
         params.push(start, end);
     } else if (year) {
         const { start, end } = yearBounds(year);
-        conditions.push(`date::date >= $${params.length + 1}::date AND date::date < $${params.length + 2}::date`);
+        conditions.push(`${DATE_EXPR} >= $${params.length + 1}::date AND ${DATE_EXPR} < $${params.length + 2}::date`);
         params.push(start, end);
     }
 
-    let query = 'SELECT name, amount, date, account, category, id, note FROM expenses';
+    let query = `SELECT name, amount, ${DATE_EXPR} AS date, account, category, id, note FROM expenses`;
     if (conditions.length) query += ` WHERE ${conditions.join(' AND ')}`;
-    query += ` ORDER BY date ASC, name ASC LIMIT $${params.length + 1}`;
+    query += ` ORDER BY ${DATE_EXPR} ASC, name ASC LIMIT $${params.length + 1}`;
     params.push(limit);
 
     const rows = await sql(query, params);
@@ -88,16 +96,16 @@ export async function getUnhandledExpenses({ year, month, account, limit = DEFAU
 
     if (year && month) {
         const { start, end } = monthBounds(year, month);
-        conditions.push(`date::date >= $${params.length + 1}::date AND date::date < $${params.length + 2}::date`);
+        conditions.push(`${DATE_EXPR} >= $${params.length + 1}::date AND ${DATE_EXPR} < $${params.length + 2}::date`);
         params.push(start, end);
     } else if (year) {
         const { start, end } = yearBounds(year);
-        conditions.push(`date::date >= $${params.length + 1}::date AND date::date < $${params.length + 2}::date`);
+        conditions.push(`${DATE_EXPR} >= $${params.length + 1}::date AND ${DATE_EXPR} < $${params.length + 2}::date`);
         params.push(start, end);
     }
 
     const query = `
-        SELECT name, amount, date, account, category, id, note
+        SELECT name, amount, ${DATE_EXPR} AS date, account, category, id, note
         FROM expenses
         WHERE ${conditions.join(' AND ')}
         LIMIT $${params.length + 1}
