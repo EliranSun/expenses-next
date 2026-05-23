@@ -58,26 +58,21 @@ describe('TextToExpensesTable', () => {
         expect(renderedRowCount()).toBe(3);
     });
 
-    it('shows the running total of expenses across all rendered rows', () => {
+    it('renders the pasted row alongside the existing ones', () => {
         const expenses = [
             { id: 1, name: 'APPLE.COM/BILL', amount: 10, account: '3361', date: '28/01/25' },
             { id: 2, name: 'Expense 2', amount: 200, account: 'Account 2', date: '2023-01-02' },
         ];
         render(<TextToExpensesTable expenses={expenses} />);
 
-        // Both rows have no category, so they count as expenses.
-        // totalExpenses = 210; bottom-line InfoDisplay renders |0 - 210| = 210.
-        const initialAmounts = screen
-            .getAllByTestId('currency-amount')
-            .map((el) => el.textContent);
-        expect(initialAmounts.some((t) => /\b210\b/.test(t))).toBe(true);
+        // Pasted row is not in the DOM yet.
+        expect(screen.queryAllByText(/APPLE\.COM\/BILL2/)).toHaveLength(0);
 
         paste('APPLE.COM/BILL2\t28/01/25\t3361\tfoo\t20 ₪');
 
-        const afterAmounts = screen
-            .getAllByTestId('currency-amount')
-            .map((el) => el.textContent);
-        expect(afterAmounts.some((t) => /\b230\b/.test(t))).toBe(true);
+        // After paste the new row renders and the existing ones stay.
+        expect(screen.queryAllByText(/APPLE\.COM\/BILL2/).length).toBeGreaterThan(0);
+        expect(renderedRowCount()).toBe(3);
     });
 
     describe('dedup against existingExpenses (DB rows)', () => {

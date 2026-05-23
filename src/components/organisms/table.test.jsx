@@ -156,6 +156,11 @@ describe('Table — filter', () => {
 });
 
 describe('Table — sort', () => {
+    // Sort/account/category toolbar lives inside the desktop view. Scope queries
+    // there so the mobile-only ExpenseCardStack buttons don't shift the indices.
+    const desktopButtons = () =>
+        within(screen.getByTestId('desktop-table-view')).getAllByRole('button');
+
     it('defaults to sorting by date ascending', () => {
         renderTable({ rows: fixtures });
 
@@ -166,11 +171,9 @@ describe('Table — sort', () => {
     it('flips date order when the date sort button is clicked', () => {
         renderTable({ rows: fixtures });
 
-        // The date button shows a calendar icon; we find it by its color class.
-        // Two sort buttons exist (amount yellow, date green); pick by index.
-        // Buttons in order: amount-sort, date-sort, account-toggle, then 21 category chips.
-        const buttons = screen.getAllByRole('button');
-        // amount-sort = buttons[0], date-sort = buttons[1]
+        // Desktop buttons in order: amount-sort, date-sort, account-toggle,
+        // then 21 category chips, then per-row delete buttons.
+        const buttons = desktopButtons();
         fireEvent.click(buttons[1]);
 
         expect(visibleRowNames()).toEqual(['Delta', 'Bravo', 'Alpha', 'Cain']);
@@ -179,7 +182,7 @@ describe('Table — sort', () => {
     it('sorts by amount descending when amount sort is clicked once (toggles asc→desc)', () => {
         renderTable({ rows: fixtures });
 
-        const buttons = screen.getAllByRole('button');
+        const buttons = desktopButtons();
         fireEvent.click(buttons[0]); // amount-sort (initial sortCriteria[1] is "asc" → flips to "desc")
 
         // amounts desc: d=500, b=200, c=50, a=10
@@ -189,7 +192,7 @@ describe('Table — sort', () => {
     it('sorts by amount ascending when amount sort is clicked twice (toggles back)', () => {
         renderTable({ rows: fixtures });
 
-        const buttons = screen.getAllByRole('button');
+        const buttons = desktopButtons();
         fireEvent.click(buttons[0]);
         fireEvent.click(buttons[0]);
 
