@@ -150,40 +150,44 @@ export default function Table({
 
     console.log({ expensesByMonth });
 
+    const showSummary = year != null && month != null;
+
     return (
         <div className="flex justify-center flex-col md:flex-row-reverse gap-4">
-            <div className="md:w-1/3 flex flex-col items-center gap-8">
-                <h1 className={`text-3xl text-right font-bold ${interFont.className}`}>
-                    {new Date(year, month - 1, 1).toLocaleDateString("he-IL", {
-                        year: "numeric",
-                        month: "long"
-                    })}<br />
-                </h1>
-                <div className="flex flex-col gap-2 text-3xl w-full" dir="ltr">
-                    <InfoDisplay
-                        amount={totalIncome}
-                        round
-                        label="Income"
-                        isVisible={showIncome}
-                        icon={<CoinsIcon size={32} />} />
-                    <InfoDisplay
-                        label="Expenses"
-                        amount={totalExpenses}
-                        round
-                        icon={<ShoppingCartIcon size={32} />} />
-                    <InfoDisplay
-                        label="Bottom Line"
-                        showColorIndication
-                        round
-                        isVisible={showIncome}
-                        amount={totalIncome - totalExpenses}
-                        percentage={Math.round((totalIncome - totalExpenses) / totalIncome * 100)}
-                        icon={totalIncome - totalExpenses > 0
-                            ? <TrendUpIcon size={32} />
-                            : <TrendDownIcon size={32} />} />
-                </div>
+            {showSummary && (
+                <div className="md:w-1/3 flex flex-col items-center gap-8">
+                    <h1 className={`text-3xl text-right font-bold ${interFont.className}`}>
+                        {new Date(year, month - 1, 1).toLocaleDateString("he-IL", {
+                            year: "numeric",
+                            month: "long"
+                        })}<br />
+                    </h1>
+                    <div className="flex flex-col gap-2 text-3xl w-full" dir="ltr">
+                        <InfoDisplay
+                            amount={totalIncome}
+                            round
+                            label="Income"
+                            isVisible={showIncome}
+                            icon={<CoinsIcon size={32} />} />
+                        <InfoDisplay
+                            label="Expenses"
+                            amount={totalExpenses}
+                            round
+                            icon={<ShoppingCartIcon size={32} />} />
+                        <InfoDisplay
+                            label="Bottom Line"
+                            showColorIndication
+                            round
+                            isVisible={showIncome}
+                            amount={totalIncome - totalExpenses}
+                            percentage={Math.round((totalIncome - totalExpenses) / totalIncome * 100)}
+                            icon={totalIncome - totalExpenses > 0
+                                ? <TrendUpIcon size={32} />
+                                : <TrendDownIcon size={32} />} />
+                    </div>
 
-            </div>
+                </div>
+            )}
 
             <div dir="rtl" className="w-full bg-white rounded-xl p-4 space-y-2 h-[80vh] overflow-auto">
                 <Search items={searchItems} onSearch={onSearch} />
