@@ -9,14 +9,16 @@ const SWIPE_OFFSET = 80;
 const SWIPE_VELOCITY = 400;
 
 const cardVariants = {
+    // RTL: advancing reveals the next card from the left; the current card
+    // slides off to the right.
     enter: (direction) => ({
-        x: direction > 0 ? '100%' : '-100%',
+        x: direction > 0 ? '-100%' : '100%',
     }),
     center: {
         x: 0,
     },
     exit: (direction) => ({
-        x: direction > 0 ? '-100%' : '100%',
+        x: direction > 0 ? '100%' : '-100%',
     }),
 };
 
@@ -80,14 +82,16 @@ export function ExpenseCardStack({
                             dragConstraints={{ left: 0, right: 0 }}
                             dragElastic={0.2}
                             onDragEnd={(_, info) => {
+                                // RTL: swipe right advances to the next card,
+                                // swipe left goes back to the previous one.
                                 if (
-                                    info.offset.x < -SWIPE_OFFSET ||
-                                    info.velocity.x < -SWIPE_VELOCITY
+                                    info.offset.x > SWIPE_OFFSET ||
+                                    info.velocity.x > SWIPE_VELOCITY
                                 ) {
                                     advance();
                                 } else if (
-                                    info.offset.x > SWIPE_OFFSET ||
-                                    info.velocity.x > SWIPE_VELOCITY
+                                    info.offset.x < -SWIPE_OFFSET ||
+                                    info.velocity.x < -SWIPE_VELOCITY
                                 ) {
                                     retreat();
                                 }
