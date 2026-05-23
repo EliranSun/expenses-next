@@ -57,11 +57,11 @@ export async function fetchExpenses({ account, year, month, limit = DEFAULT_LIMI
 
     if (year && month) {
         const { start, end } = monthBounds(year, month);
-        conditions.push(`date >= $${params.length + 1}::date AND date < $${params.length + 2}::date`);
+        conditions.push(`date::date >= $${params.length + 1}::date AND date::date < $${params.length + 2}::date`);
         params.push(start, end);
     } else if (year) {
         const { start, end } = yearBounds(year);
-        conditions.push(`date >= $${params.length + 1}::date AND date < $${params.length + 2}::date`);
+        conditions.push(`date::date >= $${params.length + 1}::date AND date::date < $${params.length + 2}::date`);
         params.push(start, end);
     }
 
@@ -88,11 +88,11 @@ export async function getUnhandledExpenses({ year, month, account, limit = DEFAU
 
     if (year && month) {
         const { start, end } = monthBounds(year, month);
-        conditions.push(`date >= $${params.length + 1}::date AND date < $${params.length + 2}::date`);
+        conditions.push(`date::date >= $${params.length + 1}::date AND date::date < $${params.length + 2}::date`);
         params.push(start, end);
     } else if (year) {
         const { start, end } = yearBounds(year);
-        conditions.push(`date >= $${params.length + 1}::date AND date < $${params.length + 2}::date`);
+        conditions.push(`date::date >= $${params.length + 1}::date AND date::date < $${params.length + 2}::date`);
         params.push(start, end);
     }
 
