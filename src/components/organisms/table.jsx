@@ -15,6 +15,7 @@ import { CalendarIcon, CoinsIcon, CopyRight, PersonIcon, ShoppingCartIcon, Trend
 import { Categories } from "@/constants";
 import classNames from "classnames";
 import { run } from "@/utils/action";
+import { ExpenseCardStack } from "./ExpenseCardStack";
 
 const interFont = Inter({
     subsets: ["latin"],
@@ -189,7 +190,30 @@ export default function Table({
                 </div>
             )}
 
-            <div dir="rtl" className="w-full bg-white rounded-xl p-4 space-y-2 h-[80vh] overflow-auto">
+            <div className="w-full md:hidden">
+                <ExpenseCardStack
+                    rows={filteredRows}
+                    updateCategory={updateCategory}
+                    updateNote={updateNote}
+                    updateDate={updateDate}
+                    deleteExpense={async (id) => {
+                        const res = await run(deleteExpense(id), { success: "Deleted" });
+                        if (res?.ok) {
+                            setRowIdsToFilter([...rowIdsToFilter, id]);
+                        }
+                    }}
+                    searchItems={searchItems}
+                    onSearch={onSearch}
+                    sortCriteria={sortCriteria}
+                    setSortCriteria={setSortCriteria}
+                    account={account}
+                    setAccount={setAccount}
+                    selectedCategories={selectedCategories}
+                    setSelectedCategories={setSelectedCategories}
+                />
+            </div>
+
+            <div dir="rtl" className="hidden md:block w-full bg-white rounded-xl p-4 space-y-2 h-[80vh] overflow-auto">
                 <Search items={searchItems} onSearch={onSearch} />
                 <div className="flex gap-2">
                     <button
