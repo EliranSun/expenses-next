@@ -11,15 +11,12 @@ const SWIPE_VELOCITY = 400;
 const cardVariants = {
     enter: (direction) => ({
         x: direction > 0 ? '100%' : '-100%',
-        opacity: 0,
     }),
     center: {
         x: 0,
-        opacity: 1,
     },
     exit: (direction) => ({
         x: direction > 0 ? '-100%' : '100%',
-        opacity: 0,
     }),
 };
 
@@ -67,7 +64,7 @@ export function ExpenseCardStack({
 
             <div className="relative overflow-hidden h-[calc(100%-2rem)]">
                 {row ? (
-                    <AnimatePresence mode="wait" custom={direction} initial={false}>
+                    <AnimatePresence custom={direction} initial={false}>
                         <motion.div
                             key={row.id}
                             className="absolute inset-0"
@@ -77,8 +74,7 @@ export function ExpenseCardStack({
                             animate="center"
                             exit="exit"
                             transition={{
-                                x: { type: 'spring', stiffness: 320, damping: 32 },
-                                opacity: { duration: 0.2 },
+                                x: { type: 'spring', stiffness: 420, damping: 38, mass: 0.6 },
                             }}
                             drag="x"
                             dragConstraints={{ left: 0, right: 0 }}
