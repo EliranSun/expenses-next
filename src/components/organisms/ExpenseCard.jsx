@@ -6,13 +6,7 @@ import { Categories } from '@/constants';
 import { CurrencyAmount } from '../atoms/currency-amount';
 import { AccountName } from '@/constants/account';
 import { run } from '@/utils/action';
-
-const formatDate = (raw) => {
-    if (!raw) return '';
-    const d = new Date(raw);
-    if (isNaN(d.getTime())) return String(raw);
-    return d.toLocaleDateString('he-IL', { year: 'numeric', month: 'long', day: 'numeric' });
-};
+import { formatDate } from '@/utils/formatDate';
 
 export function ExpenseCard({
     rowData,
