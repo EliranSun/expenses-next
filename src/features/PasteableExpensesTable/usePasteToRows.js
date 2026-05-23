@@ -15,7 +15,10 @@ export default function usePasteToRows(expenses = [], pasteFilterLogic = () => t
                 return;
             }
 
-            setRows([...expenses, ...prepared]);
+            setRows(prev => {
+                const ids = new Set(prev.map(r => r.id));
+                return [...prev, ...prepared.filter(r => !ids.has(r.id))];
+            });
         };
 
         document.addEventListener('paste', handlePaste);
@@ -25,5 +28,5 @@ export default function usePasteToRows(expenses = [], pasteFilterLogic = () => t
         };
     }, [expenses, pasteFilterLogic, existingExpenses]);
 
-    return [rows];
+    return [rows, setRows];
 }

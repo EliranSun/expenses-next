@@ -213,7 +213,7 @@ export default function Table({
                 />
             </div>
 
-            <div dir="rtl" className="hidden md:block w-full bg-white rounded-xl p-4 space-y-2 h-[80vh] overflow-auto">
+            <div data-testid="desktop-table-view" dir="rtl" className="hidden md:block w-full bg-white rounded-xl p-4 space-y-2 h-[80vh] overflow-auto">
                 <Search items={searchItems} onSearch={onSearch} />
                 <div className="flex gap-2">
                     <button

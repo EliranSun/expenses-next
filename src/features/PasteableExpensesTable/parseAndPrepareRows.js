@@ -13,7 +13,9 @@ const matchesStaged = (row, alreadyStaged) =>
         staged.name === row.name &&
         staged.amount === row.amount &&
         staged.account === row.account &&
-        formatDateFromDB(row.date) === staged.date
+        // Staged rows can be either raw paste format (DD/MM/YY) or ISO
+        // (YYYY-MM-DD) if they came from the DB. Accept either.
+        (staged.date === row.date || staged.date === formatDateFromDB(row.date))
     );
 
 export function parseAndPrepareRows(text, existingExpenses = [], alreadyStaged = []) {

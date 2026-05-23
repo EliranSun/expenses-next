@@ -24,15 +24,17 @@ export default function TextToExpensesTable({
         );
     }, [expenses]));
 
-    const [desktopRows] = usePasteToRows(expenses, pasteFilterLogic, existingExpenses);
+    const [rows, setRows] = usePasteToRows(expenses, pasteFilterLogic, existingExpenses);
 
     const [phase, setPhase] = useState(expenses.length > 0 ? 'categorize' : 'paste');
-    const [savedPool, setSavedPool] = useState(expenses);
 
-    const handleMobileSave = async (rowsToSave) => {
-        const res = await run(onSave(rowsToSave), { success: `Saved ${rowsToSave.length} rows` });
+    const handleMobileSave = async (newRows) => {
+        const res = await run(onSave(newRows), { success: `Saved ${newRows.length} rows` });
         if (res?.ok) {
-            setSavedPool((prev) => [...prev, ...rowsToSave]);
+            setRows(prev => {
+                const ids = new Set(prev.map(r => r.id));
+                return [...prev, ...newRows.filter(r => !ids.has(r.id))];
+            });
             setPhase('categorize');
         }
     };
@@ -40,50 +42,43 @@ export default function TextToExpensesTable({
     return (
         <Suspense fallback={<div>Loading...</div>}>
             <div className='max-w-screen-lg mx-auto w-full flex flex-col md:flex-row gap-8 overflow-hidden'>
+                <div className="px-0 w-full space-y-4 my-4">
 
-                {/* Desktop: existing single-view paste-anywhere flow */}
-                <div className="hidden md:block px-0 w-full space-y-8 my-4">
                     <button
-                        className="bg-blue-500 text-white px-4 py-2 rounded-xl flex items-center gap-2"
-                        onClick={() => run(onSave(desktopRows), { success: `Saved ${desktopRows.length} rows` })}>
-                        Save rows to database ({desktopRows.length})
+                        className="hidden md:flex bg-blue-500 text-white px-4 py-2 rounded-xl items-center gap-2"
+                        onClick={() => run(onSave(rows), { success: `Saved ${rows.length} rows` })}>
+                        Save rows to database ({rows.length})
                     </button>
-                    <Table
-                        rows={desktopRows}
-                        updateCategory={updateCategory}
-                        updateNote={updateNote}
-                        updateDate={updateDate}
-                        deleteExpense={deleteExpense}
-                    />
-                </div>
 
-                {/* Mobile: two-screen phased flow */}
-                <div className="md:hidden w-full my-4">
                     {phase === 'paste' && (
-                        <MobilePasteScreen
-                            existingExpenses={existingExpenses}
-                            onSubmit={handleMobileSave}
-                        />
-                    )}
-                    {phase === 'categorize' && (
-                        <div className="flex flex-col gap-2">
-                            <div className="flex justify-end">
-                                <button
-                                    type="button"
-                                    onClick={() => setPhase('paste')}
-                                    className="text-sm text-blue-600 underline">
-                                    + הדבק עוד
-                                </button>
-                            </div>
-                            <Table
-                                rows={savedPool}
-                                updateCategory={updateCategory}
-                                updateNote={updateNote}
-                                updateDate={updateDate}
-                                deleteExpense={deleteExpense}
+                        <div className="md:hidden">
+                            <MobilePasteScreen
+                                existingExpenses={existingExpenses}
+                                onSubmit={handleMobileSave}
                             />
                         </div>
                     )}
+
+                    {phase === 'categorize' && (
+                        <div className="md:hidden flex justify-end">
+                            <button
+                                type="button"
+                                onClick={() => setPhase('paste')}
+                                className="text-sm text-blue-600 underline">
+                                + הדבק עוד
+                            </button>
+                        </div>
+                    )}
+
+                    <div className={phase === 'paste' ? 'hidden md:block' : ''}>
+                        <Table
+                            rows={rows}
+                            updateCategory={updateCategory}
+                            updateNote={updateNote}
+                            updateDate={updateDate}
+                            deleteExpense={deleteExpense}
+                        />
+                    </div>
                 </div>
             </div>
         </Suspense>
