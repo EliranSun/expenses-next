@@ -1,22 +1,20 @@
 'use client';
 
 import { Suspense, useState, useEffect } from 'react';
-import Table from '@/components/organisms/table';
-import { keyBy } from 'lodash';
-import { PrivateAccounts, SharedAccounts } from '@/constants/account';
+import { useSearchParams } from 'next/navigation';
+import { orderBy } from 'lodash';
+import { HomepageFilterSheet } from '@/components/organisms/HomepageFilterSheet';
 
-const getCategoricalData = (expenses = [], isShared = false, idsToFilter = []) => {
+const getCategoricalData = (expenses = [], selectedCategories = [], idsToFilter = []) => {
     const Categories = {};
     let totalAmount = 0;
 
     expenses.forEach(item => {
-        const shouldAdd =
-            (SharedAccounts.includes(item.account) && isShared) ||
-            (PrivateAccounts.includes(item.account) && !isShared);
-
         const isFiltered = idsToFilter.includes(item.id);
+        const matchesCategory =
+            selectedCategories.length === 0 || selectedCategories.includes(item.category);
 
-        if (shouldAdd && !isFiltered) {
+        if (!isFiltered && matchesCategory) {
             item.category === "income"
                 ? totalAmount += item.amount
                 : totalAmount -= item.amount;
@@ -34,74 +32,69 @@ const getCategoricalData = (expenses = [], isShared = false, idsToFilter = []) =
 const formatCurrency = amount =>
     new Intl.NumberFormat("he-IL", { style: "currency", currency: "ILS" }).format(amount);
 
-export default function PlainSearchableTable({
+function PlainSearchableTableInner({
     items = [],
-    updateCategory,
-    deleteExpense,
-    updateNote,
-    year,
-    month
 }) {
-    const [isShared, setIsShared] = useState(true);
+    const searchParams = useSearchParams();
     const [searchResults, setSearchResults] = useState(items);
     const [idsToFilter, setIdsToFilter] = useState([]);
+    const [sortCriteria, setSortCriteria] = useState(['amount', 'desc']);
 
     useEffect(() => {
         setSearchResults(items);
     }, [items]);
 
-    const categoricalData = getCategoricalData(searchResults, isShared, idsToFilter);
+    const selectedCategories = searchParams.get('category')
+        ? searchParams.get('category').split(',')
+        : [];
+
+    const categoricalData = getCategoricalData(searchResults, selectedCategories, idsToFilter);
 
     return (
-        <Suspense fallback={<div>Loading...</div>}>
-            <div className="w-full max-w-screen-xl mx-auto">
-                {/* <Table
-                    year={year}
-                    month={month}
-                    rows={searchResults}
+        <div className="w-full max-w-screen-xl mx-auto">
+            <div className="md:hidden">
+                <HomepageFilterSheet
                     searchItems={items}
                     onSearch={setSearchResults}
-                    updateCategory={updateCategory}
-                    deleteExpense={deleteExpense}
-                    updateNote={updateNote}
-                /> */}
-                <div className='space-x-4'>
-                    <button
-                        className={isShared ? "p-1" : "bg-black text-white p-1"}
-                        onClick={() => setIsShared(false)}>Private</button>
-                    <button
-                        className={isShared ? "bg-black text-white p-1" : "p-1"}
-                        onClick={() => setIsShared(true)}>Shared</button>
-                </div>
-                <div className="flex gap-4 overflow-x-auto">
-                    {Object.entries(categoricalData.Categories).map(([key, items]) => {
-                        const total = items.reduce((prev, curr) => prev + curr.amount, 0);
-                        return (
-                            <div key={key} className='min-w-32'>
-                                <h2 className='underline font-bold'>{key}</h2>
-                                <ul className="h-96 overflow-y-auto">
-                                    {items
-                                        .sort((a, b) => b.amount - a.amount)
-                                        .map(item =>
-                                            <li
-                                                onClick={() => setIdsToFilter(prev => [...prev, item.id])}
-                                                className='bg-white my-2 p-2 shadow-sm rounded flex flex-col'
-                                                key={item.id}>
-                                                <span className='text-sm underline'>{item.name.slice(0, 15)}</span>
-                                                <span className='text-xs'>{formatCurrency(item.amount)}</span>
-                                            </li>)}
-                                </ul>
-                                <div className='font-black'>
-                                    {formatCurrency(total)}
-                                </div>
-                            </div>
-                        )
-                    })}
-                </div>
-                <div className='text-xl font-black my-4'>
-                    {formatCurrency(categoricalData.totalAmount)}
-                </div>
+                    sortCriteria={sortCriteria}
+                    setSortCriteria={setSortCriteria}
+                />
             </div>
+            <div className="flex gap-4 overflow-x-auto">
+                {Object.entries(categoricalData.Categories).map(([key, categoryItems]) => {
+                    const total = categoryItems.reduce((prev, curr) => prev + curr.amount, 0);
+                    const sortedItems = orderBy(categoryItems, [sortCriteria[0]], [sortCriteria[1]]);
+                    return (
+                        <div key={key} className='min-w-32'>
+                            <h2 className='underline font-bold'>{key}</h2>
+                            <ul className="h-96 overflow-y-auto">
+                                {sortedItems.map(item =>
+                                    <li
+                                        onClick={() => setIdsToFilter(prev => [...prev, item.id])}
+                                        className='bg-white my-2 p-2 shadow-sm rounded flex flex-col'
+                                        key={item.id}>
+                                        <span className='text-sm underline'>{item.name.slice(0, 15)}</span>
+                                        <span className='text-xs'>{formatCurrency(item.amount)}</span>
+                                    </li>)}
+                            </ul>
+                            <div className='font-black'>
+                                {formatCurrency(total)}
+                            </div>
+                        </div>
+                    )
+                })}
+            </div>
+            <div className='text-xl font-black my-4'>
+                {formatCurrency(categoricalData.totalAmount)}
+            </div>
+        </div>
+    );
+}
+
+export default function PlainSearchableTable(props) {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <PlainSearchableTableInner {...props} />
         </Suspense>
     );
 }
