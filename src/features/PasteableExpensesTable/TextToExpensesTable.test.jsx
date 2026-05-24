@@ -151,5 +151,38 @@ describe('TextToExpensesTable', () => {
 
             expect(renderedRowCount()).toBe(0);
         });
+
+        it('matches when DB row name has surrounding whitespace', () => {
+            const existingExpenses = [
+                { id: 'db-1', name: '  APPLE.COM/BILL ', amount: 69.90, date: '2025-01-28', account: '3361' },
+            ];
+            render(<TextToExpensesTable existingExpenses={existingExpenses} />);
+
+            paste('APPLE.COM/BILL\t28/01/25\t3361\tfoo\t69.90 ₪');
+
+            expect(renderedRowCount()).toBe(0);
+        });
+
+        it('matches when DB amount is a numeric-string (driver returns numeric as string)', () => {
+            const existingExpenses = [
+                { id: 'db-1', name: 'APPLE.COM/BILL', amount: '69.90', date: '2025-01-28', account: '3361' },
+            ];
+            render(<TextToExpensesTable existingExpenses={existingExpenses} />);
+
+            paste('APPLE.COM/BILL\t28/01/25\t3361\tfoo\t69.90 ₪');
+
+            expect(renderedRowCount()).toBe(0);
+        });
+
+        it('matches when DB date is a Date object instead of an ISO string', () => {
+            const existingExpenses = [
+                { id: 'db-1', name: 'APPLE.COM/BILL', amount: 69.90, date: new Date('2025-01-28T00:00:00Z'), account: '3361' },
+            ];
+            render(<TextToExpensesTable existingExpenses={existingExpenses} />);
+
+            paste('APPLE.COM/BILL\t28/01/25\t3361\tfoo\t69.90 ₪');
+
+            expect(renderedRowCount()).toBe(0);
+        });
     });
 });
