@@ -1,5 +1,32 @@
 import { PrivateAccounts } from "@/constants/account";
 
+const RESERVED_FIELD_VALUES = new Set(['null', 'undefined', 'nan']);
+
+export const isMeaningfulField = (value) => {
+    if (typeof value !== 'string') return false;
+    const trimmed = value.trim();
+    if (trimmed.length === 0) return false;
+    return !RESERVED_FIELD_VALUES.has(trimmed.toLowerCase());
+};
+
+const DATE_DDMMYY = /^\d{2}\/\d{2}\/\d{2}$/;
+const DATE_ISO = /^\d{4}-\d{2}-\d{2}$/;
+
+export const isValidParsedRow = (row) =>
+    !!row &&
+    isMeaningfulField(row.name) &&
+    isMeaningfulField(row.account) &&
+    typeof row.date === 'string' && DATE_DDMMYY.test(row.date.trim()) &&
+    typeof row.amount === 'number' && Number.isFinite(row.amount) && row.amount !== 0;
+
+export const isValidInsertRow = (row) =>
+    !!row &&
+    isMeaningfulField(row.name) &&
+    isMeaningfulField(row.account) &&
+    typeof row.id === 'string' && row.id.trim().length > 0 &&
+    typeof row.date === 'string' && DATE_ISO.test(row.date) &&
+    typeof row.amount === 'number' && Number.isFinite(row.amount) && row.amount !== 0;
+
 export const parseTextToRows = (text) => {
     if (!text) return [];
 
@@ -19,9 +46,9 @@ export const parseTextToRows = (text) => {
             const [name, date, account, action, amount] = data;
 
             return {
-                name,
-                date,
-                account,
+                name: typeof name === 'string' ? name.trim() : name,
+                date: typeof date === 'string' ? date.trim() : date,
+                account: typeof account === 'string' ? account.trim() : account,
                 action,
                 amount: typeof amount === 'string' ? Number(amount
                     .replace('₪', '')
@@ -29,7 +56,7 @@ export const parseTextToRows = (text) => {
                     .trim()) : null,
             };
         })
-        .filter((row) => row.name && row.amount)
+        .filter(isValidParsedRow)
         .sort((a, b) => new Date(b.date) - new Date(a.date));
 };
 

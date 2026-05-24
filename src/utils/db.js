@@ -1,5 +1,6 @@
 import { neon } from '@neondatabase/serverless';
 import { Accounts } from '@/constants/account';
+import { isValidInsertRow } from '@/utils';
 
 const DEFAULT_LIMIT = 1000;
 
@@ -116,6 +117,39 @@ export async function getUnhandledExpenses({ year, month, account, limit = DEFAU
     return rows.map(row => (row.date ? mapRow(row) : { ...row, month: null, year: null, timestamp: null }));
 }
 
+export async function findSuspiciousExpenses({ limit = 500 } = {}) {
+    const sql = getSql();
+    const query = `
+        SELECT name, amount, ${DATE_EXPR} AS date, account, category, id, note
+        FROM expenses
+        WHERE category IS NULL
+           OR date IS NULL
+           OR name IS NULL OR TRIM(name) = '' OR LOWER(TRIM(name)) IN ('null','undefined','nan')
+           OR account IS NULL OR TRIM(account) = '' OR LOWER(TRIM(account)) IN ('null','undefined','nan')
+           OR amount IS NULL OR amount = 0
+        ORDER BY ${DATE_EXPR} DESC NULLS FIRST
+        LIMIT $1
+    `;
+    const rows = await sql(query, [limit]);
+    return rows.map((row) => {
+        const issues = [];
+        if (row.name == null || String(row.name).trim() === '' ||
+            ['null', 'undefined', 'nan'].includes(String(row.name).trim().toLowerCase())) {
+            issues.push('name');
+        }
+        if (row.account == null || String(row.account).trim() === '' ||
+            ['null', 'undefined', 'nan'].includes(String(row.account).trim().toLowerCase())) {
+            issues.push('account');
+        }
+        if (row.date == null) issues.push('date');
+        if (row.amount == null || row.amount === 0) issues.push('amount');
+        if (row.category == null) issues.push('category');
+
+        const base = row.date ? mapRow(row) : { ...row, month: null, year: null, timestamp: null };
+        return { ...base, issues };
+    });
+}
+
 export async function deleteExpenses(ids) {
     'use server';
     if (!Array.isArray(ids) || ids.length === 0) {
@@ -137,9 +171,14 @@ export async function insertExpenses(rows) {
     if (!Array.isArray(rows) || rows.length === 0) {
         return { ok: false, error: 'no rows to insert' };
     }
+    const validRows = rows.filter(isValidInsertRow);
+    const skipped = rows.length - validRows.length;
+    if (validRows.length === 0) {
+        return { ok: false, error: 'no valid rows to insert', data: { skipped } };
+    }
     try {
         const sql = getSql();
-        const values = rows.map(row => [row.name, row.amount, row.date, row.account, row.category, row.id]);
+        const values = validRows.map(row => [row.name.trim(), row.amount, row.date, row.account.trim(), row.category, row.id]);
         const placeholders = values
             .map((_, i) => `($${i * 6 + 1}, $${i * 6 + 2}, $${i * 6 + 3}::date, $${i * 6 + 4}, $${i * 6 + 5}, $${i * 6 + 6})`)
             .join(', ');
@@ -149,7 +188,7 @@ export async function insertExpenses(rows) {
         `;
         // Single multi-row INSERT is atomic in Postgres.
         await sql(query, values.flat());
-        return { ok: true, data: { inserted: rows.length } };
+        return { ok: true, data: { inserted: validRows.length, skipped } };
     } catch (error) {
         console.error('insertExpenses failed:', error);
         return { ok: false, error: error.message ?? 'insert failed' };

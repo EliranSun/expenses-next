@@ -2,6 +2,7 @@ import { neon } from '@neondatabase/serverless';
 import { Accounts, PrivateAccounts } from '@/constants/account';
 import {
     fetchExpenses,
+    findSuspiciousExpenses,
     getUnhandledExpenses,
     deleteExpense,
     deleteExpenses,
@@ -278,7 +279,7 @@ describe('insertExpenses', () => {
             { name: 'b', amount: 2, date: '2025-01-02', account: '3361', category: 'food', id: 'i2' },
         ]);
 
-        expect(res).toEqual({ ok: true, data: { inserted: 2 } });
+        expect(res).toEqual({ ok: true, data: { inserted: 2, skipped: 0 } });
         const [query, params] = sqlMock.mock.calls[0];
         expect(query).toMatch(/INSERT INTO expenses/);
         expect(query).toMatch(/\$3::date/);
@@ -293,6 +294,61 @@ describe('insertExpenses', () => {
         ]);
         expect(res.ok).toBe(false);
         expect(res.error).toBe('dup');
+    });
+
+    it('drops invalid rows and only inserts the valid ones', async () => {
+        sqlMock.mockResolvedValueOnce(undefined);
+
+        const res = await insertExpenses([
+            { name: 'a', amount: 1, date: '2025-01-01', account: '3361', category: 'food', id: 'i1' },
+            { name: 'null', amount: 2, date: '2025-01-02', account: '3361', category: 'food', id: 'i2' },
+            { name: 'b', amount: 0, date: '2025-01-03', account: '3361', category: 'food', id: 'i3' },
+            { name: 'c', amount: 3, date: '28/01/25', account: '3361', category: 'food', id: 'i4' },
+            { name: 'd', amount: 4, date: '2025-01-04', account: '', category: 'food', id: 'i5' },
+        ]);
+
+        expect(res).toEqual({ ok: true, data: { inserted: 1, skipped: 4 } });
+        const [, params] = sqlMock.mock.calls[0];
+        expect(params).toHaveLength(6);
+        expect(params[0]).toBe('a');
+    });
+
+    it('returns { ok: false } when every row is invalid', async () => {
+        const res = await insertExpenses([
+            { name: 'null', amount: 1, date: '2025-01-01', account: '3361', category: 'food', id: 'i1' },
+            { name: 'a', amount: 0, date: '2025-01-01', account: '3361', category: 'food', id: 'i2' },
+        ]);
+        expect(res).toEqual({ ok: false, error: 'no valid rows to insert', data: { skipped: 2 } });
+        expect(sqlMock).not.toHaveBeenCalled();
+    });
+});
+
+describe('findSuspiciousExpenses', () => {
+    it('queries for rows with null/blank/sentinel fields and tags issues', async () => {
+        sqlMock.mockResolvedValueOnce([
+            { ...dbRow({ id: 'a', category: null }) },
+            { ...dbRow({ id: 'b', name: 'null' }) },
+            { ...dbRow({ id: 'c', account: '   ' }) },
+            { ...dbRow({ id: 'd', amount: 0 }) },
+            { id: 'e', name: 'x', amount: 5, date: null, account: '3361', category: 'food', note: null },
+        ]);
+
+        const rows = await findSuspiciousExpenses();
+        const [query, params] = sqlMock.mock.calls[0];
+
+        expect(query).toMatch(/category IS NULL/);
+        expect(query).toMatch(/name IS NULL OR TRIM\(name\) = ''/);
+        expect(query).toMatch(/account IS NULL OR TRIM\(account\) = ''/);
+        expect(query).toMatch(/date IS NULL/);
+        expect(query).toMatch(/amount IS NULL OR amount = 0/);
+        expect(params).toEqual([500]);
+
+        expect(rows[0].issues).toContain('category');
+        expect(rows[1].issues).toContain('name');
+        expect(rows[2].issues).toContain('account');
+        expect(rows[3].issues).toContain('amount');
+        expect(rows[4].issues).toContain('date');
+        expect(rows[4].timestamp).toBeNull();
     });
 });
 
