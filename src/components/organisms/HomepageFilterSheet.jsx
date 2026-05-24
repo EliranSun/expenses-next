@@ -2,7 +2,6 @@
 
 import { useSearchParams } from 'next/navigation';
 import { BottomSheet } from '../molecules/BottomSheet';
-import { Navbar } from '../molecules/navbar';
 import { HomepageFilterControls } from './HomepageFilterControls';
 
 export function HomepageFilterSheet({
@@ -27,7 +26,6 @@ export function HomepageFilterSheet({
                 sortCriteria={sortCriteria}
                 setSortCriteria={setSortCriteria}
             />
-            <Navbar />
         </BottomSheet>
     );
 }

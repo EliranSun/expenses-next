@@ -69,31 +69,31 @@ function PlainSearchableTableInner({
                     setSortCriteria={setSortCriteria}
                 />
             </div>
-            <div className="flex gap-4 overflow-x-auto">
+            <div className="flex gap-4 overflow-x-auto md:grid md:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] md:overflow-visible">
                 {Object.entries(categoricalData.Categories).map(([key, categoryItems]) => {
                     const total = categoryItems.reduce((prev, curr) => prev + curr.amount, 0);
                     const sortedItems = orderBy(categoryItems, [sortCriteria[0]], [sortCriteria[1]]);
                     return (
-                        <div key={key} className='min-w-32'>
-                            <h2 className='underline font-bold'>{key}</h2>
-                            <ul className="h-96 overflow-y-auto">
+                        <div key={key} className='min-w-32 flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-3 shadow-sm'>
+                            <h2 className='font-bold text-gray-800 dark:text-gray-200 pb-2 border-b border-gray-200 dark:border-gray-700'>{key}</h2>
+                            <ul className="h-96 overflow-y-auto flex-1 mt-2">
                                 {sortedItems.map(item =>
                                     <li
                                         onClick={() => setIdsToFilter(prev => [...prev, item.id])}
-                                        className='bg-white dark:bg-gray-800 my-2 p-2 shadow-sm rounded flex flex-col'
+                                        className='bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 my-1 p-2 shadow-sm rounded flex flex-col cursor-pointer'
                                         key={item.id}>
-                                        <span className='text-sm underline'>{item.name.slice(0, 15)}</span>
-                                        <span className='text-xs'>{formatCurrency(item.amount)}</span>
+                                        <span className='text-sm text-gray-800 dark:text-gray-100 truncate'>{item.name.slice(0, 20)}</span>
+                                        <span className='text-xs text-gray-500 dark:text-gray-400'>{formatCurrency(item.amount)}</span>
                                     </li>)}
                             </ul>
-                            <div className='font-black'>
+                            <div className='font-black text-gray-900 dark:text-gray-100 pt-2 mt-2 border-t border-gray-200 dark:border-gray-700'>
                                 {formatCurrency(total)}
                             </div>
                         </div>
                     )
                 })}
             </div>
-            <div className='text-xl font-black my-4'>
+            <div className='text-xl font-black my-4 text-gray-900 dark:text-gray-100'>
                 {formatCurrency(categoricalData.totalAmount)}
             </div>
         </div>

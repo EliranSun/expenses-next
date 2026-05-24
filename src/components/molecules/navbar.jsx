@@ -1,15 +1,10 @@
 'use client';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Categories } from '@/constants';
-import { useSearchParams } from 'next/navigation';
-import { usePathname } from 'next/navigation';
 import classNames from 'classnames';
 
 const buildSearchParams = (currentParams, newParams = {}) => {
-    // Create a new URLSearchParams object from the current params
     const query = new URLSearchParams(currentParams.toString());
-
-    // Update with new parameters
     Object.entries(newParams).forEach(([key, value]) => {
         if (value === null) {
             query.delete(key);
@@ -17,7 +12,6 @@ const buildSearchParams = (currentParams, newParams = {}) => {
             query.set(key, value);
         }
     });
-
     return query.toString();
 };
 
@@ -25,105 +19,102 @@ const Years = ['22', '23', '24', '25', '26', '27', '28'];
 const Months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
 const Accounts = ['all', 'private', 'shared', 'wife'];
 
-const NavbarRow = ({ children, cols }) => {
-    return (
-        <ul className={classNames("gap-1 bg-gray-100 rounded-md m-1 w-full", {
-            "md:flex flex-wrap": !cols,
-            "md:grid": cols > 0,
-            "md:grid-cols-12": cols === 12 || !cols,
-            "md:grid-cols-4": cols === 4,
-            "md:grid-cols-6": cols === 6,
-            "md:grid-cols-8": cols === 8,
-            "md:grid-cols-7": cols === 7,
-            "md:grid-cols-9": cols === 9,
-            "md:grid-cols-10": cols === 10,
-            "md:grid-cols-11": cols === 11,
-        })}>
-            {children}
-        </ul>
-    );
-};
+const FilterGroup = ({ label, children }) => (
+    <div className="flex items-center gap-2 flex-wrap">
+        {label && (
+            <span className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 w-16 shrink-0">
+                {label}
+            </span>
+        )}
+        <div className="flex gap-1 flex-wrap">{children}</div>
+    </div>
+);
 
-const NavbarItem = ({ children, isSelected, className, ...rest }) => {
-    return (
-        <li {...rest} className={`hover:bg-amber-500 hover:text-white p-2
-            ${isSelected ? "bg-amber-500 text-white rounded-md" : ""} ${className}`}>{children}</li>
-    );
-};
+const Pill = ({ isSelected, onClick, children, className = '' }) => (
+    <button
+        type="button"
+        onClick={onClick}
+        className={classNames(
+            'px-3 py-1 rounded-full text-sm transition-colors cursor-pointer',
+            'border',
+            {
+                'bg-amber-500 text-white border-amber-500': isSelected,
+                'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-gray-700 hover:border-amber-400': !isSelected,
+            },
+            className,
+        )}>
+        {children}
+    </button>
+);
 
 export const Navbar = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
     const pathname = usePathname();
 
-    // Get all parameters from search params
-    const account = searchParams.get("account") || "";
-    const year = searchParams.get("year") || "";
-    const month = searchParams.get("month") || "";
-    const categories = searchParams.get("category") ? searchParams.get("category").split(",") : [];
+    const account = searchParams.get('account') || '';
+    const year = searchParams.get('year') || '';
+    const month = searchParams.get('month') || '';
+    const categories = searchParams.get('category') ? searchParams.get('category').split(',') : [];
 
-    // Function to update search params and navigate
     const updateSearchParams = (newParams) => {
-        const newSearchParams = buildSearchParams(searchParams, newParams);
-        router.push(`${pathname}?${newSearchParams}`);
+        const next = buildSearchParams(searchParams, newParams);
+        router.push(`${pathname}?${next}`);
     };
 
     return (
-        <div className='flex md:flex-col text-sm cursor-pointer'>
-            <NavbarRow cols={4}>
+        <div className="flex flex-col gap-3">
+            <FilterGroup label="Account">
                 {Accounts.map((accountName) => (
-                    <NavbarItem
+                    <Pill
                         key={accountName}
                         isSelected={account === accountName}
                         onClick={() => updateSearchParams({ account: accountName })}>
                         {accountName.charAt(0).toUpperCase() + accountName.slice(1)}
-                    </NavbarItem>
+                    </Pill>
                 ))}
-            </NavbarRow>
-            <NavbarRow>
+            </FilterGroup>
+
+            <FilterGroup label="Year">
                 {Years.map((yearNumber) => (
-                    <NavbarItem
+                    <Pill
                         key={yearNumber}
                         isSelected={year === yearNumber}
                         onClick={() => updateSearchParams({ year: yearNumber })}>
-                        {`20${yearNumber}`}
-                    </NavbarItem>
+                        20{yearNumber}
+                    </Pill>
                 ))}
-            </NavbarRow>
-            <NavbarRow>
+            </FilterGroup>
+
+            <FilterGroup label="Month">
                 {Months.map((monthNumber) => (
-                    <NavbarItem
+                    <Pill
                         key={monthNumber}
                         isSelected={month === monthNumber}
                         onClick={() => updateSearchParams({ month: monthNumber })}>
                         {monthNumber}
-                    </NavbarItem>
+                    </Pill>
                 ))}
-            </NavbarRow>
-            <NavbarRow cols={4}>
+            </FilterGroup>
+
+            <FilterGroup label="Category">
                 {Object.entries(Categories).map(([key, value]) => (
-                    <NavbarItem
+                    <Pill
                         key={key}
-                        className="flex flex-col items-center justify-center"
                         isSelected={categories.includes(key)}
+                        className="flex items-center gap-1"
                         onClick={() => {
-                            const categoryList = [...categories];
-                            const categoryIndex = categoryList.indexOf(key);
-
-                            if (categoryIndex > -1) {
-                                categoryList.splice(categoryIndex, 1);
-                            } else {
-                                categoryList.push(key);
-                            }
-
-                            const newCategory = categoryList.length ? categoryList.join(",") : null;
-                            updateSearchParams({ category: newCategory });
+                            const list = [...categories];
+                            const idx = list.indexOf(key);
+                            if (idx > -1) list.splice(idx, 1);
+                            else list.push(key);
+                            updateSearchParams({ category: list.length ? list.join(',') : null });
                         }}>
-                        {value.emoji}
-                        <span className='text-sm'>{value.name.slice(0, 6)}</span>
-                    </NavbarItem>
+                        <span>{value.emoji}</span>
+                        <span className="hidden sm:inline">{value.name}</span>
+                    </Pill>
                 ))}
-            </NavbarRow>
+            </FilterGroup>
         </div>
     );
 };
