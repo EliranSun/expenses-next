@@ -31,15 +31,47 @@ export default function TextToExpensesTable({
     const saveableRows = rows.filter((r) => !r.isDuplicate);
     const duplicateCount = rows.length - saveableRows.length;
 
+    // Server returns the authoritative ids in the same order as the rows we
+    // sent (filtered to valid ones). Build a {clientId -> serverId} map so
+    // later edits hit the right DB row.
+    const buildIdMap = (sentRows, returnedIds) => {
+        if (!Array.isArray(returnedIds)) return null;
+        const map = new Map();
+        // Server filters with isValidInsertRow before inserting — mirror that
+        // so positions line up.
+        const validSent = sentRows.filter(
+            (r) =>
+                r &&
+                typeof r.id === 'string' &&
+                r.id.length > 0 &&
+                typeof r.name === 'string' &&
+                r.name.trim() !== '' &&
+                typeof r.account === 'string' &&
+                r.account.trim() !== '' &&
+                typeof r.date === 'string' &&
+                typeof r.amount === 'number' &&
+                Number.isFinite(r.amount) &&
+                r.amount !== 0
+        );
+        validSent.forEach((row, i) => {
+            const serverId = returnedIds[i];
+            if (serverId && serverId !== row.id) map.set(row.id, serverId);
+        });
+        return map;
+    };
+
     const handleMobileSave = async (newRows) => {
         const toInsert = newRows.filter((r) => !r.isDuplicate);
         if (toInsert.length === 0) return;
         const res = await run(onSave(toInsert), { success: `Saved ${toInsert.length} rows` });
         if (res?.ok) {
+            const idMap = buildIdMap(toInsert, res?.data?.ids);
+            const applyIdMap = (r) =>
+                idMap && idMap.has(r.id) ? { ...r, id: idMap.get(r.id) } : r;
             setRows(prev => {
                 const ids = new Set(prev.map(r => r.id));
                 const merged = [...prev, ...newRows.filter(r => !ids.has(r.id))];
-                return merged.filter(r => !r.isDuplicate);
+                return merged.filter(r => !r.isDuplicate).map(applyIdMap);
             });
             setPhase('categorize');
         }
@@ -53,7 +85,12 @@ export default function TextToExpensesTable({
         if (saveableRows.length === 0) return;
         const res = await run(onSave(saveableRows), { success: `Saved ${saveableRows.length} rows` });
         if (res?.ok) {
-            setRows(prev => prev.filter(r => !r.isDuplicate));
+            const idMap = buildIdMap(saveableRows, res?.data?.ids);
+            setRows(prev =>
+                prev
+                    .filter(r => !r.isDuplicate)
+                    .map(r => (idMap && idMap.has(r.id) ? { ...r, id: idMap.get(r.id) } : r))
+            );
         }
     };
 

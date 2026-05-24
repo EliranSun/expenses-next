@@ -226,10 +226,13 @@ export async function insertExpenses(rows) {
         const query = `
             INSERT INTO expenses (name, amount, date, account, category, id)
             VALUES ${placeholders}
+            RETURNING id
         `;
-        // Single multi-row INSERT is atomic in Postgres.
-        await sql(query, values.flat());
-        return { ok: true, data: { inserted: validRows.length, skipped } };
+        // Single multi-row INSERT is atomic in Postgres. RETURNING preserves
+        // VALUES order, so ids[i] corresponds to validRows[i].
+        const inserted = await sql(query, values.flat());
+        const ids = inserted.map((r) => r.id);
+        return { ok: true, data: { inserted: ids.length, skipped, ids } };
     } catch (error) {
         console.error('insertExpenses failed:', error);
         return { ok: false, error: error.message ?? 'insert failed' };

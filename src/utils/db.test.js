@@ -271,17 +271,18 @@ describe('insertExpenses', () => {
         expect(sqlMock).not.toHaveBeenCalled();
     });
 
-    it('inserts as a single multi-row VALUES list and returns { ok: true }', async () => {
-        sqlMock.mockResolvedValueOnce(undefined);
+    it('inserts as a single multi-row VALUES list and returns { ok: true } with ids', async () => {
+        sqlMock.mockResolvedValueOnce([{ id: 'i1' }, { id: 'i2' }]);
 
         const res = await insertExpenses([
             { name: 'a', amount: 1, date: '2025-01-01', account: '3361', category: 'food', id: 'i1' },
             { name: 'b', amount: 2, date: '2025-01-02', account: '3361', category: 'food', id: 'i2' },
         ]);
 
-        expect(res).toEqual({ ok: true, data: { inserted: 2, skipped: 0 } });
+        expect(res).toEqual({ ok: true, data: { inserted: 2, skipped: 0, ids: ['i1', 'i2'] } });
         const [query, params] = sqlMock.mock.calls[0];
         expect(query).toMatch(/INSERT INTO expenses/);
+        expect(query).toMatch(/RETURNING id/);
         expect(query).toMatch(/\$3::date/);
         expect(query).toMatch(/\$9::date/);
         expect(params).toHaveLength(12);
@@ -297,7 +298,7 @@ describe('insertExpenses', () => {
     });
 
     it('drops invalid rows and only inserts the valid ones', async () => {
-        sqlMock.mockResolvedValueOnce(undefined);
+        sqlMock.mockResolvedValueOnce([{ id: 'i1' }]);
 
         const res = await insertExpenses([
             { name: 'a', amount: 1, date: '2025-01-01', account: '3361', category: 'food', id: 'i1' },
@@ -307,7 +308,7 @@ describe('insertExpenses', () => {
             { name: 'd', amount: 4, date: '2025-01-04', account: '', category: 'food', id: 'i5' },
         ]);
 
-        expect(res).toEqual({ ok: true, data: { inserted: 1, skipped: 4 } });
+        expect(res).toEqual({ ok: true, data: { inserted: 1, skipped: 4, ids: ['i1'] } });
         const [, params] = sqlMock.mock.calls[0];
         expect(params).toHaveLength(6);
         expect(params[0]).toBe('a');
