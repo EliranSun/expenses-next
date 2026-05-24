@@ -69,14 +69,17 @@ function PlainSearchableTableInner({
                     setSortCriteria={setSortCriteria}
                 />
             </div>
-            <div className="flex gap-4 overflow-x-auto md:grid md:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] md:overflow-visible">
+            <div className='text-xl font-black my-4 text-gray-900 dark:text-gray-100'>
+                {formatCurrency(categoricalData.totalAmount)}
+            </div>
+            <div className="flex gap-4 overflow-x-auto">
                 {Object.entries(categoricalData.Categories).map(([key, categoryItems]) => {
                     const total = categoryItems.reduce((prev, curr) => prev + curr.amount, 0);
                     const sortedItems = orderBy(categoryItems, [sortCriteria[0]], [sortCriteria[1]]);
                     return (
-                        <div key={key} className='min-w-32 flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-3 shadow-sm'>
+                        <div key={key} className='min-w-52 flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-3 shadow-sm'>
                             <h2 className='font-bold text-gray-800 dark:text-gray-200 pb-2 border-b border-gray-200 dark:border-gray-700'>{key}</h2>
-                            <ul className="h-96 overflow-y-auto flex-1 mt-2">
+                            <ul className="max-h-96 overflow-y-auto flex-1 mt-2">
                                 {sortedItems.map(item =>
                                     <li
                                         onClick={() => setIdsToFilter(prev => [...prev, item.id])}
@@ -92,9 +95,6 @@ function PlainSearchableTableInner({
                         </div>
                     )
                 })}
-            </div>
-            <div className='text-xl font-black my-4 text-gray-900 dark:text-gray-100'>
-                {formatCurrency(categoricalData.totalAmount)}
             </div>
         </div>
     );

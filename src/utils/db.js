@@ -78,6 +78,9 @@ export async function fetchExpenses({ account, year, month, limit = DEFAULT_LIMI
         const { start, end } = yearBounds(year);
         conditions.push(`${DATE_EXPR} >= $${params.length + 1}::date AND ${DATE_EXPR} < $${params.length + 2}::date`);
         params.push(start, end);
+    } else if (month) {
+        conditions.push(`EXTRACT(MONTH FROM ${DATE_EXPR}) = $${params.length + 1}`);
+        params.push(Number(month));
     }
 
     let query = `SELECT name, amount, ${DATE_EXPR} AS date, account, category, id, note FROM expenses`;
@@ -138,6 +141,9 @@ export async function getUnhandledExpenses({ year, month, account, limit = DEFAU
         const { start, end } = yearBounds(year);
         conditions.push(`${DATE_EXPR} >= $${params.length + 1}::date AND ${DATE_EXPR} < $${params.length + 2}::date`);
         params.push(start, end);
+    } else if (month) {
+        conditions.push(`EXTRACT(MONTH FROM ${DATE_EXPR}) = $${params.length + 1}`);
+        params.push(Number(month));
     }
 
     const query = `

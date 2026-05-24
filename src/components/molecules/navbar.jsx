@@ -69,7 +69,9 @@ export const Navbar = () => {
                     <Pill
                         key={accountName}
                         isSelected={account === accountName}
-                        onClick={() => updateSearchParams({ account: accountName })}>
+                        onClick={() =>
+                            updateSearchParams({ account: account === accountName ? null : accountName })
+                        }>
                         {accountName.charAt(0).toUpperCase() + accountName.slice(1)}
                     </Pill>
                 ))}
@@ -80,7 +82,9 @@ export const Navbar = () => {
                     <Pill
                         key={yearNumber}
                         isSelected={year === yearNumber}
-                        onClick={() => updateSearchParams({ year: yearNumber })}>
+                        onClick={() =>
+                            updateSearchParams({ year: year === yearNumber ? null : yearNumber })
+                        }>
                         20{yearNumber}
                     </Pill>
                 ))}
@@ -91,7 +95,9 @@ export const Navbar = () => {
                     <Pill
                         key={monthNumber}
                         isSelected={month === monthNumber}
-                        onClick={() => updateSearchParams({ month: monthNumber })}>
+                        onClick={() =>
+                            updateSearchParams({ month: month === monthNumber ? null : monthNumber })
+                        }>
                         {monthNumber}
                     </Pill>
                 ))}

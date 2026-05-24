@@ -6,14 +6,14 @@ import { Categories } from '@/constants';
 
 export default async function Home({ searchParams }) {
   const today = new Date();
-  const { year, month, account, category } = await searchParams;
+  const sp = await searchParams;
+  const { year, month, account, category } = sp;
+  const hasAnyParam = Object.values(sp).some((v) => v != null && v !== '');
 
-  if (!year && !month) {
+  if (!hasAnyParam) {
     const defaultYear = String(today.getFullYear() % 100).padStart(2, '0');
     const defaultMonth = String(today.getMonth() + 1).padStart(2, '0');
-    const params = new URLSearchParams({ year: defaultYear, month: defaultMonth });
-    if (account) params.set('account', account);
-    redirect(`/?${params.toString()}`);
+    redirect(`/?year=${defaultYear}&month=${defaultMonth}`);
   }
 
   const existingExpenses = await fetchExpenses({
@@ -22,9 +22,19 @@ export default async function Home({ searchParams }) {
     account
   });
 
-  const fullYear = 2000 + Number(year);
-  const monthLabel = new Intl.DateTimeFormat('he-IL', { month: 'long', year: 'numeric' })
-    .format(new Date(fullYear, Number(month) - 1, 1));
+  const fullYear = year ? 2000 + Number(year) : null;
+  let monthLabel;
+  if (year && month) {
+    monthLabel = new Intl.DateTimeFormat('he-IL', { month: 'long', year: 'numeric' })
+      .format(new Date(fullYear, Number(month) - 1, 1));
+  } else if (year) {
+    monthLabel = String(fullYear);
+  } else if (month) {
+    monthLabel = new Intl.DateTimeFormat('he-IL', { month: 'long' })
+      .format(new Date(2000, Number(month) - 1, 1));
+  } else {
+    monthLabel = 'הכל';
+  }
 
   const selectedCategories = category ? category.split(',') : [];
 
