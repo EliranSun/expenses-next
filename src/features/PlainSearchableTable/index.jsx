@@ -71,7 +71,7 @@ function PlainSearchableTableInner({
                                 {sortedItems.map(item =>
                                     <li
                                         onClick={() => setIdsToFilter(prev => [...prev, item.id])}
-                                        className='bg-white my-2 p-2 shadow-sm rounded flex flex-col'
+                                        className='bg-white dark:bg-gray-800 my-2 p-2 shadow-sm rounded flex flex-col'
                                         key={item.id}>
                                         <span className='text-sm underline'>{item.name.slice(0, 15)}</span>
                                         <span className='text-xs'>{formatCurrency(item.amount)}</span>

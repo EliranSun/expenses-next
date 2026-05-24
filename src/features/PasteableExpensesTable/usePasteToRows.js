@@ -1,23 +1,34 @@
 import { useState, useEffect } from "react";
-import { parseAndPrepareRows } from "./parseAndPrepareRows";
+import { parseAndPrepareRows, markDuplicates, computeDateRange } from "./parseAndPrepareRows";
 
-export default function usePasteToRows(expenses = [], pasteFilterLogic = () => true, existingExpenses = []) {
+export default function usePasteToRows(expenses = [], pasteFilterLogic = () => true, fetchExpensesByDateRange) {
     const [rows, setRows] = useState(expenses);
 
     useEffect(() => {
-        const handlePaste = (event) => {
+        const handlePaste = async (event) => {
             const pastedData = event.clipboardData.getData('Text');
-            const prepared = parseAndPrepareRows(pastedData, existingExpenses, expenses)
-                .filter(pasteFilterLogic);
+            const parsed = parseAndPrepareRows(pastedData, rows).filter(pasteFilterLogic);
 
-            if (prepared.length === 0) {
-                alert("No new expenses found");
+            if (parsed.length === 0) {
                 return;
+            }
+
+            let marked = parsed;
+            if (typeof fetchExpensesByDateRange === 'function') {
+                const range = computeDateRange(parsed);
+                const accounts = [...new Set(parsed.map((r) => r.account))];
+                try {
+                    const existing = await fetchExpensesByDateRange({ ...range, accounts });
+                    marked = markDuplicates(parsed, existing);
+                    console.log({ existing, marked });
+                } catch (err) {
+                    console.error('fetchExpensesByDateRange failed:', err);
+                }
             }
 
             setRows(prev => {
                 const ids = new Set(prev.map(r => r.id));
-                return [...prev, ...prepared.filter(r => !ids.has(r.id))];
+                return [...prev, ...marked.filter(r => !ids.has(r.id))];
             });
         };
 
@@ -26,7 +37,7 @@ export default function usePasteToRows(expenses = [], pasteFilterLogic = () => t
         return () => {
             document.removeEventListener('paste', handlePaste);
         };
-    }, [expenses, pasteFilterLogic, existingExpenses]);
+    }, [rows, pasteFilterLogic, fetchExpensesByDateRange]);
 
     return [rows, setRows];
 }

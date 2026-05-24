@@ -15,12 +15,16 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
     const [note, setNote] = useState(rowData.note || "");
     const [date, setDate] = useState(rowData.date || "");
 
+    const isDuplicate = !!rowData.isDuplicate;
+
     return (
-        <div dir="rtl" className="flex flex-col gap-2 bg-gray-100
-         dark:bg-transparent rounded-xl py-2 px-4 w-full">
+        <div dir="rtl" className={`flex flex-col gap-2 bg-gray-100 dark:bg-transparent rounded-xl py-2 px-4 w-full ${isDuplicate ? 'opacity-50 border border-amber-300' : ''}`}>
             <div className="flex justify-between">
-                <h1 className="text-xl">
+                <h1 className="text-xl flex items-center gap-2">
                     {rowData.name} - {AccountName[rowData.account]?.translation}
+                    {isDuplicate && (
+                        <span className="text-[10px] uppercase tracking-wide bg-amber-200 text-amber-900 rounded-full px-2 py-0.5">duplicate</span>
+                    )}
                 </h1>
                 <button
                     className=" border border-gray-700 shadow p-1 rounded w-fit"
@@ -42,10 +46,11 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
                         day: "numeric"
                     })}
                 </DataDisplay>
-                <DataDisplay className={`shrink-0 w-40 ${category ? "" : "hidden"}`}>
+                <DataDisplay className={`shrink-0 w-40 ${category ? "" : "hidden"} ${isDuplicate ? "pointer-events-none" : ""}`}>
                     <CategoriesDropdown
                         value={category}
                         onCategoryChange={(value) => {
+                            if (isDuplicate) return;
                             setCategory(value === category ? "" : value);
                             run(updateCategory(rowData.id, value));
                         }} />
@@ -55,7 +60,9 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
                         type="text"
                         className="bg-transparent"
                         defaultValue={note}
+                        disabled={isDuplicate}
                         onBlur={() => {
+                            if (isDuplicate) return;
                             run(updateNote(rowData.id, note));
                         }}
                         onChange={(e) => {
@@ -69,10 +76,11 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
             </div>
 
 
-            <DataDisplay className={`shrink-0 w-full ${category ? "hidden" : ""}`}>
+            <DataDisplay className={`shrink-0 w-full ${category ? "hidden" : ""} ${isDuplicate ? "pointer-events-none" : ""}`}>
                 <CategoriesDropdown
                     value={category}
                     onCategoryChange={(value) => {
+                        if (isDuplicate) return;
                         setCategory(value === category ? "" : value);
                         run(updateCategory(rowData.id, value));
                     }} />

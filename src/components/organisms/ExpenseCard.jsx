@@ -30,11 +30,11 @@ export function ExpenseCard({
     return (
         <div
             dir="rtl"
-            className="flex flex-col h-full bg-white rounded-2xl p-4 gap-3 shadow">
+            className="flex flex-col h-full bg-white dark:bg-gray-800 rounded-2xl p-4 gap-3 shadow">
             <div className="flex items-start justify-between gap-2">
                 <div className="flex flex-col min-w-0">
                     <h2 className="text-xl font-bold leading-tight truncate">{rowData.name}</h2>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
                         {AccountName[rowData.account]?.translation || rowData.account}
                     </span>
                 </div>
@@ -55,7 +55,7 @@ export function ExpenseCard({
                         isNegative={rowData.category !== 'income'}
                     />
                 </div>
-                <div className="text-sm text-gray-600">{formatDate(rowData.date)}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">{formatDate(rowData.date)}</div>
             </div>
 
             <input
@@ -78,13 +78,12 @@ export function ExpenseCard({
                             animate={isSelected ? { scale: [1, 1.15, 1] } : { scale: 1 }}
                             transition={{ duration: 0.25 }}
                             onClick={() => handleCategoryTap(key)}
-                            className={`rounded-xl border flex flex-col items-center justify-center gap-1 py-1 px-1 ${
-                                isSelected
-                                    ? 'bg-blue-100 border-blue-400'
-                                    : 'bg-white border-gray-200'
-                            }`}>
+                            className={`rounded-xl border flex flex-col items-center justify-center gap-1 py-1 px-1 ${isSelected
+                                ? 'bg-blue-100 border-blue-400'
+                                : 'bg-white dark:bg-gray-800 border-gray-200'
+                                }`}>
                             <span className="text-2xl leading-none">{value.emoji}</span>
-                            <span className="text-[10px] text-gray-700 leading-tight text-center line-clamp-2">
+                            <span className="text-[10px] text-gray-700 dark:text-gray-300 leading-tight text-center line-clamp-2">
                                 {value.name}
                             </span>
                         </motion.button>

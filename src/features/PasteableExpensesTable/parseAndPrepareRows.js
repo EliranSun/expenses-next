@@ -1,13 +1,5 @@
 import { parseTextToRows, formatDateFromDB } from '@/utils';
 
-const matchesExisting = (row, existingExpenses) =>
-    existingExpenses.some((expense) =>
-        expense.name === row.name &&
-        expense.amount === row.amount &&
-        expense.date === formatDateFromDB(row.date) &&
-        expense.account === row.account
-    );
-
 const matchesStaged = (row, alreadyStaged) =>
     alreadyStaged.some((staged) =>
         staged.name === row.name &&
@@ -18,11 +10,10 @@ const matchesStaged = (row, alreadyStaged) =>
         (staged.date === row.date || staged.date === formatDateFromDB(row.date))
     );
 
-export function parseAndPrepareRows(text, existingExpenses = [], alreadyStaged = []) {
+export function parseAndPrepareRows(text, alreadyStaged = []) {
     const parsed = parseTextToRows(text);
 
     return parsed
-        .filter((row) => !matchesExisting(row, existingExpenses))
         .filter((row) => !matchesStaged(row, alreadyStaged))
         .map((row) => {
             const [day, month, year] = row.date.split('/');
@@ -31,6 +22,34 @@ export function parseAndPrepareRows(text, existingExpenses = [], alreadyStaged =
                 id: crypto.randomUUID(),
                 date: `20${year}-${month}-${day}`,
                 timestamp: new Date(`20${year}`, Number(month) - 1, Number(day)).getTime(),
+                isDuplicate: false,
             };
         });
+}
+
+export function markDuplicates(rows, existingExpenses = []) {
+    if (rows.length === 0 || existingExpenses.length === 0) {
+        return rows;
+    }
+    return rows.map((row) => {
+        const isDuplicate = existingExpenses.some((expense) =>
+            expense.name === row.name &&
+            expense.amount === row.amount &&
+            expense.date === row.date &&
+            expense.account === row.account
+        );
+
+        return isDuplicate ? { ...row, isDuplicate: true } : row;
+    });
+}
+
+export function computeDateRange(rows) {
+    if (rows.length === 0) return null;
+    const dates = rows.map((r) => r.date).sort();
+    const startDate = dates[0];
+    const max = dates[dates.length - 1];
+    const [y, m, d] = max.split('-').map(Number);
+    const next = new Date(Date.UTC(y, m - 1, d + 1));
+    const endDate = next.toISOString().slice(0, 10);
+    return { startDate, endDate };
 }

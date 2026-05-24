@@ -8,8 +8,8 @@ import { MobilePasteScreen } from "./MobilePasteScreen";
 
 export default function TextToExpensesTable({
     expenses = [],
-    existingExpenses = [],
     onSave,
+    fetchExpensesByDateRange,
     updateCategory,
     updateNote,
     updateDate,
@@ -24,12 +24,17 @@ export default function TextToExpensesTable({
         );
     }, [expenses]));
 
-    const [rows, setRows] = usePasteToRows(expenses, pasteFilterLogic, existingExpenses);
+    const [rows, setRows] = usePasteToRows(expenses, pasteFilterLogic, fetchExpensesByDateRange);
 
     const [phase, setPhase] = useState(expenses.length > 0 ? 'categorize' : 'paste');
 
+    const saveableRows = rows.filter((r) => !r.isDuplicate);
+    const duplicateCount = rows.length - saveableRows.length;
+
     const handleMobileSave = async (newRows) => {
-        const res = await run(onSave(newRows), { success: `Saved ${newRows.length} rows` });
+        const toInsert = newRows.filter((r) => !r.isDuplicate);
+        if (toInsert.length === 0) return;
+        const res = await run(onSave(toInsert), { success: `Saved ${toInsert.length} rows` });
         if (res?.ok) {
             setRows(prev => {
                 const ids = new Set(prev.map(r => r.id));
@@ -45,15 +50,19 @@ export default function TextToExpensesTable({
                 <div className="px-0 w-full space-y-4 my-4">
 
                     <button
-                        className="hidden md:flex bg-blue-500 text-white px-4 py-2 rounded-xl items-center gap-2"
-                        onClick={() => run(onSave(rows), { success: `Saved ${rows.length} rows` })}>
-                        Save rows to database ({rows.length})
+                        disabled={saveableRows.length === 0}
+                        className="hidden md:flex bg-blue-500 disabled:bg-gray-300 text-white px-4 py-2 rounded-xl items-center gap-2"
+                        onClick={() => run(onSave(saveableRows), { success: `Saved ${saveableRows.length} rows` })}>
+                        Save rows to database ({saveableRows.length})
+                        {duplicateCount > 0 && (
+                            <span className="text-xs opacity-80">+{duplicateCount} duplicates skipped</span>
+                        )}
                     </button>
 
                     {phase === 'paste' && (
                         <div className="md:hidden">
                             <MobilePasteScreen
-                                existingExpenses={existingExpenses}
+                                fetchExpensesByDateRange={fetchExpensesByDateRange}
                                 onSubmit={handleMobileSave}
                             />
                         </div>

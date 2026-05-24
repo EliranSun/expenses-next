@@ -34,10 +34,16 @@ function yearBounds(year) {
 
 function mapRow(expense) {
     // After the DATE-column migration the driver returns date as a
-    // Date object or 'YYYY-MM-DD' string. Normalise to ISO string.
-    const iso = typeof expense.date === 'string'
-        ? expense.date.slice(0, 10)
-        : expense.date.toISOString().slice(0, 10);
+    // Date object (at local midnight) or a 'YYYY-MM-DD' string. Read
+    // local components — toISOString() would shift the day in
+    // non-UTC timezones (e.g. IST: local midnight = previous day in UTC).
+    let iso;
+    if (typeof expense.date === 'string') {
+        iso = expense.date.slice(0, 10);
+    } else {
+        const d = expense.date;
+        iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
     const [yyyy, mm, dd] = iso.split('-');
     return {
         ...expense,
@@ -78,6 +84,35 @@ export async function fetchExpenses({ account, year, month, limit = DEFAULT_LIMI
     if (conditions.length) query += ` WHERE ${conditions.join(' AND ')}`;
     query += ` ORDER BY ${DATE_EXPR} ASC, name ASC LIMIT $${params.length + 1}`;
     params.push(limit);
+
+    const rows = await sql(query, params);
+    return rows.map(mapRow);
+}
+
+export async function fetchExpensesByDateRange({ startDate, endDate, accounts } = {}) {
+    'use server';
+    if (!startDate || !endDate) {
+        return [];
+    }
+    const sql = getSql();
+
+    const conditions = [
+        `${DATE_EXPR} >= $1::date`,
+        `${DATE_EXPR} < $2::date`,
+    ];
+    const params = [startDate, endDate];
+
+    if (Array.isArray(accounts) && accounts.length > 0) {
+        const placeholders = accounts.map((_, i) => `$${params.length + i + 1}`).join(', ');
+        conditions.push(`account IN (${placeholders})`);
+        params.push(...accounts);
+    }
+
+    const query = `
+        SELECT name, amount, ${DATE_EXPR} AS date, account, category, id, note
+        FROM expenses
+        WHERE ${conditions.join(' AND ')}
+    `;
 
     const rows = await sql(query, params);
     return rows.map(mapRow);

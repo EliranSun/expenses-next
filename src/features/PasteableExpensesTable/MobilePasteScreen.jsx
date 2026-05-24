@@ -1,24 +1,37 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { parseAndPrepareRows } from './parseAndPrepareRows';
+import { parseAndPrepareRows, markDuplicates, computeDateRange } from './parseAndPrepareRows';
 import { CurrencyAmount } from '@/components/atoms/currency-amount';
 import { formatDate } from '@/utils/formatDate';
 import { AccountName } from '@/constants/account';
 
-export function MobilePasteScreen({ existingExpenses = [], onSubmit }) {
+export function MobilePasteScreen({ fetchExpensesByDateRange, onSubmit }) {
     const [unsavedRows, setUnsavedRows] = useState([]);
     const [text, setText] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const textareaRef = useRef(null);
 
-    const ingest = (raw) => {
+    const ingest = async (raw) => {
         if (!raw || !raw.trim()) return;
-        const prepared = parseAndPrepareRows(raw, existingExpenses, unsavedRows);
-        if (prepared.length === 0) {
+        const parsed = parseAndPrepareRows(raw, unsavedRows);
+        if (parsed.length === 0) {
             return;
         }
-        setUnsavedRows((prev) => [...prev, ...prepared]);
+
+        let marked = parsed;
+        if (typeof fetchExpensesByDateRange === 'function') {
+            const range = computeDateRange(parsed);
+            const accounts = [...new Set(parsed.map((r) => r.account))];
+            try {
+                const existing = await fetchExpensesByDateRange({ ...range, accounts });
+                marked = markDuplicates(parsed, existing);
+            } catch (err) {
+                console.error('fetchExpensesByDateRange failed:', err);
+            }
+        }
+
+        setUnsavedRows((prev) => [...prev, ...marked]);
         setText('');
     };
 
@@ -26,11 +39,11 @@ export function MobilePasteScreen({ existingExpenses = [], onSubmit }) {
         const raw = event.clipboardData?.getData('Text') ?? '';
         if (!raw.trim()) return;
         event.preventDefault();
-        ingest(raw);
+        void ingest(raw);
     };
 
     const handleParseClick = () => {
-        ingest(text);
+        void ingest(text);
         textareaRef.current?.focus();
     };
 
@@ -38,8 +51,11 @@ export function MobilePasteScreen({ existingExpenses = [], onSubmit }) {
         setUnsavedRows((prev) => prev.filter((r) => r.id !== id));
     };
 
+    const saveableRows = unsavedRows.filter((r) => !r.isDuplicate);
+    const duplicateCount = unsavedRows.length - saveableRows.length;
+
     const handleSave = async () => {
-        if (unsavedRows.length === 0 || submitting) return;
+        if (saveableRows.length === 0 || submitting) return;
         setSubmitting(true);
         try {
             await onSubmit(unsavedRows);
@@ -65,7 +81,7 @@ export function MobilePasteScreen({ existingExpenses = [], onSubmit }) {
                 rows={6}
                 dir="ltr"
                 placeholder="Paste rows here…"
-                className="border border-gray-300 rounded-xl p-3 w-full font-mono text-sm bg-white"
+                className="border border-gray-300 rounded-xl p-3 w-full font-mono text-sm bg-white dark:bg-gray-800"
             />
 
             {text.trim() && (
@@ -80,7 +96,7 @@ export function MobilePasteScreen({ existingExpenses = [], onSubmit }) {
             <div className="text-sm text-gray-600">
                 {unsavedRows.length === 0
                     ? 'אין שורות מוכנות להוספה'
-                    : `${unsavedRows.length} שורות מוכנות להוספה`}
+                    : `${saveableRows.length} שורות מוכנות להוספה${duplicateCount > 0 ? ` (+${duplicateCount} כפולות)` : ''}`}
             </div>
 
             {unsavedRows.length > 0 && (
@@ -88,9 +104,14 @@ export function MobilePasteScreen({ existingExpenses = [], onSubmit }) {
                     {unsavedRows.map((row) => (
                         <li
                             key={row.id}
-                            className="flex items-center justify-between gap-2 bg-white rounded-lg border border-gray-200 px-3 py-2">
+                            className={`flex items-center justify-between gap-2 bg-white dark:bg-gray-800 rounded-lg border px-3 py-2 ${row.isDuplicate ? 'border-amber-300 opacity-60' : 'border-gray-200'}`}>
                             <div className="flex flex-col min-w-0">
-                                <span className="text-sm font-medium truncate">{row.name}</span>
+                                <span className="text-sm font-medium truncate flex items-center gap-2">
+                                    {row.name}
+                                    {row.isDuplicate && (
+                                        <span className="text-[10px] uppercase tracking-wide bg-amber-200 text-amber-900 rounded-full px-2 py-0.5">duplicate</span>
+                                    )}
+                                </span>
                                 <span className="text-xs text-gray-500">
                                     {formatDate(row.date)}
                                     {' · '}
@@ -114,12 +135,12 @@ export function MobilePasteScreen({ existingExpenses = [], onSubmit }) {
 
             <button
                 type="button"
-                disabled={unsavedRows.length === 0 || submitting}
+                disabled={saveableRows.length === 0 || submitting}
                 onClick={handleSave}
                 className="bg-blue-500 disabled:bg-gray-300 text-white px-4 py-3 rounded-xl text-base font-semibold">
                 {submitting
                     ? 'Saving…'
-                    : `Save rows to database (${unsavedRows.length})`}
+                    : `Save rows to database (${saveableRows.length})`}
             </button>
         </div>
     );
