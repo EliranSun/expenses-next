@@ -8,7 +8,7 @@ const DataDisplay = ({ children, className }) => {
     return <div className={`items-center justify-center p-2 flex ${className}`}>{children}</div>
 }
 
-export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate, onRowClick, deleteExpense }) => {
+export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate, onRowClick, deleteExpense, unmarkDuplicate }) => {
     const [isDeleteHovered, setIsDeleteHovered] = useState(false);
     const [isHideHovered, setIsHideHovered] = useState(false);
     const [category, setCategory] = useState(rowData.category || "");
@@ -23,7 +23,13 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
                 <h1 className="text-xl flex items-center gap-2">
                     {rowData.name} - {AccountName[rowData.account]?.translation}
                     {isDuplicate && (
-                        <span className="text-[10px] uppercase tracking-wide bg-amber-200 text-amber-900 rounded-full px-2 py-0.5">duplicate</span>
+                        <button
+                            type="button"
+                            title="Save anyway"
+                            onClick={() => unmarkDuplicate?.(rowData.id)}
+                            className="text-[10px] uppercase tracking-wide bg-amber-200 hover:bg-amber-300 text-amber-900 rounded-full px-2 py-0.5 cursor-pointer">
+                            duplicate · save anyway
+                        </button>
                     )}
                 </h1>
                 <button

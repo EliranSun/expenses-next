@@ -21,7 +21,7 @@ const paste = (text) =>
     fireEvent.paste(document.body, { clipboardData: { getData: () => text } });
 
 const duplicateBadgeCount = () =>
-    screen.queryAllByText(/^duplicate$/i).length;
+    screen.queryAllByText(/^duplicate\b/i).length;
 
 describe('TextToExpensesTable', () => {
     beforeEach(() => {

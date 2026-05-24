@@ -45,6 +45,10 @@ export default function TextToExpensesTable({
         }
     };
 
+    const unmarkDuplicate = (id) => {
+        setRows(prev => prev.map(r => r.id === id ? { ...r, isDuplicate: false } : r));
+    };
+
     const handleDesktopSave = async () => {
         if (saveableRows.length === 0) return;
         const res = await run(onSave(saveableRows), { success: `Saved ${saveableRows.length} rows` });
@@ -95,6 +99,7 @@ export default function TextToExpensesTable({
                             updateNote={updateNote}
                             updateDate={updateDate}
                             deleteExpense={deleteExpense}
+                            unmarkDuplicate={unmarkDuplicate}
                         />
                     </div>
                 </div>

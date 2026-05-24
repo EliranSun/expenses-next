@@ -51,6 +51,10 @@ export function MobilePasteScreen({ fetchExpensesByDateRange, onSubmit }) {
         setUnsavedRows((prev) => prev.filter((r) => r.id !== id));
     };
 
+    const unmarkDuplicate = (id) => {
+        setUnsavedRows((prev) => prev.map((r) => r.id === id ? { ...r, isDuplicate: false } : r));
+    };
+
     const saveableRows = unsavedRows.filter((r) => !r.isDuplicate);
     const duplicateCount = unsavedRows.length - saveableRows.length;
 
@@ -109,7 +113,12 @@ export function MobilePasteScreen({ fetchExpensesByDateRange, onSubmit }) {
                                 <span className="text-sm font-medium truncate flex items-center gap-2">
                                     {row.name}
                                     {row.isDuplicate && (
-                                        <span className="text-[10px] uppercase tracking-wide bg-amber-200 text-amber-900 rounded-full px-2 py-0.5">duplicate</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => unmarkDuplicate(row.id)}
+                                            className="text-[10px] uppercase tracking-wide bg-amber-200 hover:bg-amber-300 text-amber-900 rounded-full px-2 py-0.5 cursor-pointer">
+                                            duplicate · save anyway
+                                        </button>
                                     )}
                                 </span>
                                 <span className="text-xs text-gray-500">

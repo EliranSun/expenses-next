@@ -44,6 +44,7 @@ export default function Table({
     updateNote,
     updateDate,
     deleteExpense,
+    unmarkDuplicate,
     year,
     month,
     searchItems,
@@ -266,6 +267,7 @@ export default function Table({
                             updateCategory={updateCategory}
                             updateNote={updateNote}
                             updateDate={updateDate}
+                            unmarkDuplicate={unmarkDuplicate}
                             deleteExpense={async (id) => {
                                 const res = await run(deleteExpense(id), { success: "Deleted" });
                                 if (res?.ok) {
