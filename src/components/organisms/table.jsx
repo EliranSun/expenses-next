@@ -197,12 +197,6 @@ export default function Table({
                     updateCategory={updateCategory}
                     updateNote={updateNote}
                     updateDate={updateDate}
-                    deleteExpense={async (id) => {
-                        const res = await run(deleteExpense(id), { success: "Deleted" });
-                        if (res?.ok) {
-                            setRowIdsToFilter([...rowIdsToFilter, id]);
-                        }
-                    }}
                     searchItems={searchItems}
                     onSearch={onSearch}
                     sortCriteria={sortCriteria}
@@ -211,10 +205,16 @@ export default function Table({
                     setAccount={setAccount}
                     selectedCategories={selectedCategories}
                     setSelectedCategories={setSelectedCategories}
+                    deleteExpense={async (id) => {
+                        const res = await run(deleteExpense(id), { success: "Deleted" });
+                        if (res?.ok) {
+                            setRowIdsToFilter([...rowIdsToFilter, id]);
+                        }
+                    }}
                 />
             </div>
 
-            <div data-testid="desktop-table-view" dir="rtl" className="hidden md:block w-full bg-white rounded-xl p-4 space-y-2 h-[80vh] overflow-auto">
+            <div data-testid="desktop-table-view" dir="rtl" className="hidden md:block w-full bg-white dark:bg-gray-800 rounded-xl p-4 space-y-2 h-[80vh] overflow-auto">
                 <Search items={searchItems} onSearch={onSearch} />
                 <span>{totalExpenses}</span>
                 <div className="flex gap-2">

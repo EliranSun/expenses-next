@@ -46,11 +46,18 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
                         amount={rowData.amount} />
                 </DataDisplay>
                 <DataDisplay>
-                    {new Date(rowData.date).toLocaleDateString("he-IL", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric"
-                    })}
+                    <input
+                        type="date"
+                        className="bg-transparent"
+                        value={date}
+                        disabled={isDuplicate}
+                        onChange={(e) => setDate(e.target.value)}
+                        onBlur={() => {
+                            if (isDuplicate) return;
+                            if (!date || date === rowData.date) return;
+                            run(updateDate(rowData.id, date));
+                        }}
+                    />
                 </DataDisplay>
                 <DataDisplay className={`shrink-0 w-40 ${category ? "" : "hidden"} ${isDuplicate ? "pointer-events-none" : ""}`}>
                     <CategoriesDropdown
@@ -82,7 +89,8 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
             </div>
 
 
-            <DataDisplay className={`shrink-0 w-full ${category || isDuplicate ? "hidden" : ""} ${isDuplicate ? "pointer-events-none" : ""}`}>
+            <DataDisplay className={`shrink-0 w-full ${category || isDuplicate ? "hidden" : ""} 
+            ${isDuplicate ? "pointer-events-none" : ""}`}>
                 <CategoriesDropdown
                     value={category}
                     onCategoryChange={(value) => {

@@ -6,7 +6,8 @@ import {
     insertExpenses,
     updateCategory,
     deleteExpense,
-    updateNote
+    updateNote,
+    updateDate
 } from '@/utils/db';
 import { MainNavBar } from '@/components/molecules/MainNavBar';
 
@@ -26,6 +27,7 @@ export default async function Home({ searchParams }) {
                 updateCategory={updateCategory}
                 deleteExpense={deleteExpense}
                 updateNote={updateNote}
+                updateDate={updateDate}
             />
         </div>
     );

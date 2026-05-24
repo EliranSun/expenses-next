@@ -6,7 +6,7 @@ export const CategoriesDropdown = ({ value = "", onCategoryChange }) => {
     return (
         <div className={value
             ? "w-full border border-gray-300 rounded-xl p-2"
-            : "grid grid-cols-4 gap-2 w-full bg-white rounded-xl p-2"}>
+            : "grid grid-cols-4 gap-2 w-full bg-white dark:bg-gray-700 rounded-xl p-2"}>
             {Object
                 .entries(keys.categories)
                 .filter(([key]) => value === "" ? true : value === key)

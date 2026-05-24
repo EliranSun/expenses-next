@@ -36,7 +36,7 @@ export default function Search({ items = [], onSearch = () => { } }) {
 
     return (
         <input
-            className="border border-gray-300 rounded-xl py-2 px-4 w-full"
+            className="border border-gray-300 bg-white dark:bg-gray-800 rounded-xl py-2 px-4 w-full"
             placeholder="Search"
             type="text"
             value={search}
