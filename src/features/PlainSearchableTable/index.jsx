@@ -4,6 +4,7 @@ import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { orderBy } from 'lodash';
 import { HomepageFilterSheet } from '@/components/organisms/HomepageFilterSheet';
+import { HomepageFilterControls } from '@/components/organisms/HomepageFilterControls';
 
 const getCategoricalData = (expenses = [], selectedCategories = [], idsToFilter = []) => {
     const Categories = {};
@@ -54,6 +55,14 @@ function PlainSearchableTableInner({
         <div className="w-full max-w-screen-xl mx-auto">
             <div className="md:hidden">
                 <HomepageFilterSheet
+                    searchItems={items}
+                    onSearch={setSearchResults}
+                    sortCriteria={sortCriteria}
+                    setSortCriteria={setSortCriteria}
+                />
+            </div>
+            <div className="hidden md:block mb-4">
+                <HomepageFilterControls
                     searchItems={items}
                     onSearch={setSearchResults}
                     sortCriteria={sortCriteria}

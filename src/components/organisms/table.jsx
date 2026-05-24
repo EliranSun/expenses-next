@@ -216,6 +216,7 @@ export default function Table({
 
             <div data-testid="desktop-table-view" dir="rtl" className="hidden md:block w-full bg-white rounded-xl p-4 space-y-2 h-[80vh] overflow-auto">
                 <Search items={searchItems} onSearch={onSearch} />
+                <span>{totalExpenses}</span>
                 <div className="flex gap-2">
                     <button
                         className="bg-yellow-500 text-white px-4 py-2 rounded-xl flex items-center gap-2"

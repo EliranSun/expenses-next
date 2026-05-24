@@ -18,7 +18,7 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
     const isDuplicate = !!rowData.isDuplicate;
 
     return (
-        <div dir="rtl" className={`flex flex-col gap-2 bg-gray-100 dark:bg-transparent rounded-xl py-2 px-4 w-full ${isDuplicate ? 'opacity-50 border border-amber-300' : ''}`}>
+        <div dir="rtl" className={`flex flex-col gap-2 bg-gray-100 dark:bg-gray-800 rounded-xl py-2 px-4 w-full ${isDuplicate ? 'opacity-50 border border-amber-300' : ''}`}>
             <div className="flex justify-between">
                 <h1 className="text-xl flex items-center gap-2">
                     {rowData.name} - {AccountName[rowData.account]?.translation}
@@ -39,7 +39,7 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
                 </button>
             </div>
             <div className="flex gap-2 rounded-xl">
-                <DataDisplay className="w-24 bg-white rounded-xl shadow shrink-0 text-center">
+                <DataDisplay className="w-24 bg-white dark:bg-gray-800 rounded-xl shadow shrink-0 text-center">
                     <CurrencyAmount
                         isPositive={rowData.category === "income"}
                         isNegative={rowData.category !== "income"}
@@ -82,7 +82,7 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
             </div>
 
 
-            <DataDisplay className={`shrink-0 w-full ${category ? "hidden" : ""} ${isDuplicate ? "pointer-events-none" : ""}`}>
+            <DataDisplay className={`shrink-0 w-full ${category || isDuplicate ? "hidden" : ""} ${isDuplicate ? "pointer-events-none" : ""}`}>
                 <CategoriesDropdown
                     value={category}
                     onCategoryChange={(value) => {
