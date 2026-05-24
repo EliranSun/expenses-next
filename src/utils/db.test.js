@@ -2,6 +2,7 @@ import { neon } from '@neondatabase/serverless';
 import { Accounts, PrivateAccounts } from '@/constants/account';
 import {
     fetchExpenses,
+    findSuspiciousExpenses,
     getUnhandledExpenses,
     deleteExpense,
     deleteExpenses,
@@ -319,6 +320,35 @@ describe('insertExpenses', () => {
         ]);
         expect(res).toEqual({ ok: false, error: 'no valid rows to insert', data: { skipped: 2 } });
         expect(sqlMock).not.toHaveBeenCalled();
+    });
+});
+
+describe('findSuspiciousExpenses', () => {
+    it('queries for rows with null/blank/sentinel fields and tags issues', async () => {
+        sqlMock.mockResolvedValueOnce([
+            { ...dbRow({ id: 'a', category: null }) },
+            { ...dbRow({ id: 'b', name: 'null' }) },
+            { ...dbRow({ id: 'c', account: '   ' }) },
+            { ...dbRow({ id: 'd', amount: 0 }) },
+            { id: 'e', name: 'x', amount: 5, date: null, account: '3361', category: 'food', note: null },
+        ]);
+
+        const rows = await findSuspiciousExpenses();
+        const [query, params] = sqlMock.mock.calls[0];
+
+        expect(query).toMatch(/category IS NULL/);
+        expect(query).toMatch(/name IS NULL OR TRIM\(name\) = ''/);
+        expect(query).toMatch(/account IS NULL OR TRIM\(account\) = ''/);
+        expect(query).toMatch(/date IS NULL/);
+        expect(query).toMatch(/amount IS NULL OR amount = 0/);
+        expect(params).toEqual([500]);
+
+        expect(rows[0].issues).toContain('category');
+        expect(rows[1].issues).toContain('name');
+        expect(rows[2].issues).toContain('account');
+        expect(rows[3].issues).toContain('amount');
+        expect(rows[4].issues).toContain('date');
+        expect(rows[4].timestamp).toBeNull();
     });
 });
 
