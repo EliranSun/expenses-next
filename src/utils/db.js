@@ -1,5 +1,6 @@
 import { neon } from '@neondatabase/serverless';
 import { Accounts } from '@/constants/account';
+import { isValidInsertRow } from '@/utils';
 
 const DEFAULT_LIMIT = 1000;
 
@@ -137,9 +138,14 @@ export async function insertExpenses(rows) {
     if (!Array.isArray(rows) || rows.length === 0) {
         return { ok: false, error: 'no rows to insert' };
     }
+    const validRows = rows.filter(isValidInsertRow);
+    const skipped = rows.length - validRows.length;
+    if (validRows.length === 0) {
+        return { ok: false, error: 'no valid rows to insert', data: { skipped } };
+    }
     try {
         const sql = getSql();
-        const values = rows.map(row => [row.name, row.amount, row.date, row.account, row.category, row.id]);
+        const values = validRows.map(row => [row.name.trim(), row.amount, row.date, row.account.trim(), row.category, row.id]);
         const placeholders = values
             .map((_, i) => `($${i * 6 + 1}, $${i * 6 + 2}, $${i * 6 + 3}::date, $${i * 6 + 4}, $${i * 6 + 5}, $${i * 6 + 6})`)
             .join(', ');
@@ -149,7 +155,7 @@ export async function insertExpenses(rows) {
         `;
         // Single multi-row INSERT is atomic in Postgres.
         await sql(query, values.flat());
-        return { ok: true, data: { inserted: rows.length } };
+        return { ok: true, data: { inserted: validRows.length, skipped } };
     } catch (error) {
         console.error('insertExpenses failed:', error);
         return { ok: false, error: error.message ?? 'insert failed' };

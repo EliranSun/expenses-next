@@ -278,7 +278,7 @@ describe('insertExpenses', () => {
             { name: 'b', amount: 2, date: '2025-01-02', account: '3361', category: 'food', id: 'i2' },
         ]);
 
-        expect(res).toEqual({ ok: true, data: { inserted: 2 } });
+        expect(res).toEqual({ ok: true, data: { inserted: 2, skipped: 0 } });
         const [query, params] = sqlMock.mock.calls[0];
         expect(query).toMatch(/INSERT INTO expenses/);
         expect(query).toMatch(/\$3::date/);
@@ -293,6 +293,32 @@ describe('insertExpenses', () => {
         ]);
         expect(res.ok).toBe(false);
         expect(res.error).toBe('dup');
+    });
+
+    it('drops invalid rows and only inserts the valid ones', async () => {
+        sqlMock.mockResolvedValueOnce(undefined);
+
+        const res = await insertExpenses([
+            { name: 'a', amount: 1, date: '2025-01-01', account: '3361', category: 'food', id: 'i1' },
+            { name: 'null', amount: 2, date: '2025-01-02', account: '3361', category: 'food', id: 'i2' },
+            { name: 'b', amount: 0, date: '2025-01-03', account: '3361', category: 'food', id: 'i3' },
+            { name: 'c', amount: 3, date: '28/01/25', account: '3361', category: 'food', id: 'i4' },
+            { name: 'd', amount: 4, date: '2025-01-04', account: '', category: 'food', id: 'i5' },
+        ]);
+
+        expect(res).toEqual({ ok: true, data: { inserted: 1, skipped: 4 } });
+        const [, params] = sqlMock.mock.calls[0];
+        expect(params).toHaveLength(6);
+        expect(params[0]).toBe('a');
+    });
+
+    it('returns { ok: false } when every row is invalid', async () => {
+        const res = await insertExpenses([
+            { name: 'null', amount: 1, date: '2025-01-01', account: '3361', category: 'food', id: 'i1' },
+            { name: 'a', amount: 0, date: '2025-01-01', account: '3361', category: 'food', id: 'i2' },
+        ]);
+        expect(res).toEqual({ ok: false, error: 'no valid rows to insert', data: { skipped: 2 } });
+        expect(sqlMock).not.toHaveBeenCalled();
     });
 });
 
