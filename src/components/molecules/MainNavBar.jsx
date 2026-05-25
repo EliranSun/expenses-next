@@ -25,6 +25,7 @@ export const MainNavBar = () => {
             <NavbarItem href="/">{keys.home}</NavbarItem>
             <NavbarItem href="/add">{keys.add}</NavbarItem>
             <NavbarItem href="/money">{keys.whereIsMyMoney}</NavbarItem>
+            <NavbarItem href="/budget">{keys.budget}</NavbarItem>
         </div>
     )
 }
