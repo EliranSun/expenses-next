@@ -51,7 +51,7 @@ const BudgetData = {
 
 const TopExpenses = ({ expenses }) => {
     return (
-        <div className="border p-2 my-4 space-y-2">
+        <div className="border p-2 space-y-2">
             <h3>Top expenses</h3>
             <div className="flex flex-col gap-2 text-xs">
                 {expenses
@@ -109,60 +109,62 @@ export default async function MoneyPage({ searchParams }) {
 
 
     return (
-        <div className="p-4" dir="rtl">
+        <div className="p-4 max-w-screen-2xl mx-auto" dir="rtl">
             <MainNavBar />
-            <div className="">
-                <div key={year}>
-                    <div className="flex gap-2">
-                        <div
-                            className="w-full flex flex-col  space-y-8 my-8"
-                            key={`${year}-${month}`}>
-                            <div className="sticky top-0 py-4 flex items-center w-full justify-between">
-                                <Link
-                                    href={`/money?year=${format(prevDate, "yy")}&month=${prevDate.getMonth() + 1}`}
-                                    className="bg-white rounded-full size-10 flex items-center justify-center">
-                                    {"<"}
-                                </Link>
-                                <h2 className="text-2xl text-center font-bold">
-                                    {format(currentDate, "LLLL yy", { locale: he })}
-                                </h2>
-                                <Link
-                                    href={`/money?year=${format(nextDate, "yy")}&month=${nextDate.getMonth() + 1}`}
-                                    className="bg-white rounded-full size-10 flex items-center justify-center">
-                                    {">"}
-                                </Link>
+            <div key={year}>
+                <div
+                    className="w-full my-8"
+                    key={`${year}-${month}`}>
+                    <div className="sticky top-0 z-10 py-4 flex items-center w-full justify-between">
+                        <Link
+                            href={`/money?year=${format(prevDate, "yy")}&month=${prevDate.getMonth() + 1}`}
+                            className="bg-white rounded-full size-10 flex items-center justify-center">
+                            {"<"}
+                        </Link>
+                        <h2 className="text-2xl text-center font-bold">
+                            {format(currentDate, "LLLL yy", { locale: he })}
+                        </h2>
+                        <Link
+                            href={`/money?year=${format(nextDate, "yy")}&month=${nextDate.getMonth() + 1}`}
+                            className="bg-white rounded-full size-10 flex items-center justify-center">
+                            {">"}
+                        </Link>
+                    </div>
+
+                    {data ? (
+                        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-8 mt-6">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 font-mono lg:col-span-12">
+                                <InfoDisplay
+                                    amount={data.totalIncome}
+                                    outOf={BudgetData.totalIncome}
+                                    label="הכנסות"
+                                    isVisible
+                                    iconName="coins" />
+                                <InfoDisplay
+                                    amount={data.totalExpenses}
+                                    outOf={BudgetData.totalExpenses}
+                                    label="הוצאות"
+                                    isVisible
+                                    iconName="shoppingCart" />
+                                <InfoDisplay
+                                    amount={data.total}
+                                    label="שורה תחתונה"
+                                    isVisible
+                                    outOf={BudgetData.total}
+                                    isPositive={data.total > 0}
+                                    isNegative={data.total < 0}
+                                    iconName={data.total > 0 ? "trendUp" : "trendDown"} />
                             </div>
 
-                            {data ? <>
-                                <div className="flex flex-col gap-2 font-mono">
-                                    <InfoDisplay
-                                        amount={data.totalIncome}
-                                        outOf={BudgetData.totalIncome}
-                                        label="הכנסות"
-                                        isVisible
-                                        iconName="coins" />
-                                    <InfoDisplay
-                                        amount={data.totalExpenses}
-                                        outOf={BudgetData.totalExpenses}
-                                        label="הוצאות"
-                                        isVisible
-                                        iconName="shoppingCart" />
-                                    <InfoDisplay
-                                        amount={data.total}
-                                        label="שורה תחתונה"
-                                        isVisible
-                                        outOf={BudgetData.total}
-                                        isPositive={data.total > 0}
-                                        isNegative={data.total < 0}
-                                        iconName={data.total > 0 ? "trendUp" : "trendDown"} />
-                                </div>
-
+                            <div className="lg:col-span-8">
                                 <ExpensesTileData data={data} budgetData={BudgetData} />
+                            </div>
 
+                            <div className="lg:col-span-4 lg:sticky lg:top-20 lg:self-start">
                                 <TopExpenses expenses={data.expenses} />
-                            </> : null}
+                            </div>
                         </div>
-                    </div>
+                    ) : null}
                 </div>
             </div>
         </div>
