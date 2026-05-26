@@ -1,7 +1,7 @@
 'use client';
 
-import { Suspense, useState, useEffect } from 'react';
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { Suspense, useState, useEffect, useMemo, useCallback, useTransition } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { orderBy } from 'lodash';
 import { CaretDownIcon, CaretRightIcon } from '@phosphor-icons/react';
 import { HomepageFilterSheet } from '@/components/organisms/HomepageFilterSheet';
@@ -15,16 +15,23 @@ const DEFAULT_SORT_FIELD = 'amount';
 const DEFAULT_SORT_DIR = 'desc';
 const DEFAULT_VIEW = 'columns';
 
-const buildSearchParams = (currentParams, updates = {}) => {
-    const query = new URLSearchParams(currentParams.toString());
+const pickValid = (value, valids, fallback) =>
+    valids.includes(value) ? value : fallback;
+
+// Updates URL params without triggering a Next.js navigation / server refetch.
+// Sort/dir/view are purely client-side display state; we still mirror them to
+// the URL so the values persist across reloads and remain shareable.
+const writeUrlParams = (updates) => {
+    if (typeof window === 'undefined') return;
+    const url = new URL(window.location.href);
     Object.entries(updates).forEach(([key, value]) => {
-        if (value === null) {
-            query.delete(key);
+        if (value === null || value === undefined) {
+            url.searchParams.delete(key);
         } else {
-            query.set(key, value);
+            url.searchParams.set(key, value);
         }
     });
-    return query.toString();
+    window.history.replaceState(null, '', url.toString());
 };
 
 const getCategoricalData = (expenses = [], selectedCategories = [], idsToFilter = []) => {
@@ -65,68 +72,75 @@ function PlainSearchableTableInner({
     items = [],
 }) {
     const searchParams = useSearchParams();
-    const router = useRouter();
-    const pathname = usePathname();
     const [searchResults, setSearchResults] = useState(items);
     const [idsToFilter, setIdsToFilter] = useState([]);
     const [collapsedCategories, setCollapsedCategories] = useState({});
+    // Navbar clicks (year/month/account/category) trigger router.push and a
+    // server refetch. Wrapping that in a transition gives us isPending so we
+    // can dim the table immediately and signal that something is happening.
+    const [isPending, startUrlTransition] = useTransition();
+
+    // Sort/view live in local state so changes don't trigger a server re-render
+    // (and therefore don't re-run fetchExpenses). The URL is synced via
+    // window.history.replaceState below so reloads still see the chosen values.
+    const [sortField, setSortField] = useState(() =>
+        pickValid(searchParams.get('sort'), VALID_SORT_FIELDS, DEFAULT_SORT_FIELD)
+    );
+    const [sortDir, setSortDir] = useState(() =>
+        pickValid(searchParams.get('dir'), VALID_SORT_DIRS, DEFAULT_SORT_DIR)
+    );
+    const [viewMode, setViewModeState] = useState(() =>
+        pickValid(searchParams.get('view'), VALID_VIEWS, DEFAULT_VIEW)
+    );
 
     useEffect(() => {
         setSearchResults(items);
     }, [items]);
 
-    const selectedCategories = searchParams.get('category')
-        ? searchParams.get('category').split(',')
-        : [];
+    const selectedCategories = useMemo(() => {
+        const raw = searchParams.get('category');
+        return raw ? raw.split(',') : [];
+    }, [searchParams]);
 
-    const sortField = VALID_SORT_FIELDS.includes(searchParams.get('sort'))
-        ? searchParams.get('sort')
-        : DEFAULT_SORT_FIELD;
-    const sortDir = VALID_SORT_DIRS.includes(searchParams.get('dir'))
-        ? searchParams.get('dir')
-        : DEFAULT_SORT_DIR;
-    const sortCriteria = [sortField, sortDir];
+    const sortCriteria = useMemo(() => [sortField, sortDir], [sortField, sortDir]);
 
-    const viewMode = VALID_VIEWS.includes(searchParams.get('view'))
-        ? searchParams.get('view')
-        : DEFAULT_VIEW;
-
-    const updateUrl = (updates) => {
-        const next = buildSearchParams(searchParams, updates);
-        router.replace(`${pathname}?${next}`, { scroll: false });
-    };
-
-    const setSortCriteria = ([field, direction]) => {
-        updateUrl({
+    const setSortCriteria = useCallback(([field, direction]) => {
+        setSortField(field);
+        setSortDir(direction);
+        writeUrlParams({
             sort: field === DEFAULT_SORT_FIELD ? null : field,
             dir: direction === DEFAULT_SORT_DIR ? null : direction,
         });
-    };
+    }, []);
 
-    const setViewMode = (mode) => {
-        updateUrl({ view: mode === DEFAULT_VIEW ? null : mode });
-    };
+    const setViewMode = useCallback((mode) => {
+        setViewModeState(mode);
+        writeUrlParams({ view: mode === DEFAULT_VIEW ? null : mode });
+    }, []);
 
-    const categoricalData = getCategoricalData(searchResults, selectedCategories, idsToFilter);
+    const categoricalData = useMemo(
+        () => getCategoricalData(searchResults, selectedCategories, idsToFilter),
+        [searchResults, selectedCategories, idsToFilter]
+    );
 
-    const sortedCategories = orderBy(
+    const sortedCategories = useMemo(() => orderBy(
         Object.entries(categoricalData.Categories).map(([key, categoryItems]) => {
             const total = categoryItems.reduce((prev, curr) => prev + curr.amount, 0);
             const timestamps = categoryItems.map((i) => i.timestamp ?? new Date(i.date).getTime());
             const latest = timestamps.length ? Math.max(...timestamps) : 0;
             const earliest = timestamps.length ? Math.min(...timestamps) : 0;
-            const sortedItems = orderBy(categoryItems, [sortCriteria[0]], [sortCriteria[1]]);
+            const sortedItems = orderBy(categoryItems, [sortField], [sortDir]);
             return { key, categoryItems, sortedItems, total, latest, earliest };
         }),
         [(c) => {
-            if (sortCriteria[0] === 'amount') return c.total;
-            return sortCriteria[1] === 'asc' ? c.earliest : c.latest;
+            if (sortField === 'amount') return c.total;
+            return sortDir === 'asc' ? c.earliest : c.latest;
         }],
-        [sortCriteria[1]]
-    );
+        [sortDir]
+    ), [categoricalData.Categories, sortField, sortDir]);
 
-    const toggleCategory = (key) =>
-        setCollapsedCategories((prev) => ({ ...prev, [key]: !prev[key] }));
+    const toggleCategory = useCallback((key) =>
+        setCollapsedCategories((prev) => ({ ...prev, [key]: !prev[key] })), []);
 
     const renderColumns = () => (
         <div className="flex gap-4 overflow-x-auto">
@@ -226,6 +240,7 @@ function PlainSearchableTableInner({
                     setSortCriteria={setSortCriteria}
                     viewMode={viewMode}
                     setViewMode={setViewMode}
+                    onUrlChange={startUrlTransition}
                 />
             </div>
             <div className="hidden md:block mb-4">
@@ -236,12 +251,26 @@ function PlainSearchableTableInner({
                     setSortCriteria={setSortCriteria}
                     viewMode={viewMode}
                     setViewMode={setViewMode}
+                    onUrlChange={startUrlTransition}
                 />
             </div>
             <div className='text-xl font-black my-4 text-gray-900 dark:text-gray-100'>
                 {formatCurrency(categoricalData.totalAmount)}
             </div>
-            {viewMode === 'list' ? renderList() : renderColumns()}
+            {isPending && (
+                <div
+                    role="status"
+                    aria-label="Loading"
+                    className="fixed top-4 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-2 bg-gray-900/90 text-white rounded-full px-4 py-2 shadow-lg backdrop-blur-sm">
+                    <span className="inline-block h-4 w-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+                    <span className="text-sm">Loading…</span>
+                </div>
+            )}
+            <div
+                aria-busy={isPending}
+                className={isPending ? 'opacity-60 pointer-events-none transition-opacity' : 'transition-opacity'}>
+                {viewMode === 'list' ? renderList() : renderColumns()}
+            </div>
         </div>
     );
 }

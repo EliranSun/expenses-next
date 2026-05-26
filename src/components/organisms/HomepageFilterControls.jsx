@@ -11,6 +11,7 @@ export function HomepageFilterControls({
     setSortCriteria,
     viewMode,
     setViewMode,
+    onUrlChange,
 }) {
     const arrow = (field) =>
         sortCriteria[0] === field ? (sortCriteria[1] === 'asc' ? '↑' : '↓') : '';
@@ -60,7 +61,7 @@ export function HomepageFilterControls({
                 </div>
             </div>
 
-            <Navbar />
+            <Navbar onUrlChange={onUrlChange} />
         </div>
     );
 }

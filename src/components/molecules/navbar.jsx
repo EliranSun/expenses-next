@@ -3,8 +3,13 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Categories } from '@/constants';
 import classNames from 'classnames';
 
-const buildSearchParams = (currentParams, newParams = {}) => {
-    const query = new URLSearchParams(currentParams.toString());
+// Read params from window.location rather than React's useSearchParams so we
+// pick up any values written via window.history.replaceState (e.g. sort/view
+// from the homepage table) and don't overwrite them on push.
+const buildSearchParams = (newParams = {}) => {
+    const query = new URLSearchParams(
+        typeof window === 'undefined' ? '' : window.location.search
+    );
     Object.entries(newParams).forEach(([key, value]) => {
         if (value === null) {
             query.delete(key);
@@ -47,7 +52,7 @@ const Pill = ({ isSelected, onClick, children, className = '' }) => (
     </button>
 );
 
-export const Navbar = () => {
+export const Navbar = ({ onUrlChange }) => {
     const router = useRouter();
     const searchParams = useSearchParams();
     const pathname = usePathname();
@@ -58,8 +63,10 @@ export const Navbar = () => {
     const categories = searchParams.get('category') ? searchParams.get('category').split(',') : [];
 
     const updateSearchParams = (newParams) => {
-        const next = buildSearchParams(searchParams, newParams);
-        router.push(`${pathname}?${next}`);
+        const next = buildSearchParams(newParams);
+        const push = () => router.push(`${pathname}?${next}`);
+        if (onUrlChange) onUrlChange(push);
+        else push();
     };
 
     return (
