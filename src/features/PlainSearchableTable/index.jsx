@@ -63,14 +63,28 @@ function PlainSearchableTableInner({
 
     const categoricalData = getCategoricalData(searchResults, selectedCategories, idsToFilter);
 
+    const sortedCategories = orderBy(
+        Object.entries(categoricalData.Categories).map(([key, categoryItems]) => {
+            const total = categoryItems.reduce((prev, curr) => prev + curr.amount, 0);
+            const timestamps = categoryItems.map((i) => i.timestamp ?? new Date(i.date).getTime());
+            const latest = timestamps.length ? Math.max(...timestamps) : 0;
+            const earliest = timestamps.length ? Math.min(...timestamps) : 0;
+            const sortedItems = orderBy(categoryItems, [sortCriteria[0]], [sortCriteria[1]]);
+            return { key, categoryItems, sortedItems, total, latest, earliest };
+        }),
+        [(c) => {
+            if (sortCriteria[0] === 'amount') return c.total;
+            return sortCriteria[1] === 'asc' ? c.earliest : c.latest;
+        }],
+        [sortCriteria[1]]
+    );
+
     const toggleCategory = (key) =>
         setCollapsedCategories((prev) => ({ ...prev, [key]: !prev[key] }));
 
     const renderColumns = () => (
         <div className="flex gap-4 overflow-x-auto">
-            {Object.entries(categoricalData.Categories).map(([key, categoryItems]) => {
-                const total = categoryItems.reduce((prev, curr) => prev + curr.amount, 0);
-                const sortedItems = orderBy(categoryItems, [sortCriteria[0]], [sortCriteria[1]]);
+            {sortedCategories.map(({ key, sortedItems, total }) => {
                 return (
                     <div key={key} className='min-w-52 flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-3 shadow-sm'>
                         <h2 className='font-bold text-gray-800 dark:text-gray-200 pb-2 border-b border-gray-200 dark:border-gray-700'>{key}</h2>
@@ -98,9 +112,7 @@ function PlainSearchableTableInner({
 
     const renderList = () => (
         <div className="flex flex-col gap-2">
-            {Object.entries(categoricalData.Categories).map(([key, categoryItems]) => {
-                const total = categoryItems.reduce((prev, curr) => prev + curr.amount, 0);
-                const sortedItems = orderBy(categoryItems, [sortCriteria[0]], [sortCriteria[1]]);
+            {sortedCategories.map(({ key, sortedItems, total }) => {
                 const meta = Categories[key];
                 const isCollapsed = collapsedCategories[key];
                 return (
