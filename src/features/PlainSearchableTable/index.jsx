@@ -1,13 +1,31 @@
 'use client';
 
 import { Suspense, useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { orderBy } from 'lodash';
 import { CaretDownIcon, CaretRightIcon } from '@phosphor-icons/react';
 import { HomepageFilterSheet } from '@/components/organisms/HomepageFilterSheet';
 import { HomepageFilterControls } from '@/components/organisms/HomepageFilterControls';
-import { useViewPreference } from '@/hooks/useViewPreference';
 import { Categories } from '@/constants';
+
+const VALID_SORT_FIELDS = ['amount', 'date'];
+const VALID_SORT_DIRS = ['asc', 'desc'];
+const VALID_VIEWS = ['columns', 'list'];
+const DEFAULT_SORT_FIELD = 'amount';
+const DEFAULT_SORT_DIR = 'desc';
+const DEFAULT_VIEW = 'columns';
+
+const buildSearchParams = (currentParams, updates = {}) => {
+    const query = new URLSearchParams(currentParams.toString());
+    Object.entries(updates).forEach(([key, value]) => {
+        if (value === null) {
+            query.delete(key);
+        } else {
+            query.set(key, value);
+        }
+    });
+    return query.toString();
+};
 
 const getCategoricalData = (expenses = [], selectedCategories = [], idsToFilter = []) => {
     const Categories = {};
@@ -47,10 +65,10 @@ function PlainSearchableTableInner({
     items = [],
 }) {
     const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
     const [searchResults, setSearchResults] = useState(items);
     const [idsToFilter, setIdsToFilter] = useState([]);
-    const [sortCriteria, setSortCriteria] = useState(['amount', 'desc']);
-    const { viewMode, setViewMode } = useViewPreference();
     const [collapsedCategories, setCollapsedCategories] = useState({});
 
     useEffect(() => {
@@ -60,6 +78,34 @@ function PlainSearchableTableInner({
     const selectedCategories = searchParams.get('category')
         ? searchParams.get('category').split(',')
         : [];
+
+    const sortField = VALID_SORT_FIELDS.includes(searchParams.get('sort'))
+        ? searchParams.get('sort')
+        : DEFAULT_SORT_FIELD;
+    const sortDir = VALID_SORT_DIRS.includes(searchParams.get('dir'))
+        ? searchParams.get('dir')
+        : DEFAULT_SORT_DIR;
+    const sortCriteria = [sortField, sortDir];
+
+    const viewMode = VALID_VIEWS.includes(searchParams.get('view'))
+        ? searchParams.get('view')
+        : DEFAULT_VIEW;
+
+    const updateUrl = (updates) => {
+        const next = buildSearchParams(searchParams, updates);
+        router.replace(`${pathname}?${next}`, { scroll: false });
+    };
+
+    const setSortCriteria = ([field, direction]) => {
+        updateUrl({
+            sort: field === DEFAULT_SORT_FIELD ? null : field,
+            dir: direction === DEFAULT_SORT_DIR ? null : direction,
+        });
+    };
+
+    const setViewMode = (mode) => {
+        updateUrl({ view: mode === DEFAULT_VIEW ? null : mode });
+    };
 
     const categoricalData = getCategoricalData(searchResults, selectedCategories, idsToFilter);
 
