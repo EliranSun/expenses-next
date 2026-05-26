@@ -3,8 +3,13 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Categories } from '@/constants';
 import classNames from 'classnames';
 
-const buildSearchParams = (currentParams, newParams = {}) => {
-    const query = new URLSearchParams(currentParams.toString());
+// Read params from window.location rather than React's useSearchParams so we
+// pick up any values written via window.history.replaceState (e.g. sort/view
+// from the homepage table) and don't overwrite them on push.
+const buildSearchParams = (newParams = {}) => {
+    const query = new URLSearchParams(
+        typeof window === 'undefined' ? '' : window.location.search
+    );
     Object.entries(newParams).forEach(([key, value]) => {
         if (value === null) {
             query.delete(key);
@@ -58,7 +63,7 @@ export const Navbar = () => {
     const categories = searchParams.get('category') ? searchParams.get('category').split(',') : [];
 
     const updateSearchParams = (newParams) => {
-        const next = buildSearchParams(searchParams, newParams);
+        const next = buildSearchParams(newParams);
         router.push(`${pathname}?${next}`);
     };
 
