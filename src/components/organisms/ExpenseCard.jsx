@@ -34,6 +34,11 @@ export function ExpenseCard({
             <div className="flex items-start justify-between gap-2">
                 <div className="flex flex-col min-w-0">
                     <h2 className="text-xl font-bold leading-tight truncate">{rowData.name}</h2>
+                    {note && (
+                        <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                            {note}
+                        </span>
+                    )}
                     <span className="text-sm text-gray-500 dark:text-gray-400">
                         {AccountName[rowData.account]?.translation || rowData.account}
                     </span>
