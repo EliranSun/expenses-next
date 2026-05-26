@@ -254,17 +254,18 @@ function PlainSearchableTableInner({
                     onUrlChange={startUrlTransition}
                 />
             </div>
-            <div className='flex items-center gap-3 my-4'>
-                <span className='text-xl font-black text-gray-900 dark:text-gray-100'>
-                    {formatCurrency(categoricalData.totalAmount)}
-                </span>
-                {isPending && (
-                    <span
-                        aria-label="Loading"
-                        className="inline-block h-4 w-4 rounded-full border-2 border-gray-300 border-t-amber-500 animate-spin"
-                    />
-                )}
+            <div className='text-xl font-black my-4 text-gray-900 dark:text-gray-100'>
+                {formatCurrency(categoricalData.totalAmount)}
             </div>
+            {isPending && (
+                <div
+                    role="status"
+                    aria-label="Loading"
+                    className="fixed top-4 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-2 bg-gray-900/90 text-white rounded-full px-4 py-2 shadow-lg backdrop-blur-sm">
+                    <span className="inline-block h-4 w-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+                    <span className="text-sm">Loading…</span>
+                </div>
+            )}
             <div
                 aria-busy={isPending}
                 className={isPending ? 'opacity-60 pointer-events-none transition-opacity' : 'transition-opacity'}>
