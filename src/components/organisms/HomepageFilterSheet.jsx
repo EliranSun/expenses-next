@@ -11,6 +11,7 @@ export function HomepageFilterSheet({
     setSortCriteria,
     viewMode,
     setViewMode,
+    onUrlChange,
 }) {
     const searchParams = useSearchParams();
     const hasActiveFilter = Boolean(
@@ -29,6 +30,7 @@ export function HomepageFilterSheet({
                 setSortCriteria={setSortCriteria}
                 viewMode={viewMode}
                 setViewMode={setViewMode}
+                onUrlChange={onUrlChange}
             />
         </BottomSheet>
     );

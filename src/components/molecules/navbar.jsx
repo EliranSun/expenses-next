@@ -52,7 +52,7 @@ const Pill = ({ isSelected, onClick, children, className = '' }) => (
     </button>
 );
 
-export const Navbar = () => {
+export const Navbar = ({ onUrlChange }) => {
     const router = useRouter();
     const searchParams = useSearchParams();
     const pathname = usePathname();
@@ -64,7 +64,9 @@ export const Navbar = () => {
 
     const updateSearchParams = (newParams) => {
         const next = buildSearchParams(newParams);
-        router.push(`${pathname}?${next}`);
+        const push = () => router.push(`${pathname}?${next}`);
+        if (onUrlChange) onUrlChange(push);
+        else push();
     };
 
     return (

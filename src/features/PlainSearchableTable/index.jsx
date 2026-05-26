@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState, useEffect, useMemo, useCallback } from 'react';
+import { Suspense, useState, useEffect, useMemo, useCallback, useTransition } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { orderBy } from 'lodash';
 import { CaretDownIcon, CaretRightIcon } from '@phosphor-icons/react';
@@ -75,6 +75,10 @@ function PlainSearchableTableInner({
     const [searchResults, setSearchResults] = useState(items);
     const [idsToFilter, setIdsToFilter] = useState([]);
     const [collapsedCategories, setCollapsedCategories] = useState({});
+    // Navbar clicks (year/month/account/category) trigger router.push and a
+    // server refetch. Wrapping that in a transition gives us isPending so we
+    // can dim the table immediately and signal that something is happening.
+    const [isPending, startUrlTransition] = useTransition();
 
     // Sort/view live in local state so changes don't trigger a server re-render
     // (and therefore don't re-run fetchExpenses). The URL is synced via
@@ -236,6 +240,7 @@ function PlainSearchableTableInner({
                     setSortCriteria={setSortCriteria}
                     viewMode={viewMode}
                     setViewMode={setViewMode}
+                    onUrlChange={startUrlTransition}
                 />
             </div>
             <div className="hidden md:block mb-4">
@@ -246,12 +251,25 @@ function PlainSearchableTableInner({
                     setSortCriteria={setSortCriteria}
                     viewMode={viewMode}
                     setViewMode={setViewMode}
+                    onUrlChange={startUrlTransition}
                 />
             </div>
-            <div className='text-xl font-black my-4 text-gray-900 dark:text-gray-100'>
-                {formatCurrency(categoricalData.totalAmount)}
+            <div className='flex items-center gap-3 my-4'>
+                <span className='text-xl font-black text-gray-900 dark:text-gray-100'>
+                    {formatCurrency(categoricalData.totalAmount)}
+                </span>
+                {isPending && (
+                    <span
+                        aria-label="Loading"
+                        className="inline-block h-4 w-4 rounded-full border-2 border-gray-300 border-t-amber-500 animate-spin"
+                    />
+                )}
             </div>
-            {viewMode === 'list' ? renderList() : renderColumns()}
+            <div
+                aria-busy={isPending}
+                className={isPending ? 'opacity-60 pointer-events-none transition-opacity' : 'transition-opacity'}>
+                {viewMode === 'list' ? renderList() : renderColumns()}
+            </div>
         </div>
     );
 }
