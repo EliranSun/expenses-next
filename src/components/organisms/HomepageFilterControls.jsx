@@ -1,6 +1,6 @@
 'use client';
 
-import { CalendarIcon, CoinsIcon } from '@phosphor-icons/react';
+import { CalendarIcon, CoinsIcon, RowsIcon, ColumnsIcon } from '@phosphor-icons/react';
 import Search from '@/features/Search';
 import { Navbar } from '../molecules/navbar';
 
@@ -9,6 +9,8 @@ export function HomepageFilterControls({
     onSearch,
     sortCriteria,
     setSortCriteria,
+    viewMode,
+    setViewMode,
 }) {
     const arrow = (field) =>
         sortCriteria[0] === field ? (sortCriteria[1] === 'asc' ? '↑' : '↓') : '';
@@ -18,6 +20,9 @@ export function HomepageFilterControls({
             field,
             sortCriteria[0] === field && sortCriteria[1] === 'asc' ? 'desc' : 'asc',
         ]);
+
+    const toggleView = () =>
+        setViewMode?.(viewMode === 'columns' ? 'list' : 'columns');
 
     return (
         <div className="flex flex-col gap-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 shadow-sm">
@@ -40,6 +45,18 @@ export function HomepageFilterControls({
                         <CalendarIcon size={18} />
                         <span className="text-sm">Date {arrow('date')}</span>
                     </button>
+                    {setViewMode && (
+                        <button
+                            type="button"
+                            aria-label={viewMode === 'columns' ? 'Switch to list view' : 'Switch to column view'}
+                            className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-xl flex items-center gap-2"
+                            onClick={toggleView}>
+                            {viewMode === 'columns' ? <RowsIcon size={18} /> : <ColumnsIcon size={18} />}
+                            <span className="text-sm hidden md:inline">
+                                {viewMode === 'columns' ? 'List' : 'Columns'}
+                            </span>
+                        </button>
+                    )}
                 </div>
             </div>
 
