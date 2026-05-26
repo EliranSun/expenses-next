@@ -38,11 +38,6 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
                     🗑️
                 </button>
             </div>
-            {note && (
-                <div className="text-xs text-gray-500 dark:text-gray-400 -mt-1 truncate">
-                    {note}
-                </div>
-            )}
             <div className="flex gap-2 rounded-xl">
                 <DataDisplay className="w-24 bg-white dark:bg-gray-800 rounded-xl shadow shrink-0 text-center">
                     <CurrencyAmount
