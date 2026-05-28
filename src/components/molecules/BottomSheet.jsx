@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { AnimatePresence, motion, useDragControls } from 'framer-motion';
 import { FunnelIcon, XIcon } from '@phosphor-icons/react';
+import { useDraggableFab } from '@/hooks/useDraggableFab';
 
 const SNAP_FULL = '0%';
 const SNAP_HALF = '50%';
@@ -18,6 +19,7 @@ export function BottomSheet({
     const [open, setOpen] = useState(false);
     const [snap, setSnap] = useState('half');
     const dragControls = useDragControls();
+    const { constraintsRef, dragProps } = useDraggableFab('filters-fab-position');
 
     useEffect(() => {
         if (open) setSnap('half');
@@ -40,16 +42,19 @@ export function BottomSheet({
 
     return (
         <>
-            <button
+            <div ref={constraintsRef} className="fixed inset-0 pointer-events-none" />
+
+            <motion.button
+                {...dragProps}
                 type="button"
                 onClick={() => setOpen(true)}
                 aria-label={ariaLabel}
-                className="fixed bottom-6 right-6 z-30 bg-blue-500 text-white rounded-full p-4 shadow-lg">
+                className="fixed bottom-6 right-6 z-30 bg-blue-500 text-white rounded-full p-4 shadow-lg select-none">
                 <TriggerIcon size={24} weight="bold" />
                 {hasIndicator && (
                     <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white" />
                 )}
-            </button>
+            </motion.button>
 
             <AnimatePresence>
                 {open && (
