@@ -70,7 +70,7 @@ const FloatingNav = ({ pathname }) => {
                     onClick={() => setOpen((value) => !value)}
                     aria-label={open ? "Close menu" : "Open menu"}
                     aria-expanded={open}
-                    className="bg-blue-500 text-white rounded-full p-4 shadow-lg">
+                    className="bg-black text-white rounded-full p-4 shadow-lg">
                     {open ? (
                         <XIcon size={24} weight="bold" />
                     ) : (
@@ -108,7 +108,7 @@ const FloatingNav = ({ pathname }) => {
                                             className={classNames(
                                                 "block rounded-full px-5 py-2 font-bold shadow-lg whitespace-nowrap",
                                                 {
-                                                    "bg-blue-500 text-white": isActive,
+                                                    "bg-black text-white": isActive,
                                                     "bg-white text-gray-700": !isActive,
                                                 },
                                             )}>
