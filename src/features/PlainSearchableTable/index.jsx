@@ -3,7 +3,7 @@
 import { Suspense, useState, useEffect, useMemo, useCallback, useTransition } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { orderBy } from 'lodash';
-import { CaretDownIcon, CaretRightIcon } from '@phosphor-icons/react';
+import { CaretDownIcon, CaretLeftIcon } from '@phosphor-icons/react';
 import { HomepageFilterSheet } from '@/components/organisms/HomepageFilterSheet';
 import { HomepageFilterControls } from '@/components/organisms/HomepageFilterControls';
 import { Categories } from '@/constants';
@@ -143,7 +143,7 @@ function PlainSearchableTableInner({
         setCollapsedCategories((prev) => ({ ...prev, [key]: !prev[key] })), []);
 
     const renderColumns = () => (
-        <div className="flex gap-4 overflow-x-auto">
+        <div dir="rtl" className="flex gap-4 overflow-x-auto">
             {sortedCategories.map(({ key, sortedItems, total }) => {
                 return (
                     <div key={key} className='min-w-52 flex flex-col bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-3 shadow-sm'>
@@ -171,7 +171,7 @@ function PlainSearchableTableInner({
     );
 
     const renderList = () => (
-        <div className="flex flex-col gap-2">
+        <div dir="rtl" className="flex flex-col gap-2">
             {sortedCategories.map(({ key, sortedItems, total }) => {
                 const meta = Categories[key];
                 const isCollapsed = collapsedCategories[key];
@@ -182,9 +182,9 @@ function PlainSearchableTableInner({
                         <button
                             type="button"
                             onClick={() => toggleCategory(key)}
-                            className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800">
+                            className="w-full flex items-center gap-2 px-3 py-2 text-right hover:bg-gray-50 dark:hover:bg-gray-800">
                             {isCollapsed
-                                ? <CaretRightIcon size={14} className="shrink-0 text-gray-500" />
+                                ? <CaretLeftIcon size={14} className="shrink-0 text-gray-500" />
                                 : <CaretDownIcon size={14} className="shrink-0 text-gray-500" />}
                             {meta?.emoji && <span className="shrink-0">{meta.emoji}</span>}
                             <span className="font-bold text-gray-800 dark:text-gray-200 flex-1 truncate">
@@ -217,7 +217,7 @@ function PlainSearchableTableInner({
                                         <span className="text-xs text-gray-500 dark:text-gray-400 tabular-nums shrink-0">
                                             {formatShortDate(item.date)}
                                         </span>
-                                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100 tabular-nums shrink-0 text-right min-w-[4rem]">
+                                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100 tabular-nums shrink-0 text-left min-w-[4rem]">
                                             {formatCurrency(item.amount)}
                                         </span>
                                     </li>
@@ -254,8 +254,13 @@ function PlainSearchableTableInner({
                     onUrlChange={startUrlTransition}
                 />
             </div>
-            <div className='text-xl font-black my-4 text-gray-900 dark:text-gray-100'>
-                {formatCurrency(categoricalData.totalAmount)}
+            <div dir="rtl" className="my-6 flex flex-col items-start gap-1">
+                <span className="text-xs font-semibold tracking-widest text-gray-500 dark:text-gray-400">
+                    שורה תחתונה
+                </span>
+                <span className="text-4xl font-black tabular-nums text-gray-900 dark:text-gray-100 font-[family-name:var(--font-geist-mono)]">
+                    {formatCurrency(categoricalData.totalAmount)}
+                </span>
             </div>
             {isPending && (
                 <div
