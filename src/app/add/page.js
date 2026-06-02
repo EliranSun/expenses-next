@@ -9,6 +9,7 @@ import {
     updateNote,
     updateDate
 } from '@/utils/db';
+import { parsePdfToTsv } from '@/utils/parsePdf';
 import { MainNavBar } from '@/components/molecules/MainNavBar';
 
 export default async function Home({ searchParams }) {
@@ -22,6 +23,7 @@ export default async function Home({ searchParams }) {
             <PasteableExpensesTable
                 expenses={unhandledExpenses}
                 onSave={insertExpenses}
+                parsePdf={parsePdfToTsv}
                 fetchExpensesByDateRange={fetchExpensesByDateRange}
                 deleteExpenses={deleteExpenses}
                 updateCategory={updateCategory}

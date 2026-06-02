@@ -10,6 +10,7 @@ import { PdfUploadButton } from "./PdfUploadButton";
 export default function TextToExpensesTable({
     expenses = [],
     onSave,
+    parsePdf,
     fetchExpensesByDateRange,
     updateCategory,
     updateNote,
@@ -110,13 +111,14 @@ export default function TextToExpensesTable({
                                 <span className="text-xs opacity-80">+{duplicateCount} duplicates skipped</span>
                             )}
                         </button>
-                        <PdfUploadButton onText={ingestRows} />
+                        <PdfUploadButton parsePdf={parsePdf} onText={ingestRows} />
                     </div>
 
                     {phase === 'paste' && (
                         <div className="md:hidden">
                             <MobilePasteScreen
                                 fetchExpensesByDateRange={fetchExpensesByDateRange}
+                                parsePdf={parsePdf}
                                 onSubmit={handleMobileSave}
                             />
                         </div>

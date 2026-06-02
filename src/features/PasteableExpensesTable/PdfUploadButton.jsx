@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-// Reusable PDF upload control. Parses the file to TSV client-side (pdfjs is loaded
-// lazily) and hands the text to `onText`, which routes it through the same ingest
-// path as a paste. Presentation-agnostic so desktop and mobile both reuse it.
-export function PdfUploadButton({ onText, className = '' }) {
+// Reusable PDF upload control. Sends the file to the `parsePdf` server action, which
+// extracts it to TSV in Node, then hands the text to `onText` — routing it through the
+// same ingest path as a paste. Presentation-agnostic so desktop and mobile both reuse it.
+export function PdfUploadButton({ parsePdf, onText, className = '' }) {
     const [loading, setLoading] = useState(false);
 
     const handleChange = async (event) => {
@@ -14,8 +14,14 @@ export function PdfUploadButton({ onText, className = '' }) {
         if (!file) return;
         setLoading(true);
         try {
-            const { parsePdfFileToTsv } = await import('@/utils/parsePdf');
-            const tsv = await parsePdfFileToTsv(file);
+            const formData = new FormData();
+            formData.append('file', file);
+            const res = await parsePdf(formData);
+            if (!res?.ok) {
+                toast.error(`Failed to read PDF: ${res?.error || 'unknown error'}`);
+                return;
+            }
+            const tsv = res.tsv ?? '';
             if (!tsv.trim()) {
                 toast.error('No expenses found in PDF');
                 return;

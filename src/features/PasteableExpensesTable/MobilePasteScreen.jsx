@@ -7,7 +7,7 @@ import { formatDate } from '@/utils/formatDate';
 import { AccountName } from '@/constants/account';
 import { PdfUploadButton } from './PdfUploadButton';
 
-export function MobilePasteScreen({ fetchExpensesByDateRange, onSubmit }) {
+export function MobilePasteScreen({ fetchExpensesByDateRange, parsePdf, onSubmit }) {
     const [unsavedRows, setUnsavedRows] = useState([]);
     const [text, setText] = useState('');
     const [submitting, setSubmitting] = useState(false);
@@ -83,7 +83,7 @@ export function MobilePasteScreen({ fetchExpensesByDateRange, onSubmit }) {
                         Parse text
                     </button>
                 )}
-                <PdfUploadButton onText={ingest} />
+                <PdfUploadButton parsePdf={parsePdf} onText={ingest} />
             </div>
 
             <div className="text-sm text-gray-600">

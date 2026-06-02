@@ -3,7 +3,7 @@ import {
     rowItemsToTsvLine,
     pageItemsToLines,
     textItemsToTsv,
-} from '@/utils/parsePdf';
+} from '@/utils/parsePdfRows';
 import { parseTextToRows } from '@/utils';
 
 // pdfjs text item shape: { str, transform: [a, b, c, d, x, y] }
