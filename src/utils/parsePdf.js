@@ -117,10 +117,18 @@ export const textItemsToTsv = (pages) => pages.flatMap(pageItemsToLines).join('\
 // stays out of the /add route's initial payload.
 export async function parsePdfFileToTsv(file) {
     const pdfjs = await import('pdfjs-dist');
-    pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-        'pdfjs-dist/build/pdf.worker.min.mjs',
-        import.meta.url,
-    ).toString();
+
+    // pdfjs v6 ships an ESM worker (.mjs). Construct it ourselves with
+    // { type: 'module' } and pass it via workerPort — letting pdfjs spawn it from
+    // workerSrc creates a classic worker for the .mjs and throws. The
+    // `new Worker(new URL(...))` form is the pattern Turbopack and webpack both
+    // detect and bundle. Cache it so repeated uploads reuse one worker.
+    if (!pdfjs.GlobalWorkerOptions.workerPort) {
+        pdfjs.GlobalWorkerOptions.workerPort = new Worker(
+            new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url),
+            { type: 'module' },
+        );
+    }
 
     const data = new Uint8Array(await file.arrayBuffer());
     const doc = await pdfjs.getDocument({ data }).promise;

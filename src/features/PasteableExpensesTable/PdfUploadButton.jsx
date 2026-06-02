@@ -22,8 +22,9 @@ export function PdfUploadButton({ onText, className = '' }) {
             }
             await onText(tsv);
         } catch (err) {
-            console.error('PDF parsing failed:', err);
-            toast.error('Failed to read PDF');
+            const message = err?.message || String(err);
+            console.error('PDF parsing failed:', message, err);
+            toast.error(`Failed to read PDF: ${message}`);
         } finally {
             setLoading(false);
             // Reset so selecting the same file again re-fires onChange.
