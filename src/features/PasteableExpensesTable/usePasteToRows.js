@@ -1,35 +1,26 @@
-import { useState, useEffect } from "react";
-import { parseAndPrepareRows, markDuplicates, computeDateRange } from "./parseAndPrepareRows";
+import { useCallback, useState, useEffect } from "react";
+import { ingestText } from "./parseAndPrepareRows";
 
 export default function usePasteToRows(expenses = [], pasteFilterLogic = () => true, fetchExpensesByDateRange) {
     const [rows, setRows] = useState(expenses);
 
+    // Ingest a chunk of TSV text (from a paste or a parsed PDF), flag duplicates,
+    // then append the new rows — deduping against what's already staged.
+    const ingestRows = useCallback(async (text) => {
+        const marked = await ingestText(text, rows, fetchExpensesByDateRange);
+        const filtered = marked.filter(pasteFilterLogic);
+        if (filtered.length === 0) return 0;
+        setRows(prev => {
+            const ids = new Set(prev.map(r => r.id));
+            return [...prev, ...filtered.filter(r => !ids.has(r.id))];
+        });
+        return filtered.length;
+    }, [rows, pasteFilterLogic, fetchExpensesByDateRange]);
+
     useEffect(() => {
-        const handlePaste = async (event) => {
+        const handlePaste = (event) => {
             const pastedData = event.clipboardData.getData('Text');
-            const parsed = parseAndPrepareRows(pastedData, rows).filter(pasteFilterLogic);
-
-            if (parsed.length === 0) {
-                return;
-            }
-
-            let marked = parsed;
-            if (typeof fetchExpensesByDateRange === 'function') {
-                const range = computeDateRange(parsed);
-                const accounts = [...new Set(parsed.map((r) => r.account))];
-                try {
-                    const existing = await fetchExpensesByDateRange({ ...range, accounts });
-                    marked = markDuplicates(parsed, existing);
-                    console.log({ existing, marked });
-                } catch (err) {
-                    console.error('fetchExpensesByDateRange failed:', err);
-                }
-            }
-
-            setRows(prev => {
-                const ids = new Set(prev.map(r => r.id));
-                return [...prev, ...marked.filter(r => !ids.has(r.id))];
-            });
+            void ingestRows(pastedData);
         };
 
         document.addEventListener('paste', handlePaste);
@@ -37,7 +28,7 @@ export default function usePasteToRows(expenses = [], pasteFilterLogic = () => t
         return () => {
             document.removeEventListener('paste', handlePaste);
         };
-    }, [rows, pasteFilterLogic, fetchExpensesByDateRange]);
+    }, [ingestRows]);
 
-    return [rows, setRows];
+    return [rows, setRows, ingestRows];
 }

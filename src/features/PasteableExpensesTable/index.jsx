@@ -5,10 +5,12 @@ import usePasteToRows from "@/features/PasteableExpensesTable/usePasteToRows";
 import { useCallback, useState, Suspense } from "react";
 import { run } from "@/utils/action";
 import { MobilePasteScreen } from "./MobilePasteScreen";
+import { PdfUploadButton } from "./PdfUploadButton";
 
 export default function TextToExpensesTable({
     expenses = [],
     onSave,
+    parsePdf,
     fetchExpensesByDateRange,
     updateCategory,
     updateNote,
@@ -24,7 +26,7 @@ export default function TextToExpensesTable({
         );
     }, [expenses]));
 
-    const [rows, setRows] = usePasteToRows(expenses, pasteFilterLogic, fetchExpensesByDateRange);
+    const [rows, setRows, ingestRows] = usePasteToRows(expenses, pasteFilterLogic, fetchExpensesByDateRange);
 
     const [phase, setPhase] = useState(expenses.length > 0 ? 'categorize' : 'paste');
 
@@ -99,20 +101,24 @@ export default function TextToExpensesTable({
             <div className='max-w-screen-lg mx-auto w-full flex flex-col md:flex-row gap-8 overflow-hidden'>
                 <div className="px-0 w-full space-y-4 my-4">
 
-                    <button
-                        disabled={saveableRows.length === 0}
-                        className="hidden md:flex bg-blue-500 disabled:bg-gray-300 text-white px-4 py-2 rounded-xl items-center gap-2"
-                        onClick={handleDesktopSave}>
-                        Save rows to database ({saveableRows.length})
-                        {duplicateCount > 0 && (
-                            <span className="text-xs opacity-80">+{duplicateCount} duplicates skipped</span>
-                        )}
-                    </button>
+                    <div className="hidden md:flex items-center gap-2">
+                        <button
+                            disabled={saveableRows.length === 0}
+                            className="flex bg-blue-500 disabled:bg-gray-300 text-white px-4 py-2 rounded-xl items-center gap-2"
+                            onClick={handleDesktopSave}>
+                            Save rows to database ({saveableRows.length})
+                            {duplicateCount > 0 && (
+                                <span className="text-xs opacity-80">+{duplicateCount} duplicates skipped</span>
+                            )}
+                        </button>
+                        <PdfUploadButton parsePdf={parsePdf} onText={ingestRows} />
+                    </div>
 
                     {phase === 'paste' && (
                         <div className="md:hidden">
                             <MobilePasteScreen
                                 fetchExpensesByDateRange={fetchExpensesByDateRange}
+                                parsePdf={parsePdf}
                                 onSubmit={handleMobileSave}
                             />
                         </div>

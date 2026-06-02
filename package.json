@@ -23,6 +23,7 @@
     "jest-environment-jsdom": "^29.7.0",
     "lodash": "^4.17.21",
     "next": "15.1.11",
+    "pdfjs-dist": "^6.0.227",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "sonner": "^2.0.7"

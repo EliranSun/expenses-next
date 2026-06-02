@@ -43,6 +43,24 @@ export function markDuplicates(rows, existingExpenses = []) {
     });
 }
 
+// Shared ingest used by paste (desktop + mobile) and PDF upload: parse text into
+// staged rows, then flag duplicates against the DB for the relevant date range.
+// Callers append the result themselves (and apply any caller-specific filtering).
+export async function ingestText(text, alreadyStaged, fetchExpensesByDateRange) {
+    const parsed = parseAndPrepareRows(text, alreadyStaged);
+    if (parsed.length === 0) return [];
+    if (typeof fetchExpensesByDateRange !== 'function') return parsed;
+    try {
+        const range = computeDateRange(parsed);
+        const accounts = [...new Set(parsed.map((r) => r.account))];
+        const existing = await fetchExpensesByDateRange({ ...range, accounts });
+        return markDuplicates(parsed, existing);
+    } catch (err) {
+        console.error('fetchExpensesByDateRange failed:', err);
+        return parsed;
+    }
+}
+
 export function computeDateRange(rows) {
     if (rows.length === 0) return null;
     const dates = rows.map((r) => r.date).sort();
