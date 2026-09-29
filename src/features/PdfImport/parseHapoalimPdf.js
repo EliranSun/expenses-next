@@ -14,6 +14,10 @@ const ACTION = 'נטרל';
 const SAME_LINE = 2;
 const NAME_WRAP_DISTANCE = 12;
 const NAME_COLUMN_MARGIN = 20;
+// Punctuation often comes out as its own text item ("הוראת", "-", "קבע"), so
+// items are only space-separated when there's a visible gap between them.
+const WORD_GAP_RATIO = 0.15;
+const DEFAULT_FONT_SIZE = 10;
 
 const isRowToken = (str) =>
     DATE.test(str) || ACCOUNT.test(str) || AMOUNT.test(str) || str === ACTION || str === '₪';
@@ -28,6 +32,21 @@ const normalizeName = (name) =>
         .replace(/\s*"\s*/g, '"')
         .replace(/\s+/g, ' ')
         .trim();
+
+// `right` precedes `left` in reading order (RTL). Without widths (older
+// extracts) there's no way to tell, so fall back to a space.
+const isTouching = (right, left) => {
+    if (Math.abs(right.y - left.y) >= SAME_LINE) return false;
+    if (typeof left.width !== 'number') return false;
+    const gap = right.x - (left.x + left.width);
+    return gap < (left.height || DEFAULT_FONT_SIZE) * WORD_GAP_RATIO;
+};
+
+const joinParts = (parts) =>
+    parts.reduce(
+        (text, part, i) => (i === 0 ? part.str : text + (isTouching(parts[i - 1], part) ? '' : ' ') + part.str),
+        ''
+    );
 
 function parsePage(items) {
     const anchors = items
@@ -64,11 +83,10 @@ function parsePage(items) {
 
     return anchors
         .map((anchor) => {
-            const name = anchor.nameParts
+            const name = joinParts(
                 // Top-to-bottom, then right-to-left within a line.
-                .sort((a, b) => (Math.abs(a.y - b.y) >= SAME_LINE ? b.y - a.y : b.x - a.x))
-                .map((part) => part.str)
-                .join(' ');
+                anchor.nameParts.sort((a, b) => (Math.abs(a.y - b.y) >= SAME_LINE ? b.y - a.y : b.x - a.x))
+            );
 
             return {
                 name: normalizeName(name),

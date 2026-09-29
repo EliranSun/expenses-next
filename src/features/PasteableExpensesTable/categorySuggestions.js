@@ -12,6 +12,8 @@ export const nameKey = (name = '') =>
         .sort()
         .join(' ');
 
+export const isSameName = (a, b) => a === b || nameKey(a) === nameKey(b);
+
 export function buildCategoryIndex(history = []) {
     const index = new Map();
     history.forEach(({ name, category, count = 1, lastDate = '' }) => {

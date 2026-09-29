@@ -27,6 +27,8 @@ export async function extractPdfPages(file) {
                         str: item.str.trim(),
                         x: item.transform[4],
                         y: item.transform[5],
+                        width: item.width,
+                        height: item.height,
                     })),
             });
         }

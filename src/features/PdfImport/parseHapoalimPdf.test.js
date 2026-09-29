@@ -88,6 +88,31 @@ describe('parseHapoalimPages', () => {
     });
 });
 
+describe('name punctuation', () => {
+    // Items with widths, as extractPdfPages returns them. "-" touching both
+    // words is part of the name; the free-standing one keeps its spaces.
+    const sized = (str, x, y, width) => ({ str, x, y, width, height: 10 });
+    const row = (...nameItems) => ({
+        items: [
+            ...nameItems,
+            item('01/09/26', 353, 265), item('9325', 310, 265), item('150.00', 159, 265), item('₪', 146, 265),
+        ],
+    });
+
+    it('does not add spaces around punctuation printed as separate items', () => {
+        const [parsed] = parseHapoalimPages([row(
+            sized('הוראת', 470, 265, 25), sized('-', 466, 265, 4), sized('קבע', 450, 265, 16),
+            sized('-', 443, 265, 4), sized('פרטי', 420, 265, 20),
+        )]);
+        expect(parsed.name).toBe('הוראת-קבע - פרטי');
+    });
+
+    it('falls back to spaces when widths are missing', () => {
+        const [parsed] = parseHapoalimPages([row(item('הוראת', 470, 265), item('-', 466, 265), item('קבע', 450, 265))]);
+        expect(parsed.name).toBe('הוראת - קבע');
+    });
+});
+
 describe('rowsToTsv', () => {
     it('round-trips through the paste parser', () => {
         const rows = parseHapoalimPages([page1, page2]);
@@ -105,6 +130,12 @@ describe('markDuplicates matchName option', () => {
 
     it('requires a name match by default', () => {
         expect(markDuplicates([row], existing)[0].isDuplicate).toBeUndefined();
+    });
+
+    it('matches names that differ only in spacing around punctuation', () => {
+        const pasted = { ...row, name: 'הוראת-קבע - פרטי' };
+        const saved = [{ ...existing[0], name: 'הוראת - קבע - פרטי' }];
+        expect(markDuplicates([pasted], saved)[0].isDuplicate).toBe(true);
     });
 
     it('ignores the name when matchName is false', () => {

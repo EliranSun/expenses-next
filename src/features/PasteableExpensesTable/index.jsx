@@ -7,6 +7,7 @@ import { run } from "@/utils/action";
 import { MobilePasteScreen } from "./MobilePasteScreen";
 import { PdfImportButton } from "@/features/PdfImport/PdfImportButton";
 import { ManualExpenseButton } from "@/features/ManualExpense/ManualExpenseButton";
+import { isSameName } from "./categorySuggestions";
 
 export default function TextToExpensesTable({
     expenses = [],
@@ -20,7 +21,7 @@ export default function TextToExpensesTable({
 }) {
     const pasteFilterLogic = useCallback((row) => !expenses.some(expense => {
         return expense.id === row.id || (
-            expense.name === row.name &&
+            isSameName(expense.name, row.name) &&
             expense.amount === row.amount &&
             expense.account === row.account &&
             expense.date === row.date

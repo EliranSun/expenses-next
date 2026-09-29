@@ -1,9 +1,9 @@
 import { parseTextToRows, formatDateFromDB } from '@/utils';
-import { applyCategorySuggestions } from './categorySuggestions';
+import { applyCategorySuggestions, isSameName } from './categorySuggestions';
 
 const matchesStaged = (row, alreadyStaged) =>
     alreadyStaged.some((staged) =>
-        staged.name === row.name &&
+        isSameName(staged.name, row.name) &&
         staged.amount === row.amount &&
         staged.account === row.account &&
         // Staged rows can be either raw paste format (DD/MM/YY) or ISO
@@ -29,14 +29,14 @@ export function parseAndPrepareRows(text, alreadyStaged = []) {
 }
 
 // PDF-extracted names can differ slightly from the pasted names already in the
-// DB (wrapped lines, punctuation spacing), so PDF imports skip the name check.
+// DB beyond spacing/punctuation (glyph extraction), so PDF imports skip the name check.
 export function markDuplicates(rows, existingExpenses = [], { matchName = true } = {}) {
     if (rows.length === 0 || existingExpenses.length === 0) {
         return rows;
     }
     return rows.map((row) => {
         const isDuplicate = existingExpenses.some((expense) =>
-            (!matchName || expense.name === row.name) &&
+            (!matchName || isSameName(expense.name, row.name)) &&
             expense.amount === row.amount &&
             expense.date === row.date &&
             expense.account === row.account
