@@ -1,11 +1,24 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
+import { ChartLineIcon } from "@phosphor-icons/react";
 import { MainNavBar } from "@/components/molecules/MainNavBar";
 import { Categories } from "@/constants";
 import { DefaultCategoryTotals, monthKey } from "@/constants/budget";
 import { useBudgetOverrides } from "@/hooks/useBudgetOverrides";
+import { categoryHref } from "@/utils/categoryRange";
 import keys from "@/app/he.json";
+
+const TrendLink = ({ href }) => (
+    <Link
+        href={href}
+        aria-label={keys.view_trend}
+        title={keys.view_trend}
+        className="text-gray-400 hover:text-blue-500">
+        <ChartLineIcon size={16} />
+    </Link>
+);
 
 const currentMonthInputValue = () => {
     const d = new Date();
@@ -43,6 +56,7 @@ const DefaultBudgetSection = ({ overrides, setDefault, clearDefault, hydrated })
                                 <span>{emoji}</span>
                                 <span>{name}</span>
                             </label>
+                            <TrendLink href={categoryHref({ category: key })} />
                             <input
                                 id={`default-${key}`}
                                 type="number"
@@ -129,6 +143,7 @@ const MonthOverrideSection = ({
                                 <span>{emoji}</span>
                                 <span>{name}</span>
                             </label>
+                            <TrendLink href={categoryHref({ category: key, year: yearPart.slice(2), month: monthPart })} />
                             <input
                                 id={`month-${key}`}
                                 type="number"

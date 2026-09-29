@@ -2,6 +2,7 @@ import { neon } from '@neondatabase/serverless';
 import { Accounts, PrivateAccounts } from '@/constants/account';
 import {
     fetchCategoryHistory,
+    fetchCategoryMonthlyTotals,
     fetchExpenses,
     findSuspiciousExpenses,
     findDuplicateGroups,
@@ -142,6 +143,35 @@ describe('fetchExpenses', () => {
             expect(query).toContain(`account IN (${expectedPlaceholders})`);
             expect(params.slice(0, PrivateAccounts.length)).toEqual(Accounts.private);
         });
+    });
+});
+
+describe('fetchCategoryMonthlyTotals', () => {
+    it('returns [] without querying when the range is missing', async () => {
+        expect(await fetchCategoryMonthlyTotals({ startDate: '2025-01-01' })).toEqual([]);
+        expect(sqlMock).not.toHaveBeenCalled();
+    });
+
+    it('groups by month and category within the date range', async () => {
+        sqlMock.mockResolvedValueOnce([{ month: '2025-01', category: 'groceries', total: '120.5', count: 3 }]);
+
+        const result = await fetchCategoryMonthlyTotals({ startDate: '2025-01-01', endDate: '2025-02-01' });
+
+        const [query, params] = sqlMock.mock.calls[0];
+        expect(query).toMatch(/GROUP BY 1, 2/);
+        expect(query).toMatch(/WHEN category = 'income' THEN ABS\(amount\)/);
+        expect(params).toEqual(['2025-01-01', '2025-02-01']);
+        expect(result).toEqual([{ month: '2025-01', category: 'groceries', total: 120.5, count: 3 }]);
+    });
+
+    it('filters by accounts when given', async () => {
+        sqlMock.mockResolvedValueOnce([]);
+
+        await fetchCategoryMonthlyTotals({ startDate: '2025-01-01', endDate: '2025-02-01', accounts: PrivateAccounts });
+
+        const [query, params] = sqlMock.mock.calls[0];
+        expect(query).toMatch(/account IN \(\$3/);
+        expect(params).toEqual(['2025-01-01', '2025-02-01', ...PrivateAccounts]);
     });
 });
 
