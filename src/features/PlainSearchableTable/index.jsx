@@ -14,7 +14,8 @@ const VALID_SORT_DIRS = ['asc', 'desc'];
 const VALID_VIEWS = ['columns', 'list'];
 const DEFAULT_SORT_FIELD = 'amount';
 const DEFAULT_SORT_DIR = 'desc';
-const DEFAULT_VIEW = 'columns';
+const DEFAULT_VIEW = 'list';
+const VIEW_STORAGE_KEY = 'homepage-view';
 
 const pickValid = (value, valids, fallback) =>
     valids.includes(value) ? value : fallback;
@@ -35,9 +36,27 @@ const writeUrlParams = (updates) => {
     window.history.replaceState(null, '', url.toString());
 };
 
+const readStoredView = () => {
+    try {
+        return window.localStorage.getItem(VIEW_STORAGE_KEY);
+    } catch {
+        return null;
+    }
+};
+
+const storeView = (mode) => {
+    try {
+        window.localStorage.setItem(VIEW_STORAGE_KEY, mode);
+    } catch {
+        // Storage unavailable (private mode, blocked) - URL param still applies.
+    }
+};
+
 const getCategoricalData = (expenses = [], selectedCategories = [], idsToFilter = []) => {
     const Categories = {};
     let totalAmount = 0;
+    let incomeAmount = 0;
+    let expenseAmount = 0;
 
     expenses.forEach(item => {
         const isFiltered = idsToFilter.includes(item.id);
@@ -45,9 +64,13 @@ const getCategoricalData = (expenses = [], selectedCategories = [], idsToFilter 
             selectedCategories.length === 0 || selectedCategories.includes(item.category);
 
         if (!isFiltered && matchesCategory) {
-            item.category === "income"
-                ? totalAmount += item.amount
-                : totalAmount -= item.amount;
+            if (item.category === "income") {
+                totalAmount += item.amount;
+                incomeAmount += item.amount;
+            } else {
+                totalAmount -= item.amount;
+                expenseAmount += item.amount;
+            }
 
             Categories[item.category] = [
                 ...(Categories[item.category] || []),
@@ -56,7 +79,7 @@ const getCategoricalData = (expenses = [], selectedCategories = [], idsToFilter 
         }
     })
 
-    return { Categories, totalAmount };
+    return { Categories, totalAmount, incomeAmount, expenseAmount };
 }
 
 const formatCurrency = amount =>
@@ -114,6 +137,15 @@ function PlainSearchableTableInner({
         pickValid(searchParams.get('view'), VALID_VIEWS, DEFAULT_VIEW)
     );
 
+    // localStorage isn't available during SSR, so restore the saved view after
+    // mount. An explicit ?view= in the URL wins over the stored preference.
+    useEffect(() => {
+        if (searchParams.get('view')) return;
+        const stored = readStoredView();
+        if (VALID_VIEWS.includes(stored)) setViewModeState(stored);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     useEffect(() => {
         setSearchResults(items);
     }, [items]);
@@ -136,6 +168,7 @@ function PlainSearchableTableInner({
 
     const setViewMode = useCallback((mode) => {
         setViewModeState(mode);
+        storeView(mode);
         writeUrlParams({ view: mode === DEFAULT_VIEW ? null : mode });
     }, []);
 
@@ -297,6 +330,10 @@ function PlainSearchableTableInner({
                 />
             </div>
             <div dir="rtl" className="my-6 flex flex-col items-start gap-1">
+                <div className="flex gap-3 text-xs tabular-nums text-gray-500 dark:text-gray-400">
+                    <span>הכנסות {formatCurrency(categoricalData.incomeAmount)}</span>
+                    <span>הוצאות {formatCurrency(categoricalData.expenseAmount)}</span>
+                </div>
                 <span className="text-xs font-semibold tracking-widest text-gray-500 dark:text-gray-400">
                     שורה תחתונה
                 </span>

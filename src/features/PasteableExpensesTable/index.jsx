@@ -79,6 +79,15 @@ export default function TextToExpensesTable({
         }
     };
 
+    // Pasted rows aren't in the DB yet, so a category fix (e.g. a wrong
+    // auto-suggestion) is kept on the row and goes out with the insert.
+    const handleCategoryChange = useCallback((id, category) => {
+        setRows(prev => prev.map(r => r.id === id ? { ...r, category } : r));
+        const row = rows.find(r => r.id === id);
+        if (row?.isUnsaved) return Promise.resolve({ ok: true });
+        return updateCategory(id, category);
+    }, [rows, setRows, updateCategory]);
+
     const unmarkDuplicate = (id) => {
         setRows(prev => prev.map(r => r.id === id ? { ...r, isDuplicate: false } : r));
     };
@@ -91,7 +100,7 @@ export default function TextToExpensesTable({
             setRows(prev =>
                 prev
                     .filter(r => !r.isDuplicate)
-                    .map(r => (idMap && idMap.has(r.id) ? { ...r, id: idMap.get(r.id) } : r))
+                    .map(({ isUnsaved, ...r }) => (idMap && idMap.has(r.id) ? { ...r, id: idMap.get(r.id) } : r))
             );
         }
     };
@@ -138,7 +147,7 @@ export default function TextToExpensesTable({
                     <div className={phase === 'paste' ? 'hidden md:block' : ''}>
                         <Table
                             rows={rows}
-                            updateCategory={updateCategory}
+                            updateCategory={handleCategoryChange}
                             updateNote={updateNote}
                             updateDate={updateDate}
                             deleteExpense={deleteExpense}

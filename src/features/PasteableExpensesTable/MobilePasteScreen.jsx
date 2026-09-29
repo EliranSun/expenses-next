@@ -12,6 +12,7 @@ export function MobilePasteScreen({ fetchExpensesByDateRange, fetchCategoryHisto
     const [unsavedRows, setUnsavedRows] = useState([]);
     const [text, setText] = useState('');
     const [submitting, setSubmitting] = useState(false);
+    const [editingCategoryId, setEditingCategoryId] = useState(null);
     const textareaRef = useRef(null);
 
     const ingest = async (raw, { source } = {}) => {
@@ -41,6 +42,11 @@ export function MobilePasteScreen({ fetchExpensesByDateRange, fetchCategoryHisto
 
     const removeRow = (id) => {
         setUnsavedRows((prev) => prev.filter((r) => r.id !== id));
+    };
+
+    const setRowCategory = (id, category) => {
+        setUnsavedRows((prev) => prev.map((r) => r.id === id ? { ...r, category } : r));
+        setEditingCategoryId(null);
     };
 
     const unmarkDuplicate = (id) => {
@@ -103,41 +109,64 @@ export function MobilePasteScreen({ fetchExpensesByDateRange, fetchCategoryHisto
                     {unsavedRows.map((row) => (
                         <li
                             key={row.id}
-                            className={`flex items-center justify-between gap-2 bg-white dark:bg-gray-800 rounded-lg border px-3 py-2 ${row.isDuplicate ? 'border-amber-300 opacity-60' : 'border-gray-200'}`}>
-                            <div className="flex flex-col min-w-0">
-                                <span className="text-sm font-medium truncate flex items-center gap-2">
-                                    {row.name}
-                                    {row.isDuplicate && (
+                            className={`flex flex-col gap-2 bg-white dark:bg-gray-800 rounded-lg border px-3 py-2 ${row.isDuplicate ? 'border-amber-300 opacity-60' : 'border-gray-200'}`}>
+                            <div className="flex items-center justify-between gap-2">
+                                <div className="flex flex-col min-w-0">
+                                    <span className="text-sm font-medium truncate flex items-center gap-2">
+                                        {row.name}
+                                        {row.isDuplicate && (
+                                            <button
+                                                type="button"
+                                                onClick={() => unmarkDuplicate(row.id)}
+                                                className="text-[10px] uppercase tracking-wide bg-amber-200 hover:bg-amber-300 text-amber-900 rounded-full px-2 py-0.5 cursor-pointer">
+                                                duplicate · save anyway
+                                            </button>
+                                        )}
+                                    </span>
+                                    <span className="text-xs text-gray-500">
+                                        {formatDate(row.date)}
+                                        {' · '}
+                                        {AccountName[row.account]?.translation || row.account}
+                                        {' · '}
                                         <button
                                             type="button"
-                                            onClick={() => unmarkDuplicate(row.id)}
-                                            className="text-[10px] uppercase tracking-wide bg-amber-200 hover:bg-amber-300 text-amber-900 rounded-full px-2 py-0.5 cursor-pointer">
-                                            duplicate · save anyway
+                                            aria-label="Change category"
+                                            aria-expanded={editingCategoryId === row.id}
+                                            onClick={() => setEditingCategoryId((prev) => prev === row.id ? null : row.id)}
+                                            className="underline decoration-dotted text-blue-600">
+                                            {Categories[row.category]
+                                                ? `${Categories[row.category].emoji} ${Categories[row.category].name}`
+                                                : 'בחר קטגוריה'}
                                         </button>
-                                    )}
-                                </span>
-                                <span className="text-xs text-gray-500">
-                                    {formatDate(row.date)}
-                                    {' · '}
-                                    {AccountName[row.account]?.translation || row.account}
-                                    {Categories[row.category] && (
-                                        <>
-                                            {' · '}
-                                            {Categories[row.category].emoji} {Categories[row.category].name}
-                                        </>
-                                    )}
-                                </span>
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2 shrink-0" dir="ltr">
+                                    <CurrencyAmount amount={row.amount} isNegative />
+                                    <button
+                                        type="button"
+                                        aria-label="Remove row"
+                                        onClick={() => removeRow(row.id)}
+                                        className="border border-gray-300 rounded-md px-2 py-1 text-base">
+                                        🗑️
+                                    </button>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-2 shrink-0" dir="ltr">
-                                <CurrencyAmount amount={row.amount} isNegative />
-                                <button
-                                    type="button"
-                                    aria-label="Remove row"
-                                    onClick={() => removeRow(row.id)}
-                                    className="border border-gray-300 rounded-md px-2 py-1 text-base">
-                                    🗑️
-                                </button>
-                            </div>
+                            {editingCategoryId === row.id && (
+                                <div className="grid grid-cols-4 gap-1">
+                                    {Object.entries(Categories).map(([key, value]) => (
+                                        <button
+                                            key={key}
+                                            type="button"
+                                            onClick={() => setRowCategory(row.id, key)}
+                                            className={`rounded-lg border flex flex-col items-center gap-0.5 py-1 ${row.category === key
+                                                ? 'bg-blue-100 border-blue-400'
+                                                : 'border-gray-200'}`}>
+                                            <span className="text-lg leading-none">{value.emoji}</span>
+                                            <span className="text-[10px] leading-tight text-center line-clamp-1">{value.name}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </li>
                     ))}
                 </ul>
