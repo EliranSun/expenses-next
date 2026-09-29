@@ -1,6 +1,7 @@
 import { neon } from '@neondatabase/serverless';
 import { Accounts, PrivateAccounts } from '@/constants/account';
 import {
+    fetchCategoryHistory,
     fetchExpenses,
     findSuspiciousExpenses,
     getUnhandledExpenses,
@@ -386,5 +387,20 @@ describe('updateExpenses', () => {
 
         expect(res.ok).toBe(false);
         expect(res.error).toBe('rolled back');
+    });
+});
+
+describe('fetchCategoryHistory', () => {
+    it('groups categorized expenses by name and category', async () => {
+        sqlMock.mockResolvedValueOnce([
+            { name: 'APPLE.COM/BILL', category: 'subscriptions', count: 3, last_date: '2026-09-01' },
+        ]);
+
+        const res = await fetchCategoryHistory();
+
+        expect(res).toEqual([{ name: 'APPLE.COM/BILL', category: 'subscriptions', count: 3, lastDate: '2026-09-01' }]);
+        const [query] = sqlMock.mock.calls[0];
+        expect(query).toMatch(/category IS NOT NULL/);
+        expect(query).toMatch(/GROUP BY name, category/);
     });
 });

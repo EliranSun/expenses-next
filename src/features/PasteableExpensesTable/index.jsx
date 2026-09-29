@@ -11,6 +11,7 @@ export default function TextToExpensesTable({
     expenses = [],
     onSave,
     fetchExpensesByDateRange,
+    fetchCategoryHistory,
     updateCategory,
     updateNote,
     updateDate,
@@ -25,7 +26,7 @@ export default function TextToExpensesTable({
         );
     }, [expenses]));
 
-    const [rows, setRows, ingest] = usePasteToRows(expenses, pasteFilterLogic, fetchExpensesByDateRange);
+    const [rows, setRows, ingest] = usePasteToRows(expenses, pasteFilterLogic, fetchExpensesByDateRange, fetchCategoryHistory);
 
     const [phase, setPhase] = useState(expenses.length > 0 ? 'categorize' : 'paste');
 
@@ -117,6 +118,7 @@ export default function TextToExpensesTable({
                         <div className="md:hidden">
                             <MobilePasteScreen
                                 fetchExpensesByDateRange={fetchExpensesByDateRange}
+                                fetchCategoryHistory={fetchCategoryHistory}
                                 onSubmit={handleMobileSave}
                             />
                         </div>

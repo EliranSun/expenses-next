@@ -1,6 +1,7 @@
 import PasteableExpensesTable from '@/features/PasteableExpensesTable';
 import {
     deleteExpenses,
+    fetchCategoryHistory,
     fetchExpensesByDateRange,
     getUnhandledExpenses,
     insertExpenses,
@@ -23,6 +24,7 @@ export default async function Home({ searchParams }) {
                 expenses={unhandledExpenses}
                 onSave={insertExpenses}
                 fetchExpensesByDateRange={fetchExpensesByDateRange}
+                fetchCategoryHistory={fetchCategoryHistory}
                 deleteExpenses={deleteExpenses}
                 updateCategory={updateCategory}
                 deleteExpense={deleteExpense}

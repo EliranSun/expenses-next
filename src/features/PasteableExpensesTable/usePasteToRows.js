@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { parseAndPrepareRows, markDuplicates, computeDateRange } from "./parseAndPrepareRows";
+import { parseAndPrepareRows, enrichRows } from "./parseAndPrepareRows";
 
-export default function usePasteToRows(expenses = [], pasteFilterLogic = () => true, fetchExpensesByDateRange) {
+export default function usePasteToRows(expenses = [], pasteFilterLogic = () => true, fetchExpensesByDateRange, fetchCategoryHistory) {
     const [rows, setRows] = useState(expenses);
 
     const ingest = useCallback(async (text, { source } = {}) => {
@@ -11,23 +11,13 @@ export default function usePasteToRows(expenses = [], pasteFilterLogic = () => t
             return;
         }
 
-        let marked = parsed;
-        if (typeof fetchExpensesByDateRange === 'function') {
-            const range = computeDateRange(parsed);
-            const accounts = [...new Set(parsed.map((r) => r.account))];
-            try {
-                const existing = await fetchExpensesByDateRange({ ...range, accounts });
-                marked = markDuplicates(parsed, existing, { matchName: source !== 'pdf' });
-            } catch (err) {
-                console.error('fetchExpensesByDateRange failed:', err);
-            }
-        }
+        const marked = await enrichRows(parsed, { fetchExpensesByDateRange, fetchCategoryHistory, source });
 
         setRows(prev => {
             const ids = new Set(prev.map(r => r.id));
             return [...prev, ...marked.filter(r => !ids.has(r.id))];
         });
-    }, [rows, pasteFilterLogic, fetchExpensesByDateRange]);
+    }, [rows, pasteFilterLogic, fetchExpensesByDateRange, fetchCategoryHistory]);
 
     useEffect(() => {
         const handlePaste = (event) => {

@@ -1,13 +1,14 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { parseAndPrepareRows, markDuplicates, computeDateRange } from './parseAndPrepareRows';
+import { parseAndPrepareRows, enrichRows } from './parseAndPrepareRows';
 import { CurrencyAmount } from '@/components/atoms/currency-amount';
 import { formatDate } from '@/utils/formatDate';
 import { AccountName } from '@/constants/account';
+import { Categories } from '@/constants';
 import { PdfImportButton } from '@/features/PdfImport/PdfImportButton';
 
-export function MobilePasteScreen({ fetchExpensesByDateRange, onSubmit }) {
+export function MobilePasteScreen({ fetchExpensesByDateRange, fetchCategoryHistory, onSubmit }) {
     const [unsavedRows, setUnsavedRows] = useState([]);
     const [text, setText] = useState('');
     const [submitting, setSubmitting] = useState(false);
@@ -20,17 +21,7 @@ export function MobilePasteScreen({ fetchExpensesByDateRange, onSubmit }) {
             return;
         }
 
-        let marked = parsed;
-        if (typeof fetchExpensesByDateRange === 'function') {
-            const range = computeDateRange(parsed);
-            const accounts = [...new Set(parsed.map((r) => r.account))];
-            try {
-                const existing = await fetchExpensesByDateRange({ ...range, accounts });
-                marked = markDuplicates(parsed, existing, { matchName: source !== 'pdf' });
-            } catch (err) {
-                console.error('fetchExpensesByDateRange failed:', err);
-            }
-        }
+        const marked = await enrichRows(parsed, { fetchExpensesByDateRange, fetchCategoryHistory, source });
 
         setUnsavedRows((prev) => [...prev, ...marked]);
         setText('');
@@ -129,6 +120,12 @@ export function MobilePasteScreen({ fetchExpensesByDateRange, onSubmit }) {
                                     {formatDate(row.date)}
                                     {' · '}
                                     {AccountName[row.account]?.translation || row.account}
+                                    {Categories[row.category] && (
+                                        <>
+                                            {' · '}
+                                            {Categories[row.category].emoji} {Categories[row.category].name}
+                                        </>
+                                    )}
                                 </span>
                             </div>
                             <div className="flex items-center gap-2 shrink-0" dir="ltr">

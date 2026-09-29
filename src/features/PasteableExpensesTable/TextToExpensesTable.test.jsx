@@ -58,7 +58,9 @@ describe('TextToExpensesTable', () => {
         // parseTextToRows collapses the three identical 31.90 lines into 1.
         // The 69.90 row matches an existing expense → filtered out by pasteFilterLogic.
         // Only the 31.90 row is added → 2 + 1 = 3 rendered rows.
-        await waitFor(() => expect(renderedRowCount()).toBe(3));
+        // Ingest awaits the DB lookups, so the (slow in jsdom) re-render of
+        // three rows lands inside waitFor rather than inside the paste event.
+        await waitFor(() => expect(renderedRowCount()).toBe(3), { timeout: 5000 });
     });
 
     it('renders the pasted row alongside the existing ones', async () => {
@@ -78,6 +80,19 @@ describe('TextToExpensesTable', () => {
             expect(screen.queryAllByText(/APPLE\.COM\/BILL2/).length).toBeGreaterThan(0);
         });
         expect(renderedRowCount()).toBe(3);
+    });
+
+    it('pre-fills the category from past expenses with the same name', async () => {
+        const fetchCategoryHistory = jest.fn(async () => [
+            { name: 'APPLE.COM/BILL', category: 'subscriptions', count: 5, lastDate: '2025-01-01' },
+        ]);
+        render(<TextToExpensesTable fetchCategoryHistory={fetchCategoryHistory} />);
+
+        paste('APPLE.COM/BILL\t28/01/25\t3361\tfoo\t69.90 ₪');
+
+        await waitFor(() => expect(renderedRowCount()).toBe(1));
+        expect(fetchCategoryHistory).toHaveBeenCalled();
+        expect(screen.getAllByRole('button', { name: /📺/ }).length).toBeGreaterThan(0);
     });
 
     describe('duplicate detection against DB rows', () => {

@@ -1,4 +1,5 @@
 import { parseTextToRows, formatDateFromDB } from '@/utils';
+import { applyCategorySuggestions } from './categorySuggestions';
 
 const matchesStaged = (row, alreadyStaged) =>
     alreadyStaged.some((staged) =>
@@ -54,4 +55,28 @@ export function computeDateRange(rows) {
     const next = new Date(Date.UTC(y, m - 1, d + 1));
     const endDate = next.toISOString().slice(0, 10);
     return { startDate, endDate };
+}
+
+const safeCall = (label, fn, ...args) =>
+    typeof fn === 'function'
+        ? Promise.resolve()
+            .then(() => fn(...args))
+            .catch((err) => {
+                console.error(`${label} failed:`, err);
+                return null;
+            })
+        : Promise.resolve(null);
+
+// Marks rows that already exist in the DB and pre-fills categories from how
+// the same names were categorized before.
+export async function enrichRows(rows, { fetchExpensesByDateRange, fetchCategoryHistory, source } = {}) {
+    const range = computeDateRange(rows);
+    const accounts = [...new Set(rows.map((r) => r.account))];
+    const [existing, history] = await Promise.all([
+        safeCall('fetchExpensesByDateRange', fetchExpensesByDateRange, { ...range, accounts }),
+        safeCall('fetchCategoryHistory', fetchCategoryHistory),
+    ]);
+
+    const marked = existing ? markDuplicates(rows, existing, { matchName: source !== 'pdf' }) : rows;
+    return history ? applyCategorySuggestions(marked, history) : marked;
 }
