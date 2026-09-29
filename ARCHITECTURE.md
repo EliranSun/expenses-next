@@ -17,7 +17,7 @@ graph TD
   CategoryRange["categoryRange.js\n(utils)"]
 
   %% Features
-  PlainSearchableTable["PlainSearchableTable\n(feature)"]
+  ExpensesExplorer["ExpensesExplorer\n(feature)"]
   PasteableExpensesTable["PasteableExpensesTable\n(feature)"]
 
   %% Organisms
@@ -59,15 +59,19 @@ graph TD
   RootLayout --> CategoriesPage
 
   HomePage --> MainNavBar
-  HomePage --> PlainSearchableTable
+  HomePage --> ExpensesExplorer
+  MoneyPage -. redirects .-> HomePage
 
   AddPage --> MainNavBar
   AddPage --> PasteableExpensesTable
 
-  MoneyPage --> MainNavBar
-  MoneyPage --> InfoDisplay
-  MoneyPage --> ExpensesTileData
-  MoneyPage --> Currency
+  ExpensesExplorer --> ListView["ListView / ColumnsView"]
+  ExpensesExplorer --> CalendarView["CalendarView"]
+  ExpensesExplorer --> BudgetView["BudgetView"]
+  BudgetView --> InfoDisplay
+  BudgetView --> ExpensesTileData
+  BudgetView --> Currency
+  BudgetView --> Budget
 
   DuplicatesPage --> MainNavBar
   DuplicatesPage --> DuplicateGroupList["DuplicateGroupList\n(organism)"]
@@ -78,11 +82,10 @@ graph TD
   CategoriesPage --> DB
   CategoriesPage --> CategoryRange
   CategoryAnalytics --> CategoryRange
-  PlainSearchableTable -. category link .-> CategoriesPage
+  ExpensesExplorer -. category link .-> CategoriesPage
   ExpensesTileData -. category link .-> CategoriesPage
 
   %% --- Feature → Organism ---
-  PlainSearchableTable --> Table
   PasteableExpensesTable --> Table
   PasteableExpensesTable --> usePasteToRows
 
@@ -112,17 +115,14 @@ graph TD
   %% --- Server data deps ---
   HomePage --> DB
   AddPage --> DB
-  MoneyPage --> DB
 
-  %% --- Budget data ---
-  MoneyPage --> Budget
 
   %% --- Styles ---
   style RootLayout fill:#1e1e2e,color:#cdd6f4
   style HomePage fill:#313244,color:#cdd6f4
   style AddPage fill:#313244,color:#cdd6f4
   style MoneyPage fill:#313244,color:#cdd6f4
-  style PlainSearchableTable fill:#45475a,color:#cdd6f4
+  style ExpensesExplorer fill:#45475a,color:#cdd6f4
   style PasteableExpensesTable fill:#45475a,color:#cdd6f4
   style Table fill:#585b70,color:#cdd6f4
   style ExpensesTileData fill:#585b70,color:#cdd6f4
@@ -152,7 +152,7 @@ graph TD
 | Layer | Components |
 |---|---|
 | **Pages** | `RootLayout`, `Home`, `Add`, `Money` |
-| **Features** | `PlainSearchableTable`, `PasteableExpensesTable` |
+| **Features** | `ExpensesExplorer`, `PasteableExpensesTable` |
 | **Organisms** | `Table`, `ExpensesTileData`, `SortButtons` |
 | **Molecules** | `MainNavBar`, `NavBar`, `InfoDisplay`, `CategoriesDropdown`, `SortableTableHeader` |
 | **Atoms** | `TableRow`, `CurrencyAmount`, `Currency`, `Search` |
@@ -163,9 +163,9 @@ graph TD
 
 | Route | File | Description |
 |---|---|---|
-| `/` | `src/app/page.js` | Dashboard — searchable/filterable expense table |
+| `/` | `src/app/page.js` | Dashboard — one filtered period of expenses shown as `view=list\|columns\|calendar\|budget` (view is client-side, persisted to URL + localStorage). Search, account/year/month/category filters and tap-to-hide apply to every view |
 | `/add` | `src/app/add/page.js` | Paste-to-add unhandled expenses |
-| `/money` | `src/app/money/page.js` | Monthly budget overview with income/expense breakdown |
+| `/money` | `src/app/money/page.js` | Redirects to `/?view=budget` (keeps `year`/`month`/`account`) |
 | `/categories` | `src/app/categories/page.js` | Category totals over time: line/bar/stacked charts, date range + account filters. Params: `category`, `from`/`to` (`YYYY-MM`), `account`, `chart`. Category links elsewhere build URLs with `categoryHref` (`src/utils/categoryRange.js`) |
 
 ## Components
@@ -177,7 +177,7 @@ graph TD
 
 ### Molecules
 
-- **`MainNavBar`** (`src/components/molecules/MainNavBar.jsx`) — Top navigation between Home / Add / Money pages
+- **`MainNavBar`** (`src/components/molecules/MainNavBar.jsx`) — Top navigation between pages
 - **`NavBar`** (`src/components/molecules/navbar.jsx`) — URL-driven filter bar (account, year, month, category)
 - **`InfoDisplay`** (`src/components/molecules/info-display.jsx`) — Labeled metric tile with progress bar and percentage
 - **`CategoriesDropdown`** (`src/components/molecules/categories-dropdown.jsx`) — Category picker grid using Hebrew locale labels
@@ -191,7 +191,11 @@ graph TD
 
 ### Features
 
-- **`PlainSearchableTable`** (`src/features/PlainSearchableTable/index.jsx`) — Table with horizontal category column scrolling
+- **`ExpensesExplorer`** (`src/features/ExpensesExplorer/index.jsx`) — Home page shell: owns search results, hidden rows, sort, view and the edit sheet, and derives one `visibleItems` list that every view renders:
+  - `ListView` / `ColumnsView` — expenses grouped by category
+  - `CalendarView` — month grid with per-day totals and heat shading; tap a day to list it. Year-only shows 12 mini heat maps
+  - `BudgetView` — actual vs. budget for the month (`groupExpensesByMonth` + `getBudgetForMonth`)
+  - `ViewSwitcher`, `MonthStepper` (prev/next month, keeps other params), `ExpenseRow`
 - **`PasteableExpensesTable`** (`src/features/PasteableExpensesTable/index.jsx`) — Table that accepts clipboard paste input and deduplicates against existing expenses
 - **`Search`** (`src/features/Search/index.jsx`) — Real-time text search with amount fuzzy matching (±5%)
 

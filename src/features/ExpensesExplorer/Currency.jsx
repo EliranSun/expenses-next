@@ -1,4 +1,4 @@
-const { default: classNames } = require("classnames");
+import classNames from "classnames";
 
 
 export const Currency = ({ amount, label, col = false }) => {

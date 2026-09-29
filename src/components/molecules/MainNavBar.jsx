@@ -12,7 +12,6 @@ import keys from "@/app/he.json";
 const NAV_ITEMS = [
     { href: "/", label: keys.home },
     { href: "/add", label: keys.add },
-    { href: "/money", label: keys.whereIsMyMoney },
     { href: "/categories", label: keys.categoriesPage },
     { href: "/budget", label: keys.budget },
     { href: "/duplicates", label: keys.duplicates },

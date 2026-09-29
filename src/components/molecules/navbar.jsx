@@ -6,7 +6,7 @@ import classNames from 'classnames';
 // Read params from window.location rather than React's useSearchParams so we
 // pick up any values written via window.history.replaceState (e.g. sort/view
 // from the homepage table) and don't overwrite them on push.
-const buildSearchParams = (newParams = {}) => {
+export const buildSearchParams = (newParams = {}) => {
     const query = new URLSearchParams(
         typeof window === 'undefined' ? '' : window.location.search
     );

@@ -96,10 +96,6 @@ export const groupExpensesByMonth = (expenses, isPrivate = true) => {
                     : expense.amount
                 : -expense.amount;
 
-            if (expense.name === "משכורת") {
-                console.log({ expense, year, month });
-            }
-
             temp = {
                 ...temp,
                 [year]: {

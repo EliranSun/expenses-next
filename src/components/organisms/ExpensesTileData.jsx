@@ -5,9 +5,8 @@ import InfoDisplay from "../molecules/info-display";
 import { Categories } from "@/constants";
 import { categoryHref } from "@/utils/categoryRange";
 
-// The money page only counts private accounts (groupExpensesByMonth), so the
-// category page opens with the same account filter.
-export const ExpensesTileData = ({ data, budgetData, year, month }) => {
+// The category page opens with the same account filter as the current view.
+export const ExpensesTileData = ({ data, budgetData, year, month, account }) => {
     return (
         <>
             <div className="flex flex-wrap gap-2 font-mono">
@@ -16,7 +15,7 @@ export const ExpensesTileData = ({ data, budgetData, year, month }) => {
                     .map(([category, amount]) => (
                         <Link
                             key={category}
-                            href={categoryHref({ category, year, month, account: "private" })}
+                            href={categoryHref({ category, year, month, account })}
                             className="grow flex hover:opacity-80">
                             <InfoDisplay
                                 amount={amount}
