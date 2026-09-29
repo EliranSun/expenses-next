@@ -6,6 +6,7 @@ import { useCallback, useState, Suspense } from "react";
 import { run } from "@/utils/action";
 import { MobilePasteScreen } from "./MobilePasteScreen";
 import { PdfImportButton } from "@/features/PdfImport/PdfImportButton";
+import { ManualExpenseButton } from "@/features/ManualExpense/ManualExpenseButton";
 
 export default function TextToExpensesTable({
     expenses = [],
@@ -26,7 +27,7 @@ export default function TextToExpensesTable({
         );
     }, [expenses]));
 
-    const [rows, setRows, ingest] = usePasteToRows(expenses, pasteFilterLogic, fetchExpensesByDateRange, fetchCategoryHistory);
+    const [rows, setRows, ingest, addRows] = usePasteToRows(expenses, pasteFilterLogic, fetchExpensesByDateRange, fetchCategoryHistory);
 
     const [phase, setPhase] = useState(expenses.length > 0 ? 'categorize' : 'paste');
 
@@ -121,6 +122,7 @@ export default function TextToExpensesTable({
                             )}
                         </button>
                         <PdfImportButton onText={ingest} />
+                        <ManualExpenseButton onRows={addRows} />
                     </div>
 
                     {phase === 'paste' && (

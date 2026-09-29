@@ -4,14 +4,12 @@ import { parseAndPrepareRows, enrichRows } from "./parseAndPrepareRows";
 export default function usePasteToRows(expenses = [], pasteFilterLogic = () => true, fetchExpensesByDateRange, fetchCategoryHistory) {
     const [rows, setRows] = useState(expenses);
 
-    const ingest = useCallback(async (text, { source } = {}) => {
-        const parsed = parseAndPrepareRows(text, rows).filter(pasteFilterLogic);
-
-        if (parsed.length === 0) {
+    const addRows = useCallback(async (prepared, { source } = {}) => {
+        if (prepared.length === 0) {
             return;
         }
 
-        const enriched = await enrichRows(parsed, { fetchExpensesByDateRange, fetchCategoryHistory, source });
+        const enriched = await enrichRows(prepared, { fetchExpensesByDateRange, fetchCategoryHistory, source });
         // Not in the DB yet - category edits must stay local until save.
         const marked = enriched.map((r) => ({ ...r, isUnsaved: true }));
 
@@ -19,7 +17,12 @@ export default function usePasteToRows(expenses = [], pasteFilterLogic = () => t
             const ids = new Set(prev.map(r => r.id));
             return [...prev, ...marked.filter(r => !ids.has(r.id))];
         });
-    }, [rows, pasteFilterLogic, fetchExpensesByDateRange, fetchCategoryHistory]);
+    }, [fetchExpensesByDateRange, fetchCategoryHistory]);
+
+    const ingest = useCallback(
+        (text, options) => addRows(parseAndPrepareRows(text, rows).filter(pasteFilterLogic), options),
+        [rows, pasteFilterLogic, addRows]
+    );
 
     useEffect(() => {
         const handlePaste = (event) => {
@@ -33,5 +36,5 @@ export default function usePasteToRows(expenses = [], pasteFilterLogic = () => t
         };
     }, [ingest]);
 
-    return [rows, setRows, ingest];
+    return [rows, setRows, ingest, addRows];
 }
