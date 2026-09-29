@@ -339,42 +339,46 @@ function PlainSearchableTableInner({
                     onUrlChange={startUrlTransition}
                 />
             </div>
-            <div className="hidden md:block mb-4">
-                <HomepageFilterControls
-                    searchItems={items}
-                    onSearch={setSearchResults}
-                    sortCriteria={sortCriteria}
-                    setSortCriteria={setSortCriteria}
-                    viewMode={viewMode}
-                    setViewMode={setViewMode}
-                    onUrlChange={startUrlTransition}
-                />
-            </div>
-            <div dir="rtl" className="my-6 flex flex-col items-start gap-1">
-                <div className="flex gap-3 text-xs tabular-nums text-gray-500 dark:text-gray-400">
-                    <span>הכנסות {formatCurrency(categoricalData.incomeAmount)}</span>
-                    <span>הוצאות {formatCurrency(categoricalData.expenseAmount)}</span>
+            <div className="md:flex md:flex-col lg:grid lg:grid-cols-3 lg:gap-6 lg:items-start">
+                <aside className="hidden md:block mb-4 lg:mb-0 lg:order-last lg:col-span-1 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto">
+                    <HomepageFilterControls
+                        searchItems={items}
+                        onSearch={setSearchResults}
+                        sortCriteria={sortCriteria}
+                        setSortCriteria={setSortCriteria}
+                        viewMode={viewMode}
+                        setViewMode={setViewMode}
+                        onUrlChange={startUrlTransition}
+                    />
+                </aside>
+                <div className="min-w-0 lg:col-span-2">
+                    <div dir="rtl" className="my-6 flex flex-col items-start gap-1">
+                        <div className="flex gap-3 text-xs tabular-nums text-gray-500 dark:text-gray-400">
+                            <span>הכנסות {formatCurrency(categoricalData.incomeAmount)}</span>
+                            <span>הוצאות {formatCurrency(categoricalData.expenseAmount)}</span>
+                        </div>
+                        <span className="text-xs font-semibold tracking-widest text-gray-500 dark:text-gray-400">
+                            שורה תחתונה
+                        </span>
+                        <span className="text-4xl font-black tabular-nums text-gray-900 dark:text-gray-100 font-[family-name:var(--font-geist-mono)]">
+                            {formatCurrency(categoricalData.totalAmount)}
+                        </span>
+                    </div>
+                    {isPending && (
+                        <div
+                            role="status"
+                            aria-label="Loading"
+                            className="fixed top-4 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-2 bg-gray-900/90 text-white rounded-full px-4 py-2 shadow-lg backdrop-blur-sm">
+                            <span className="inline-block h-4 w-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
+                            <span className="text-sm">Loading…</span>
+                        </div>
+                    )}
+                    <div
+                        aria-busy={isPending}
+                        className={isPending ? 'opacity-60 pointer-events-none transition-opacity' : 'transition-opacity'}>
+                        {viewMode === 'list' ? renderList() : renderColumns()}
+                    </div>
                 </div>
-                <span className="text-xs font-semibold tracking-widest text-gray-500 dark:text-gray-400">
-                    שורה תחתונה
-                </span>
-                <span className="text-4xl font-black tabular-nums text-gray-900 dark:text-gray-100 font-[family-name:var(--font-geist-mono)]">
-                    {formatCurrency(categoricalData.totalAmount)}
-                </span>
-            </div>
-            {isPending && (
-                <div
-                    role="status"
-                    aria-label="Loading"
-                    className="fixed top-4 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-2 bg-gray-900/90 text-white rounded-full px-4 py-2 shadow-lg backdrop-blur-sm">
-                    <span className="inline-block h-4 w-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
-                    <span className="text-sm">Loading…</span>
-                </div>
-            )}
-            <div
-                aria-busy={isPending}
-                className={isPending ? 'opacity-60 pointer-events-none transition-opacity' : 'transition-opacity'}>
-                {viewMode === 'list' ? renderList() : renderColumns()}
             </div>
             <EditExpenseSheet
                 expense={editingExpense}

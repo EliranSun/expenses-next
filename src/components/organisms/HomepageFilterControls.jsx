@@ -27,11 +27,11 @@ export function HomepageFilterControls({
 
     return (
         <div className="flex flex-col gap-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 shadow-sm">
-            <div className="flex flex-col md:flex-row gap-3 md:items-center">
+            <div className="flex flex-col md:flex-row lg:flex-col gap-3 md:items-center lg:items-stretch">
                 <div className="flex-1 min-w-0">
                     <Search items={searchItems} onSearch={onSearch} />
                 </div>
-                <div className="flex gap-2 shrink-0">
+                <div className="flex flex-wrap gap-2 shrink-0">
                     <button
                         type="button"
                         className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-xl flex items-center gap-2"
