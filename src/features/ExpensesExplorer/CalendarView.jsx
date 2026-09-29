@@ -81,7 +81,7 @@ function MonthGrid({ fullYear, monthIndex, days, onHide, onEdit }) {
     const selectedItems = selected ? orderBy(selected.items, ['amount'], ['desc']) : [];
 
     return (
-        <div dir="rtl" className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4">
             <div className="grid grid-cols-[repeat(7,minmax(0,1fr))_auto] gap-1 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-2 shadow-sm">
                 {WEEKDAYS.map((label) => (
                     <div key={label} className="text-center text-xs font-bold text-gray-500 dark:text-gray-400 py-1">
@@ -112,7 +112,7 @@ function MonthGrid({ fullYear, monthIndex, days, onHide, onEdit }) {
                                     onClick={() => setSelectedDay(isSelected ? null : key)}
                                     style={heat(stats?.expense ?? 0, maxDay)}
                                     className={classNames(
-                                        'relative min-h-14 sm:min-h-20 rounded-lg p-1 flex flex-col items-start justify-between text-right',
+                                        'relative min-h-14 sm:min-h-20 rounded-lg p-1 flex flex-col items-start justify-between text-start',
                                         'border hover:border-amber-400 transition-colors',
                                         {
                                             'border-transparent': !isSelected,
@@ -130,7 +130,7 @@ function MonthGrid({ fullYear, monthIndex, days, onHide, onEdit }) {
                                     {stats?.income > 0 && (
                                         <span
                                             title={keys.income}
-                                            className="absolute top-1 left-1 size-1.5 rounded-full bg-green-500" />
+                                            className="absolute top-1 end-1 size-1.5 rounded-full bg-green-500" />
                                     )}
                                 </button>
                             );
@@ -198,13 +198,13 @@ function YearGrid({ fullYear, days, onPickMonth }) {
     );
 
     return (
-        <div dir="rtl" className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
             {months.map(({ monthIndex, weeks, total }) => (
                 <button
                     key={monthIndex}
                     type="button"
                     onClick={() => onPickMonth(pad(monthIndex + 1))}
-                    className="flex flex-col gap-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:border-amber-400 rounded-xl p-2 shadow-sm text-right">
+                    className="flex flex-col gap-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:border-amber-400 rounded-xl p-2 shadow-sm text-start">
                     <div className="flex items-baseline justify-between gap-1 w-full">
                         <span className="font-bold text-sm text-gray-800 dark:text-gray-200">
                             {new Intl.DateTimeFormat('he-IL', { month: 'long' }).format(new Date(fullYear, monthIndex, 1))}

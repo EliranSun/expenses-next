@@ -17,7 +17,7 @@ export function MonthStepper({ year, month, onNavigate }) {
     if (!year || !month) return null;
 
     return (
-        <div dir="rtl" className="flex items-center gap-2">
+        <div className="flex items-center gap-2">
             <button
                 type="button"
                 aria-label={keys.previous_month}

@@ -31,7 +31,6 @@ const DesktopNavItem = ({ href, isActive, children }) => (
 
 const DesktopNav = ({ pathname }) => (
     <div
-        dir="rtl"
         className="hidden sm:flex gap-8 font-bold
         w-full text-center my-4 justify-center">
         {NAV_ITEMS.map(({ href, label }) => (
@@ -83,7 +82,6 @@ const FloatingNav = ({ pathname }) => {
                     {open && (
                         <motion.ul
                             key="menu"
-                            dir="rtl"
                             className="flex flex-col gap-2"
                             initial="closed"
                             animate="open"

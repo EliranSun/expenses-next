@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from "react";
+import keys from "@/app/he.json";
 
 export default function Search({ items = [], onSearch = () => { } }) {
     const [search, setSearch] = useState("");
@@ -37,8 +38,10 @@ export default function Search({ items = [], onSearch = () => { } }) {
     return (
         <input
             className="border border-gray-300 bg-white dark:bg-gray-800 rounded-xl py-2 px-4 w-full"
-            placeholder="Search"
-            type="text"
+            placeholder={keys.search}
+            title={keys.search_hint}
+            aria-label={keys.search}
+            type="search"
             value={search}
             onChange={(event) => {
                 const value = event.target.value;

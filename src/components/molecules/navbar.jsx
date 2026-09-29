@@ -2,6 +2,7 @@
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Categories } from '@/constants';
 import classNames from 'classnames';
+import keys from '@/app/he.json';
 
 // Read params from window.location rather than React's useSearchParams so we
 // pick up any values written via window.history.replaceState (e.g. sort/view
@@ -23,11 +24,13 @@ export const buildSearchParams = (newParams = {}) => {
 const Years = ['22', '23', '24', '25', '26', '27', '28'];
 const Months = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
 const Accounts = ['all', 'private', 'shared', 'wife'];
+const monthName = (month) =>
+    new Intl.DateTimeFormat('he-IL', { month: 'long' }).format(new Date(2000, Number(month) - 1, 1));
 
 const FilterGroup = ({ label, children }) => (
     <div className="flex items-center gap-2 flex-wrap">
         {label && (
-            <span className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 w-16 shrink-0">
+            <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 w-16 shrink-0">
                 {label}
             </span>
         )}
@@ -35,9 +38,11 @@ const FilterGroup = ({ label, children }) => (
     </div>
 );
 
-export const Pill = ({ isSelected, onClick, children, className = '' }) => (
+export const Pill = ({ isSelected, onClick, children, className = '', ...rest }) => (
     <button
+        {...rest}
         type="button"
+        aria-pressed={isSelected}
         onClick={onClick}
         className={classNames(
             'px-3 py-1 rounded-full text-sm transition-colors cursor-pointer',
@@ -71,7 +76,7 @@ export const Navbar = ({ onUrlChange }) => {
 
     return (
         <div className="flex flex-col gap-3">
-            <FilterGroup label="Account">
+            <FilterGroup label={keys.account}>
                 {Accounts.map((accountName) => (
                     <Pill
                         key={accountName}
@@ -79,12 +84,12 @@ export const Navbar = ({ onUrlChange }) => {
                         onClick={() =>
                             updateSearchParams({ account: account === accountName ? null : accountName })
                         }>
-                        {accountName.charAt(0).toUpperCase() + accountName.slice(1)}
+                        {keys.accounts[accountName]}
                     </Pill>
                 ))}
             </FilterGroup>
 
-            <FilterGroup label="Year">
+            <FilterGroup label={keys.year}>
                 {Years.map((yearNumber) => (
                     <Pill
                         key={yearNumber}
@@ -97,10 +102,12 @@ export const Navbar = ({ onUrlChange }) => {
                 ))}
             </FilterGroup>
 
-            <FilterGroup label="Month">
+            <FilterGroup label={keys.month}>
                 {Months.map((monthNumber) => (
                     <Pill
                         key={monthNumber}
+                        title={monthName(monthNumber)}
+                        aria-label={monthName(monthNumber)}
                         isSelected={month === monthNumber}
                         onClick={() =>
                             updateSearchParams({ month: month === monthNumber ? null : monthNumber })
@@ -110,10 +117,11 @@ export const Navbar = ({ onUrlChange }) => {
                 ))}
             </FilterGroup>
 
-            <FilterGroup label="Category">
+            <FilterGroup label={keys.category}>
                 {Object.entries(Categories).map(([key, value]) => (
                     <Pill
                         key={key}
+                        title={value.name}
                         isSelected={categories.includes(key)}
                         className="flex items-center gap-1"
                         onClick={() => {

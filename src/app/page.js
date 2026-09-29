@@ -43,7 +43,7 @@ export default async function Home({ searchParams }) {
   return (
     <div className="p-4">
       <MainNavBar />
-      <h1 dir="rtl" className="text-2xl font-bold text-center my-4 flex flex-wrap items-center justify-center gap-2">
+      <h1 className="text-2xl font-bold text-center my-4 flex flex-wrap items-center justify-center gap-2">
         <span>{monthLabel}</span>
         {selectedCategories.length > 0 && (
           <span className="flex flex-wrap items-center gap-1 text-base font-normal">

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { AnimatePresence, motion, useDragControls } from 'framer-motion';
 import { FunnelIcon, XIcon } from '@phosphor-icons/react';
 import { useDraggableFab } from '@/hooks/useDraggableFab';
+import keys from '@/app/he.json';
 
 const SNAP_FULL = '0%';
 const SNAP_HALF = '50%';
@@ -71,7 +72,7 @@ export function Sheet({ open, onClose, title, children }) {
                             <button
                                 type="button"
                                 onClick={onClose}
-                                aria-label="Close">
+                                aria-label={keys.close}>
                                 <XIcon size={24} />
                             </button>
                         </div>
@@ -87,8 +88,8 @@ export function Sheet({ open, onClose, title, children }) {
 
 export function BottomSheet({
     children,
-    title = 'Filters',
-    ariaLabel = 'Open filters',
+    title = keys.filters,
+    ariaLabel = keys.open_filters,
     hasIndicator = false,
     TriggerIcon = FunnelIcon,
 }) {

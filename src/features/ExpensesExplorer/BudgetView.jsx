@@ -53,7 +53,7 @@ export function BudgetView({ items, year, month, account }) {
     if (!data) return <Hint>{keys.no_data}</Hint>;
 
     return (
-        <div dir="rtl" className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6">
             {account !== 'private' && (
                 <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2">
                     {keys.budget_private_note}

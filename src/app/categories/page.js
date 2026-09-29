@@ -16,7 +16,7 @@ export default async function CategoriesPage({ searchParams }) {
         : await fetchCategoryMonthlyTotals({ startDate: range.startDate, endDate: range.endDate, accounts });
 
     return (
-        <div className="p-4 max-w-screen-2xl mx-auto" dir="rtl">
+        <div className="p-4 max-w-screen-2xl mx-auto">
             <MainNavBar />
             <CategoryAnalytics
                 rows={rows}

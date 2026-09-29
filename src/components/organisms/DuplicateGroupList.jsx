@@ -87,11 +87,11 @@ export function DuplicateGroupList({ groups: initialGroups, deleteExpenses, dism
     });
 
     if (groups.length === 0) {
-        return <div dir="rtl" className="text-center text-gray-500 my-8">{keys.duplicates_empty}</div>;
+        return <div className="text-center text-gray-500 my-8">{keys.duplicates_empty}</div>;
     }
 
     return (
-        <ul dir="rtl" className="flex flex-col gap-3 max-w-screen-md mx-auto">
+        <ul className="flex flex-col gap-3 max-w-screen-md mx-auto">
             {groups.map((group) => {
                 const busy = busyKey === group.key;
                 return (

@@ -20,7 +20,7 @@ export const ExpensesTileData = ({ data, budgetData, year, month, account }) => 
                             <InfoDisplay
                                 amount={amount}
                                 outOf={budgetData.categoryTotals[category]}
-                                label={category}
+                                label={Categories[category]?.name || category}
                                 isVisible
                                 round
                                 emoji={Categories[category]?.emoji} />
