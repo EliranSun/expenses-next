@@ -9,8 +9,6 @@ export function HomepageFilterSheet({
     onSearch,
     sortCriteria,
     setSortCriteria,
-    viewMode,
-    setViewMode,
     onUrlChange,
 }) {
     const searchParams = useSearchParams();
@@ -28,8 +26,6 @@ export function HomepageFilterSheet({
                 onSearch={onSearch}
                 sortCriteria={sortCriteria}
                 setSortCriteria={setSortCriteria}
-                viewMode={viewMode}
-                setViewMode={setViewMode}
                 onUrlChange={onUrlChange}
             />
         </BottomSheet>
