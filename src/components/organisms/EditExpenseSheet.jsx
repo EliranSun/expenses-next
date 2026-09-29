@@ -16,9 +16,9 @@ const toForm = (expense) => ({
     note: expense?.note ?? '',
 });
 
-const inputClass = 'border border-gray-300 dark:border-gray-600 rounded-lg p-2 w-full bg-transparent';
+export const inputClass = 'border border-gray-300 dark:border-gray-600 rounded-lg p-2 w-full bg-transparent';
 
-function Field({ label, children }) {
+export function Field({ label, children }) {
     return (
         <label className="flex flex-col gap-1 text-sm flex-1 min-w-0">
             <span className="text-gray-500 dark:text-gray-400">{label}</span>

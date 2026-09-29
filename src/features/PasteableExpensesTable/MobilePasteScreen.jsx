@@ -7,6 +7,7 @@ import { formatDate } from '@/utils/formatDate';
 import { AccountName } from '@/constants/account';
 import { Categories } from '@/constants';
 import { PdfImportButton } from '@/features/PdfImport/PdfImportButton';
+import { ManualExpenseButton } from '@/features/ManualExpense/ManualExpenseButton';
 
 export function MobilePasteScreen({ fetchExpensesByDateRange, fetchCategoryHistory, onSubmit }) {
     const [unsavedRows, setUnsavedRows] = useState([]);
@@ -15,16 +16,20 @@ export function MobilePasteScreen({ fetchExpensesByDateRange, fetchCategoryHisto
     const [editingCategoryId, setEditingCategoryId] = useState(null);
     const textareaRef = useRef(null);
 
-    const ingest = async (raw, { source } = {}) => {
+    const addRows = async (rows, { source } = {}) => {
+        if (rows.length === 0) return;
+        const marked = await enrichRows(rows, { fetchExpensesByDateRange, fetchCategoryHistory, source });
+        setUnsavedRows((prev) => [...prev, ...marked]);
+    };
+
+    const ingest = async (raw, options) => {
         if (!raw || !raw.trim()) return;
         const parsed = parseAndPrepareRows(raw, unsavedRows);
         if (parsed.length === 0) {
             return;
         }
 
-        const marked = await enrichRows(parsed, { fetchExpensesByDateRange, fetchCategoryHistory, source });
-
-        setUnsavedRows((prev) => [...prev, ...marked]);
+        await addRows(parsed, options);
         setText('');
     };
 
@@ -96,6 +101,7 @@ export function MobilePasteScreen({ fetchExpensesByDateRange, fetchCategoryHisto
                     </button>
                 )}
                 <PdfImportButton onText={ingest} />
+                <ManualExpenseButton onRows={addRows} />
             </div>
 
             <div className="text-sm text-gray-600">
