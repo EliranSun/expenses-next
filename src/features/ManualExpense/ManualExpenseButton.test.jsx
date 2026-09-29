@@ -42,3 +42,15 @@ describe('ManualExpenseButton', () => {
         expect(rows[0]).toMatchObject({ name: 'Cash coffee', amount: 18, date: '2026-09-02' });
     });
 });
+
+describe('ManualExpenseButton modal variant', () => {
+    it('renders the form in a modal that closes on Escape', async () => {
+        render(<ManualExpenseButton onRows={jest.fn()} variant="modal" />);
+
+        fireEvent.click(screen.getByRole('button', { name: 'Add manually' }));
+        expect(screen.getByRole('dialog')).toHaveAttribute('aria-modal', 'true');
+
+        fireEvent.keyDown(document, { key: 'Escape' });
+        await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    });
+});

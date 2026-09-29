@@ -122,7 +122,7 @@ export default function TextToExpensesTable({
                             )}
                         </button>
                         <PdfImportButton onText={ingest} />
-                        <ManualExpenseButton onRows={addRows} />
+                        <ManualExpenseButton onRows={addRows} variant="modal" />
                     </div>
 
                     {phase === 'paste' && (

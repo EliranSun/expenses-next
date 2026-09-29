@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 import { Sheet } from '@/components/molecules/BottomSheet';
+import { Modal } from '@/components/molecules/Modal';
 import { Field, inputClass } from '@/components/organisms/EditExpenseSheet';
 import { Categories } from '@/constants';
 import { Accounts, AccountName } from '@/constants/account';
@@ -38,10 +39,13 @@ export const toManualRow = (form) => {
     };
 };
 
-export function ManualExpenseButton({ onRows, className = '' }) {
+export function ManualExpenseButton({ onRows, variant = 'sheet', className = '' }) {
     const [open, setOpen] = useState(false);
     const [form, setForm] = useState(emptyForm);
     const [busy, setBusy] = useState(false);
+
+    const Container = variant === 'modal' ? Modal : Sheet;
+    const close = useCallback(() => setOpen(false), []);
 
     const set = (key) => (event) => setForm((prev) => ({ ...prev, [key]: event.target.value }));
 
@@ -69,7 +73,7 @@ export function ManualExpenseButton({ onRows, className = '' }) {
                 className={`bg-gray-200 text-gray-800 px-4 py-2 rounded-xl ${className}`}>
                 Add manually
             </button>
-            <Sheet open={open} onClose={() => setOpen(false)} title="הוספת הוצאה">
+            <Container open={open} onClose={close} title="הוספת הוצאה">
                 <form
                     dir="rtl"
                     className="flex flex-col gap-3 max-w-lg mx-auto w-full"
@@ -121,7 +125,7 @@ export function ManualExpenseButton({ onRows, className = '' }) {
                         {busy ? 'Adding…' : 'Add to list'}
                     </button>
                 </form>
-            </Sheet>
+            </Container>
         </>
     );
 }
