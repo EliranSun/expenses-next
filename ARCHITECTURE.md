@@ -67,6 +67,7 @@ graph TD
 
   ExpensesExplorer --> ListView["ListView / ColumnsView"]
   ExpensesExplorer --> CalendarView["CalendarView"]
+  ExpensesExplorer --> TreemapView["TreemapView"]
   ExpensesExplorer --> BudgetView["BudgetView"]
   BudgetView --> InfoDisplay
   BudgetView --> ExpensesTileData
@@ -163,7 +164,7 @@ graph TD
 
 | Route | File | Description |
 |---|---|---|
-| `/` | `src/app/page.js` | Dashboard — one filtered period of expenses shown as `view=list\|columns\|calendar\|budget` (view is client-side, persisted to URL + localStorage). Search, account/year/month/category filters and tap-to-hide apply to every view |
+| `/` | `src/app/page.js` | Dashboard — one filtered period of expenses shown as `view=list\|columns\|calendar\|treemap\|budget` (view is client-side, persisted to URL + localStorage). Search, account/year/month/category filters and tap-to-hide apply to every view |
 | `/add` | `src/app/add/page.js` | Paste-to-add unhandled expenses |
 | `/money` | `src/app/money/page.js` | Redirects to `/?view=budget` (keeps `year`/`month`/`account`) |
 | `/categories` | `src/app/categories/page.js` | Category totals over time: line/bar/stacked charts, date range + account filters. Params: `category`, `from`/`to` (`YYYY-MM`), `account`, `chart`. Category links elsewhere build URLs with `categoryHref` (`src/utils/categoryRange.js`) |
@@ -194,6 +195,7 @@ graph TD
 - **`ExpensesExplorer`** (`src/features/ExpensesExplorer/index.jsx`) — Home page shell: owns search results, hidden rows, sort, view and the edit sheet, and derives one `visibleItems` list that every view renders:
   - `ListView` / `ColumnsView` — expenses grouped by category
   - `CalendarView` — month grid with per-day totals and heat shading; tap a day to list it. Year-only shows 12 mini heat maps
+  - `TreemapView` — zoomable treemap of expenses or income (category → merchant → transaction). Tile area always matches the amount; tiles too small to label fold into an "N more" tile of the same total area, and tapping any branch zooms in so its children fill the map. Layout and bucketing live in `treemapLayout.js` (`d3-hierarchy` squarify)
   - `BudgetView` — actual vs. budget for the month (`groupExpensesByMonth` + `getBudgetForMonth`)
   - `ViewSwitcher`, `MonthStepper` (prev/next month, keeps other params), `ExpenseRow`
 - **`PasteableExpensesTable`** (`src/features/PasteableExpensesTable/index.jsx`) — Table that accepts clipboard paste input and deduplicates against existing expenses

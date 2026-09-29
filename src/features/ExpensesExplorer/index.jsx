@@ -13,6 +13,7 @@ import { ListView } from './ListView';
 import { ColumnsView } from './ColumnsView';
 import { CalendarView } from './CalendarView';
 import { BudgetView } from './BudgetView';
+import { TreemapView } from './TreemapView';
 import { ViewSwitcher, VIEWS } from './ViewSwitcher';
 import { MonthStepper } from './MonthStepper';
 import keys from '@/app/he.json';
@@ -227,6 +228,8 @@ function ExpensesExplorerInner({
                         onPickMonth={(picked) => navigate({ month: picked })}
                     />
                 );
+            case 'treemap':
+                return <TreemapView items={visibleItems} onHide={hideItem} onEdit={setEditingId} />;
             case 'budget':
                 return <BudgetView items={visibleItems} year={year} month={month} account={account} />;
             default:
