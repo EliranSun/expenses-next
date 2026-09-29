@@ -158,6 +158,20 @@ export async function getUnhandledExpenses({ year, month, account, limit = DEFAU
     return rows.map(row => (row.date ? mapRow(row) : { ...row, month: null, year: null, timestamp: null }));
 }
 
+// How each expense name has been categorized so far, for auto-categorizing new
+// rows on import.
+export async function fetchCategoryHistory() {
+    'use server';
+    const sql = getSql();
+    const rows = await sql(`
+        SELECT name, category, COUNT(*)::int AS count, TO_CHAR(MAX(${DATE_EXPR}), 'YYYY-MM-DD') AS last_date
+        FROM expenses
+        WHERE category IS NOT NULL AND category <> ''
+        GROUP BY name, category
+    `);
+    return rows.map(({ name, category, count, last_date }) => ({ name, category, count, lastDate: last_date }));
+}
+
 export async function findSuspiciousExpenses({ limit = 500 } = {}) {
     const sql = getSql();
     const query = `

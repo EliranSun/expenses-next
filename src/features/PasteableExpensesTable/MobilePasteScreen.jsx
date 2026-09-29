@@ -1,35 +1,27 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { parseAndPrepareRows, markDuplicates, computeDateRange } from './parseAndPrepareRows';
+import { parseAndPrepareRows, enrichRows } from './parseAndPrepareRows';
 import { CurrencyAmount } from '@/components/atoms/currency-amount';
 import { formatDate } from '@/utils/formatDate';
 import { AccountName } from '@/constants/account';
+import { Categories } from '@/constants';
+import { PdfImportButton } from '@/features/PdfImport/PdfImportButton';
 
-export function MobilePasteScreen({ fetchExpensesByDateRange, onSubmit }) {
+export function MobilePasteScreen({ fetchExpensesByDateRange, fetchCategoryHistory, onSubmit }) {
     const [unsavedRows, setUnsavedRows] = useState([]);
     const [text, setText] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const textareaRef = useRef(null);
 
-    const ingest = async (raw) => {
+    const ingest = async (raw, { source } = {}) => {
         if (!raw || !raw.trim()) return;
         const parsed = parseAndPrepareRows(raw, unsavedRows);
         if (parsed.length === 0) {
             return;
         }
 
-        let marked = parsed;
-        if (typeof fetchExpensesByDateRange === 'function') {
-            const range = computeDateRange(parsed);
-            const accounts = [...new Set(parsed.map((r) => r.account))];
-            try {
-                const existing = await fetchExpensesByDateRange({ ...range, accounts });
-                marked = markDuplicates(parsed, existing);
-            } catch (err) {
-                console.error('fetchExpensesByDateRange failed:', err);
-            }
-        }
+        const marked = await enrichRows(parsed, { fetchExpensesByDateRange, fetchCategoryHistory, source });
 
         setUnsavedRows((prev) => [...prev, ...marked]);
         setText('');
@@ -73,7 +65,7 @@ export function MobilePasteScreen({ fetchExpensesByDateRange, onSubmit }) {
             <div>
                 <h2 className="text-xl font-bold">הדבק הוצאות</h2>
                 <p className="text-sm text-gray-500" dir="ltr">
-                    Tab-separated: name &nbsp;|&nbsp; date &nbsp;|&nbsp; account &nbsp;|&nbsp; action &nbsp;|&nbsp; amount
+                    Tab-separated: name &nbsp;|&nbsp; date &nbsp;|&nbsp; account &nbsp;|&nbsp; action &nbsp;|&nbsp; amount, or a bank PDF
                 </p>
             </div>
 
@@ -88,14 +80,17 @@ export function MobilePasteScreen({ fetchExpensesByDateRange, onSubmit }) {
                 className="border border-gray-300 rounded-xl p-3 w-full font-mono text-sm bg-white dark:bg-gray-800"
             />
 
-            {text.trim() && (
-                <button
-                    type="button"
-                    onClick={handleParseClick}
-                    className="bg-gray-200 text-gray-800 px-4 py-2 rounded-xl self-start">
-                    Parse text
-                </button>
-            )}
+            <div className="flex gap-2">
+                {text.trim() && (
+                    <button
+                        type="button"
+                        onClick={handleParseClick}
+                        className="bg-gray-200 text-gray-800 px-4 py-2 rounded-xl">
+                        Parse text
+                    </button>
+                )}
+                <PdfImportButton onText={ingest} />
+            </div>
 
             <div className="text-sm text-gray-600">
                 {unsavedRows.length === 0
@@ -125,6 +120,12 @@ export function MobilePasteScreen({ fetchExpensesByDateRange, onSubmit }) {
                                     {formatDate(row.date)}
                                     {' · '}
                                     {AccountName[row.account]?.translation || row.account}
+                                    {Categories[row.category] && (
+                                        <>
+                                            {' · '}
+                                            {Categories[row.category].emoji} {Categories[row.category].name}
+                                        </>
+                                    )}
                                 </span>
                             </div>
                             <div className="flex items-center gap-2 shrink-0" dir="ltr">
