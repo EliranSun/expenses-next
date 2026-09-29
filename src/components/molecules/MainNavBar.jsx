@@ -14,6 +14,7 @@ const NAV_ITEMS = [
     { href: "/add", label: keys.add },
     { href: "/money", label: keys.whereIsMyMoney },
     { href: "/budget", label: keys.budget },
+    { href: "/duplicates", label: keys.duplicates },
 ];
 
 const DesktopNavItem = ({ href, isActive, children }) => (

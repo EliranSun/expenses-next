@@ -206,6 +206,80 @@ export async function findSuspiciousExpenses({ limit = 500 } = {}) {
     });
 }
 
+const CREATE_DISMISSALS_TABLE = `
+    CREATE TABLE IF NOT EXISTS duplicate_dismissals (
+        id SERIAL PRIMARY KEY,
+        expense_ids TEXT[] NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+`;
+
+// Groups of rows sharing name + amount + date (account ignored), minus groups
+// the user already marked as "not a duplicate".
+export async function findDuplicateGroups({ limit = 500 } = {}) {
+    const sql = getSql();
+    const [groups, dismissed] = await Promise.all([
+        sql(`
+            SELECT TRIM(name) AS name, amount, ${DATE_EXPR} AS date,
+                   json_agg(json_build_object(
+                       'id', id, 'name', name, 'amount', amount,
+                       'account', account, 'category', category, 'note', note
+                   ) ORDER BY id) AS rows
+            FROM expenses
+            WHERE name IS NOT NULL AND TRIM(name) <> ''
+              AND amount IS NOT NULL
+              AND date IS NOT NULL
+            GROUP BY TRIM(name), amount, ${DATE_EXPR}
+            HAVING COUNT(*) > 1
+            ORDER BY ${DATE_EXPR} DESC, TRIM(name) ASC
+            LIMIT $1
+        `, [limit]),
+        fetchDismissedIdSets(sql),
+    ]);
+
+    return groups
+        .filter(({ date }) => date != null)
+        .map(({ name, amount, date, rows }) => {
+            const mapped = rows.map((row) => mapRow({ ...row, id: String(row.id), date }));
+            return { key: mapped.map((r) => r.id).join('|'), name, amount, date: mapped[0].date, rows: mapped };
+        })
+        .filter((group) => !dismissed.some((ids) => group.rows.every((r) => ids.has(r.id))));
+}
+
+async function fetchDismissedIdSets(sql) {
+    try {
+        const rows = await sql('SELECT expense_ids FROM duplicate_dismissals');
+        return rows.map((r) => new Set((r.expense_ids ?? []).map(String)));
+    } catch (error) {
+        // 42P01 = undefined_table: migration 0003 not applied yet.
+        if (error?.code === '42P01') return [];
+        throw error;
+    }
+}
+
+export async function dismissDuplicateGroup(ids) {
+    'use server';
+    if (!Array.isArray(ids) || ids.length < 2) {
+        return { ok: false, error: 'missing ids' };
+    }
+    const sql = getSql();
+    const insert = () => sql('INSERT INTO duplicate_dismissals (expense_ids) VALUES ($1::text[])', [ids.map(String)]);
+    try {
+        try {
+            await insert();
+        } catch (error) {
+            if (error?.code !== '42P01') throw error;
+            // Table missing: create it (same as migration 0003) and retry once.
+            await sql(CREATE_DISMISSALS_TABLE);
+            await insert();
+        }
+        return { ok: true };
+    } catch (error) {
+        console.error('dismissDuplicateGroup failed:', error);
+        return { ok: false, error: error.message ?? 'dismiss failed' };
+    }
+}
+
 export async function deleteExpenses(ids) {
     'use server';
     if (!Array.isArray(ids) || ids.length === 0) {

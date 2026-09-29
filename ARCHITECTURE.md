@@ -11,6 +11,7 @@ graph TD
   HomePage["📄 Home Page\n(/page.js)"]
   AddPage["📄 Add Page\n(/add/page.js)"]
   MoneyPage["📄 Money Page\n(/money/page.js)"]
+  DuplicatesPage["📄 Duplicates Page\n(/duplicates/page.js)"]
 
   %% Features
   PlainSearchableTable["PlainSearchableTable\n(feature)"]
@@ -51,6 +52,7 @@ graph TD
   RootLayout --> HomePage
   RootLayout --> AddPage
   RootLayout --> MoneyPage
+  RootLayout --> DuplicatesPage
 
   HomePage --> MainNavBar
   HomePage --> PlainSearchableTable
@@ -62,6 +64,10 @@ graph TD
   MoneyPage --> InfoDisplay
   MoneyPage --> ExpensesTileData
   MoneyPage --> Currency
+
+  DuplicatesPage --> MainNavBar
+  DuplicatesPage --> DuplicateGroupList["DuplicateGroupList\n(organism)"]
+  DuplicatesPage --> DB
 
   %% --- Feature → Organism ---
   PlainSearchableTable --> Table
