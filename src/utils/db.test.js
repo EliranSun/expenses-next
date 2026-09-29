@@ -524,6 +524,19 @@ describe('dismissDuplicateGroup', () => {
         expect(params).toEqual([['a', '2']]);
     });
 
+    it('creates the table and retries when it does not exist yet', async () => {
+        sqlMock.mockRejectedValueOnce(Object.assign(new Error('relation does not exist'), { code: '42P01' }));
+        sqlMock.mockResolvedValueOnce(undefined);
+        sqlMock.mockResolvedValueOnce(undefined);
+
+        const res = await dismissDuplicateGroup(['a', 'b']);
+
+        expect(res).toEqual({ ok: true });
+        expect(sqlMock).toHaveBeenCalledTimes(3);
+        expect(sqlMock.mock.calls[1][0]).toContain('CREATE TABLE IF NOT EXISTS duplicate_dismissals');
+        expect(sqlMock.mock.calls[2][0]).toContain('INSERT INTO duplicate_dismissals');
+    });
+
     it('returns { ok: false, error } when the driver throws', async () => {
         sqlMock.mockRejectedValueOnce(new Error('boom'));
         expect(await dismissDuplicateGroup(['a', 'b'])).toEqual({ ok: false, error: 'boom' });

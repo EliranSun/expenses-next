@@ -206,6 +206,14 @@ export async function findSuspiciousExpenses({ limit = 500 } = {}) {
     });
 }
 
+const CREATE_DISMISSALS_TABLE = `
+    CREATE TABLE IF NOT EXISTS duplicate_dismissals (
+        id SERIAL PRIMARY KEY,
+        expense_ids TEXT[] NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+`;
+
 // Groups of rows sharing name + amount + date (account ignored), minus groups
 // the user already marked as "not a duplicate".
 export async function findDuplicateGroups({ limit = 500 } = {}) {
@@ -254,9 +262,17 @@ export async function dismissDuplicateGroup(ids) {
     if (!Array.isArray(ids) || ids.length < 2) {
         return { ok: false, error: 'missing ids' };
     }
+    const sql = getSql();
+    const insert = () => sql('INSERT INTO duplicate_dismissals (expense_ids) VALUES ($1::text[])', [ids.map(String)]);
     try {
-        const sql = getSql();
-        await sql('INSERT INTO duplicate_dismissals (expense_ids) VALUES ($1::text[])', [ids.map(String)]);
+        try {
+            await insert();
+        } catch (error) {
+            if (error?.code !== '42P01') throw error;
+            // Table missing: create it (same as migration 0003) and retry once.
+            await sql(CREATE_DISMISSALS_TABLE);
+            await insert();
+        }
         return { ok: true };
     } catch (error) {
         console.error('dismissDuplicateGroup failed:', error);
