@@ -5,6 +5,7 @@ import { parseAndPrepareRows, markDuplicates, computeDateRange } from './parseAn
 import { CurrencyAmount } from '@/components/atoms/currency-amount';
 import { formatDate } from '@/utils/formatDate';
 import { AccountName } from '@/constants/account';
+import { PdfImportButton } from '@/features/PdfImport/PdfImportButton';
 
 export function MobilePasteScreen({ fetchExpensesByDateRange, onSubmit }) {
     const [unsavedRows, setUnsavedRows] = useState([]);
@@ -12,7 +13,7 @@ export function MobilePasteScreen({ fetchExpensesByDateRange, onSubmit }) {
     const [submitting, setSubmitting] = useState(false);
     const textareaRef = useRef(null);
 
-    const ingest = async (raw) => {
+    const ingest = async (raw, { source } = {}) => {
         if (!raw || !raw.trim()) return;
         const parsed = parseAndPrepareRows(raw, unsavedRows);
         if (parsed.length === 0) {
@@ -25,7 +26,7 @@ export function MobilePasteScreen({ fetchExpensesByDateRange, onSubmit }) {
             const accounts = [...new Set(parsed.map((r) => r.account))];
             try {
                 const existing = await fetchExpensesByDateRange({ ...range, accounts });
-                marked = markDuplicates(parsed, existing);
+                marked = markDuplicates(parsed, existing, { matchName: source !== 'pdf' });
             } catch (err) {
                 console.error('fetchExpensesByDateRange failed:', err);
             }
@@ -73,7 +74,7 @@ export function MobilePasteScreen({ fetchExpensesByDateRange, onSubmit }) {
             <div>
                 <h2 className="text-xl font-bold">הדבק הוצאות</h2>
                 <p className="text-sm text-gray-500" dir="ltr">
-                    Tab-separated: name &nbsp;|&nbsp; date &nbsp;|&nbsp; account &nbsp;|&nbsp; action &nbsp;|&nbsp; amount
+                    Tab-separated: name &nbsp;|&nbsp; date &nbsp;|&nbsp; account &nbsp;|&nbsp; action &nbsp;|&nbsp; amount, or a bank PDF
                 </p>
             </div>
 
@@ -88,14 +89,17 @@ export function MobilePasteScreen({ fetchExpensesByDateRange, onSubmit }) {
                 className="border border-gray-300 rounded-xl p-3 w-full font-mono text-sm bg-white dark:bg-gray-800"
             />
 
-            {text.trim() && (
-                <button
-                    type="button"
-                    onClick={handleParseClick}
-                    className="bg-gray-200 text-gray-800 px-4 py-2 rounded-xl self-start">
-                    Parse text
-                </button>
-            )}
+            <div className="flex gap-2">
+                {text.trim() && (
+                    <button
+                        type="button"
+                        onClick={handleParseClick}
+                        className="bg-gray-200 text-gray-800 px-4 py-2 rounded-xl">
+                        Parse text
+                    </button>
+                )}
+                <PdfImportButton onText={ingest} />
+            </div>
 
             <div className="text-sm text-gray-600">
                 {unsavedRows.length === 0

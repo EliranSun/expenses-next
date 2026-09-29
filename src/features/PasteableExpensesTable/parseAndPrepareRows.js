@@ -27,13 +27,15 @@ export function parseAndPrepareRows(text, alreadyStaged = []) {
         });
 }
 
-export function markDuplicates(rows, existingExpenses = []) {
+// PDF-extracted names can differ slightly from the pasted names already in the
+// DB (wrapped lines, punctuation spacing), so PDF imports skip the name check.
+export function markDuplicates(rows, existingExpenses = [], { matchName = true } = {}) {
     if (rows.length === 0 || existingExpenses.length === 0) {
         return rows;
     }
     return rows.map((row) => {
         const isDuplicate = existingExpenses.some((expense) =>
-            expense.name === row.name &&
+            (!matchName || expense.name === row.name) &&
             expense.amount === row.amount &&
             expense.date === row.date &&
             expense.account === row.account
