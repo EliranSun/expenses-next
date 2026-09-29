@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { fetchExpenses, updateCategory, updateNote, deleteExpense } from '@/utils/db';
+import { fetchExpenses, updateExpense, deleteExpense } from '@/utils/db';
 import PlainSearchableTable from '@/features/PlainSearchableTable';
 import { MainNavBar } from '@/components/molecules/MainNavBar';
 import { Categories } from '@/constants';
@@ -61,8 +61,7 @@ export default async function Home({ searchParams }) {
         year={Number(year) + 2000 || today.getFullYear()}
         month={month || today.getMonth() + 1}
         items={existingExpenses}
-        updateCategory={updateCategory}
-        updateNote={updateNote}
+        updateExpense={updateExpense}
         deleteExpense={deleteExpense}
       />
     </div>
