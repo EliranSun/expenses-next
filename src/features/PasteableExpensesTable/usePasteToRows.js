@@ -11,7 +11,9 @@ export default function usePasteToRows(expenses = [], pasteFilterLogic = () => t
             return;
         }
 
-        const marked = await enrichRows(parsed, { fetchExpensesByDateRange, fetchCategoryHistory, source });
+        const enriched = await enrichRows(parsed, { fetchExpensesByDateRange, fetchCategoryHistory, source });
+        // Not in the DB yet - category edits must stay local until save.
+        const marked = enriched.map((r) => ({ ...r, isUnsaved: true }));
 
         setRows(prev => {
             const ids = new Set(prev.map(r => r.id));

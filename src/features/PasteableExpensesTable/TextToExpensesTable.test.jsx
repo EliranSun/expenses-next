@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 const mockParams = new URLSearchParams();
@@ -11,6 +11,7 @@ jest.mock('next/font/google', () => ({
 }));
 
 import TextToExpensesTable from './index';
+import { MobilePasteScreen } from './MobilePasteScreen';
 
 // Each TableRow renders exactly one 🗑️ delete button (table-row.jsx).
 // Counting those is a stable proxy for the number of rendered rows.
@@ -93,6 +94,52 @@ describe('TextToExpensesTable', () => {
         await waitFor(() => expect(renderedRowCount()).toBe(1));
         expect(fetchCategoryHistory).toHaveBeenCalled();
         expect(screen.getAllByRole('button', { name: /📺/ }).length).toBeGreaterThan(0);
+    });
+
+    describe('fixing a wrong auto-category before saving', () => {
+        const history = async () => [
+            { name: 'APPLE.COM/BILL', category: 'subscriptions', count: 5, lastDate: '2025-01-01' },
+        ];
+
+        it('desktop: keeps the new category on the unsaved row and saves it', async () => {
+            const onSave = jest.fn(async () => ({ ok: true }));
+            const updateCategory = jest.fn(async () => ({ ok: true }));
+            render(<TextToExpensesTable fetchCategoryHistory={history} onSave={onSave} updateCategory={updateCategory} />);
+
+            paste('APPLE.COM/BILL\t28/01/25\t3361\tfoo\t69.90 ₪');
+            await waitFor(() => expect(renderedRowCount()).toBe(1));
+
+            // Scope to the row: the desktop toolbar has emoji filter chips too.
+            const desktop = within(screen.getByTestId('desktop-table-view'));
+            const row = within(desktop.getByText(/APPLE\.COM\/BILL/).closest('[dir="rtl"]'));
+            fireEvent.click(row.getAllByRole('button', { name: /📺/ })[0]);
+            fireEvent.click(row.getAllByRole('button', { name: /🛒/ })[0]);
+            fireEvent.click(screen.getByRole('button', { name: /Save rows to database \(1\)/ }));
+
+            await waitFor(() => expect(onSave).toHaveBeenCalled());
+            expect(onSave.mock.calls[0][0][0].category).toBe('groceries');
+            expect(updateCategory).not.toHaveBeenCalled();
+        });
+
+        it('mobile: category chip opens a picker and the choice is submitted', async () => {
+            const onSubmit = jest.fn(async () => { });
+            render(<MobilePasteScreen fetchCategoryHistory={history} onSubmit={onSubmit} />);
+
+            fireEvent.paste(screen.getByPlaceholderText('Paste rows here…'), {
+                clipboardData: { getData: () => 'APPLE.COM/BILL\t28/01/25\t3361\tfoo\t69.90 ₪' },
+            });
+
+            const chip = await screen.findByRole('button', { name: 'Change category' });
+            expect(chip).toHaveTextContent('📺');
+            fireEvent.click(chip);
+            fireEvent.click(screen.getByRole('button', { name: /🛒/ }));
+
+            expect(screen.getByRole('button', { name: 'Change category' })).toHaveTextContent('🛒');
+            fireEvent.click(screen.getByRole('button', { name: /Save rows to database/ }));
+
+            await waitFor(() => expect(onSubmit).toHaveBeenCalled());
+            expect(onSubmit.mock.calls[0][0][0].category).toBe('groceries');
+        });
     });
 
     describe('duplicate detection against DB rows', () => {
