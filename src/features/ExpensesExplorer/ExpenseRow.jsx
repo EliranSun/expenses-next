@@ -1,6 +1,7 @@
 'use client';
 
 import { PencilSimpleIcon } from '@phosphor-icons/react';
+import keys from '@/app/he.json';
 
 export const formatCurrency = (amount) =>
     new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(amount);
@@ -17,7 +18,8 @@ export function EditButton({ onClick, className = '' }) {
     return (
         <button
             type="button"
-            aria-label="Edit"
+            aria-label={keys.edit}
+            title={keys.edit}
             onClick={(event) => {
                 event.stopPropagation();
                 onClick();
@@ -49,7 +51,7 @@ export function ExpenseRow({ item, onHide, onEdit, showDate = true, leading = nu
                     {formatShortDate(item.date)}
                 </span>
             )}
-            <span className="text-sm font-medium text-gray-900 dark:text-gray-100 tabular-nums shrink-0 text-left min-w-[4rem]">
+            <span className="text-sm font-medium text-gray-900 dark:text-gray-100 tabular-nums shrink-0 text-end min-w-[4rem]">
                 {formatCurrency(item.amount)}
             </span>
             <EditButton onClick={() => onEdit(item.id)} />

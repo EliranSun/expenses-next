@@ -14,7 +14,7 @@ export function ListView({ sortedCategories, trendHref, onHide, onEdit }) {
         setCollapsedCategories((prev) => ({ ...prev, [key]: !prev[key] })), []);
 
     return (
-        <div dir="rtl" className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2">
             {sortedCategories.map(({ key, sortedItems, total }) => {
                 const meta = Categories[key];
                 const isCollapsed = collapsedCategories[key];
@@ -26,7 +26,7 @@ export function ListView({ sortedCategories, trendHref, onHide, onEdit }) {
                             <button
                                 type="button"
                                 onClick={() => toggleCategory(key)}
-                                className="flex-1 min-w-0 flex items-center gap-2 px-3 py-2 text-right">
+                                className="flex-1 min-w-0 flex items-center gap-2 px-3 py-2 text-start">
                                 {isCollapsed
                                     ? <CaretLeftIcon size={14} className="shrink-0 text-gray-500" />
                                     : <CaretDownIcon size={14} className="shrink-0 text-gray-500" />}
@@ -45,7 +45,7 @@ export function ListView({ sortedCategories, trendHref, onHide, onEdit }) {
                                 href={trendHref(key)}
                                 aria-label={keys.view_trend}
                                 title={keys.view_trend}
-                                className="p-2 ml-1 rounded text-gray-400 hover:text-blue-500 shrink-0">
+                                className="p-2 me-1 rounded text-gray-400 hover:text-blue-500 shrink-0">
                                 <ChartLineIcon size={16} />
                             </Link>
                         </div>

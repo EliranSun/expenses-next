@@ -192,7 +192,7 @@ export default function BudgetPage() {
     } = useBudgetOverrides();
 
     return (
-        <div className="p-4 max-w-screen-2xl mx-auto" dir="rtl">
+        <div className="p-4 max-w-screen-2xl mx-auto">
             <MainNavBar />
             <div className="space-y-10 my-8">
                 <div className="flex items-center justify-between">

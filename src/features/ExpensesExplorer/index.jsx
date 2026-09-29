@@ -15,6 +15,7 @@ import { CalendarView } from './CalendarView';
 import { BudgetView } from './BudgetView';
 import { ViewSwitcher, VIEWS } from './ViewSwitcher';
 import { MonthStepper } from './MonthStepper';
+import keys from '@/app/he.json';
 
 const VALID_SORT_FIELDS = ['amount', 'date'];
 const VALID_SORT_DIRS = ['asc', 'desc'];
@@ -255,18 +256,18 @@ function ExpensesExplorerInner({
                     />
                 </aside>
                 <div className="min-w-0 lg:col-span-2">
-                    <div dir="rtl" className="flex items-center justify-between gap-2 flex-wrap">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
                         <ViewSwitcher value={viewMode} onChange={setViewMode} />
                         <MonthStepper year={year} month={month} onNavigate={navigate} />
                     </div>
                     {viewMode !== 'budget' && (
-                        <div dir="rtl" className="my-6 flex flex-col items-start gap-1">
+                        <div className="my-6 flex flex-col items-start gap-1">
                             <div className="flex gap-3 text-xs tabular-nums text-gray-500 dark:text-gray-400">
-                                <span>הכנסות {formatCurrency(categoricalData.incomeAmount)}</span>
-                                <span>הוצאות {formatCurrency(categoricalData.expenseAmount)}</span>
+                                <span>{keys.income} {formatCurrency(categoricalData.incomeAmount)}</span>
+                                <span>{keys.expenses} {formatCurrency(categoricalData.expenseAmount)}</span>
                             </div>
                             <span className="text-xs font-semibold tracking-widest text-gray-500 dark:text-gray-400">
-                                שורה תחתונה
+                                {keys.bottom_line}
                             </span>
                             <span className="text-4xl font-black tabular-nums text-gray-900 dark:text-gray-100 font-[family-name:var(--font-geist-mono)]">
                                 {formatCurrency(categoricalData.totalAmount)}
@@ -277,10 +278,10 @@ function ExpensesExplorerInner({
                     {isPending && (
                         <div
                             role="status"
-                            aria-label="Loading"
+                            aria-label={keys.loading}
                             className="fixed top-4 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-2 bg-gray-900/90 text-white rounded-full px-4 py-2 shadow-lg backdrop-blur-sm">
                             <span className="inline-block h-4 w-4 rounded-full border-2 border-white/40 border-t-white animate-spin" />
-                            <span className="text-sm">Loading…</span>
+                            <span className="text-sm">{keys.loading}</span>
                         </div>
                     )}
                     <div
@@ -305,7 +306,7 @@ function ExpensesExplorerInner({
 
 export default function ExpensesExplorer(props) {
     return (
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<div>{keys.loading}</div>}>
             <ExpensesExplorerInner {...props} />
         </Suspense>
     );

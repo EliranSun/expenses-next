@@ -37,7 +37,7 @@ describe('ExpensesExplorer editing', () => {
         const before = total();
 
         const row = screen.getByText('APPLE.COM/BILL').closest('li');
-        fireEvent.click(within(row).getByRole('button', { name: 'Edit' }));
+        fireEvent.click(within(row).getByRole('button', { name: 'עריכה' }));
 
         expect(screen.getByRole('dialog', { name: 'עריכת הוצאה' })).toBeInTheDocument();
         expect(screen.getByLabelText('שם')).toHaveValue('APPLE.COM/BILL');

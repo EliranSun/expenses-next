@@ -3,6 +3,7 @@
 import { CalendarIcon, CoinsIcon } from '@phosphor-icons/react';
 import Search from '@/features/Search';
 import { Navbar } from '../molecules/navbar';
+import keys from '@/app/he.json';
 
 export function HomepageFilterControls({
     searchItems,
@@ -26,20 +27,20 @@ export function HomepageFilterControls({
                 <div className="flex-1 min-w-0">
                     <Search items={searchItems} onSearch={onSearch} />
                 </div>
-                <div className="flex flex-wrap gap-2 shrink-0">
+                <div role="group" aria-label={keys.sort} className="flex flex-wrap gap-2 shrink-0">
                     <button
                         type="button"
                         className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-xl flex items-center gap-2"
                         onClick={() => toggleSort('amount')}>
                         <CoinsIcon size={18} />
-                        <span className="text-sm">Amount {arrow('amount')}</span>
+                        <span className="text-sm">{keys.amount} {arrow('amount')}</span>
                     </button>
                     <button
                         type="button"
                         className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-xl flex items-center gap-2"
                         onClick={() => toggleSort('date')}>
                         <CalendarIcon size={18} />
-                        <span className="text-sm">Date {arrow('date')}</span>
+                        <span className="text-sm">{keys.date} {arrow('date')}</span>
                     </button>
                 </div>
             </div>
