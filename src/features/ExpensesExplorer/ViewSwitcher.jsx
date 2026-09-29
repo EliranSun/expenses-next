@@ -1,13 +1,14 @@
 'use client';
 
 import classNames from 'classnames';
-import { CalendarBlankIcon, ChartPieSliceIcon, ColumnsIcon, RowsIcon } from '@phosphor-icons/react';
+import { CalendarBlankIcon, ChartPieSliceIcon, ColumnsIcon, LayoutIcon, RowsIcon } from '@phosphor-icons/react';
 import keys from '@/app/he.json';
 
 export const VIEWS = [
     { id: 'list', label: keys.view_list, Icon: RowsIcon },
     { id: 'columns', label: keys.view_columns, Icon: ColumnsIcon },
     { id: 'calendar', label: keys.view_calendar, Icon: CalendarBlankIcon },
+    { id: 'treemap', label: keys.view_treemap, Icon: LayoutIcon },
     { id: 'budget', label: keys.view_budget, Icon: ChartPieSliceIcon },
 ];
 

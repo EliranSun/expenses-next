@@ -17,6 +17,10 @@ const config = {
   coverageProvider: "v8",
   testEnvironment: "jsdom",
   setupFilesAfterEnv: ["<rootDir>/setupTests.js"],
+  // d3-hierarchy ships ESM only; its UMD build runs under Jest untransformed.
+  moduleNameMapper: {
+    "^d3-hierarchy$": "<rootDir>/node_modules/d3-hierarchy/dist/d3-hierarchy.js",
+  },
 
 };
 

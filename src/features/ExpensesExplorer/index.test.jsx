@@ -113,3 +113,49 @@ describe('ExpensesExplorer budget view', () => {
         expect(screen.getByText('SUPERMARKET')).toBeInTheDocument();
     });
 });
+
+describe('ExpensesExplorer treemap view', () => {
+    const OriginalResizeObserver = global.ResizeObserver;
+
+    beforeEach(() => {
+        // jsdom has no layout; report a fixed map size so tiles get laid out.
+        global.ResizeObserver = class {
+            constructor(callback) { this.callback = callback; }
+            observe() { this.callback([{ contentRect: { width: 800, height: 480 } }]); }
+            disconnect() {}
+        };
+    });
+
+    afterEach(() => {
+        global.ResizeObserver = OriginalResizeObserver;
+        mockParams = new URLSearchParams();
+    });
+
+    it('zooms into a category and back out via the breadcrumb', () => {
+        mockParams = new URLSearchParams('year=26&month=09&view=treemap');
+        render(<ExpensesExplorer items={monthItems} />);
+
+        fireEvent.click(screen.getByRole('button', { name: /^מצרכים,/ }));
+
+        const path = screen.getByRole('navigation', { name: 'מיקום במפה' });
+        expect(within(path).getByText('מצרכים')).toHaveAttribute('aria-current', 'page');
+        expect(screen.getByRole('button', { name: /^SUPERMARKET,/ })).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /^APPLE.COM\/BILL,/ })).not.toBeInTheDocument();
+
+        fireEvent.click(within(path).getByRole('button', { name: 'הוצאות' }));
+        expect(screen.getByRole('button', { name: /^APPLE.COM\/BILL,/ })).toBeInTheDocument();
+    });
+
+    it('selecting a transaction offers the usual hide and edit row', () => {
+        mockParams = new URLSearchParams('year=26&month=09&view=treemap&category=groceries');
+        render(<ExpensesExplorer items={monthItems} updateExpense={jest.fn()} deleteExpense={jest.fn()} />);
+        const before = total();
+
+        fireEvent.click(screen.getByRole('button', { name: /^MARKET,/ }));
+        const row = screen.getByText('MARKET', { selector: 'li *' }).closest('li');
+        fireEvent.click(row);
+
+        expect(total()).not.toBe(before);
+        expect(screen.queryByRole('button', { name: /^MARKET,/ })).not.toBeInTheDocument();
+    });
+});
