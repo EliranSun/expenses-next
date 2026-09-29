@@ -1,7 +1,7 @@
 import { CategoriesDropdown } from "../molecules/categories-dropdown";
 import { CurrencyAmount } from "./currency-amount";
 import { useState } from "react";
-import { AccountName } from "@/constants/account";
+import { AccountPill } from "./account-pill";
 import { run } from "@/utils/action";
 
 const DataDisplay = ({ children, className }) => {
@@ -21,7 +21,8 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
         <div dir="rtl" className={`flex flex-col gap-2 bg-gray-100 dark:bg-gray-800 rounded-xl py-2 px-4 w-full ${isDuplicate ? 'opacity-50 border border-amber-300' : ''}`}>
             <div className="flex justify-between">
                 <h1 className="text-xl flex items-center gap-2">
-                    {rowData.name} - {AccountName[rowData.account]?.translation}
+                    <span>{rowData.name}</span>
+                    <AccountPill account={rowData.account} />
                     {isDuplicate && (
                         <button
                             type="button"

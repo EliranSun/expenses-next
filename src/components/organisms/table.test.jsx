@@ -53,9 +53,9 @@ const renderTable = (props = {}) => {
 
 const visibleRowNames = () => {
     // The Table renders one top h1 (date heading) plus one h1 per TableRow.
-    // Each TableRow h1 has text like "Alpha - פרטי" — we read the name prefix.
+    // Each TableRow h1 holds the name followed by an account pill.
     const headings = screen.getAllByRole('heading', { level: 1 });
-    return headings.slice(1).map(h => h.textContent.split(' - ')[0].trim());
+    return headings.slice(1).map(h => h.firstElementChild.textContent.trim());
 };
 
 const fixtures = [
