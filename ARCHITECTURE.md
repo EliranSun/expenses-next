@@ -12,6 +12,9 @@ graph TD
   AddPage["📄 Add Page\n(/add/page.js)"]
   MoneyPage["📄 Money Page\n(/money/page.js)"]
   DuplicatesPage["📄 Duplicates Page\n(/duplicates/page.js)"]
+  CategoriesPage["📄 Categories Page\n(/categories/page.js)"]
+  CategoryAnalytics["CategoryAnalytics\n(client, recharts)"]
+  CategoryRange["categoryRange.js\n(utils)"]
 
   %% Features
   PlainSearchableTable["PlainSearchableTable\n(feature)"]
@@ -53,6 +56,7 @@ graph TD
   RootLayout --> AddPage
   RootLayout --> MoneyPage
   RootLayout --> DuplicatesPage
+  RootLayout --> CategoriesPage
 
   HomePage --> MainNavBar
   HomePage --> PlainSearchableTable
@@ -68,6 +72,14 @@ graph TD
   DuplicatesPage --> MainNavBar
   DuplicatesPage --> DuplicateGroupList["DuplicateGroupList\n(organism)"]
   DuplicatesPage --> DB
+
+  CategoriesPage --> MainNavBar
+  CategoriesPage --> CategoryAnalytics
+  CategoriesPage --> DB
+  CategoriesPage --> CategoryRange
+  CategoryAnalytics --> CategoryRange
+  PlainSearchableTable -. category link .-> CategoriesPage
+  ExpensesTileData -. category link .-> CategoriesPage
 
   %% --- Feature → Organism ---
   PlainSearchableTable --> Table
@@ -154,6 +166,7 @@ graph TD
 | `/` | `src/app/page.js` | Dashboard — searchable/filterable expense table |
 | `/add` | `src/app/add/page.js` | Paste-to-add unhandled expenses |
 | `/money` | `src/app/money/page.js` | Monthly budget overview with income/expense breakdown |
+| `/categories` | `src/app/categories/page.js` | Category totals over time: line/bar/stacked charts, date range + account filters. Params: `category`, `from`/`to` (`YYYY-MM`), `account`, `chart`. Category links elsewhere build URLs with `categoryHref` (`src/utils/categoryRange.js`) |
 
 ## Components
 

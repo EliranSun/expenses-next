@@ -122,6 +122,42 @@ export async function fetchExpensesByDateRange({ startDate, endDate, accounts } 
     return rows.map(mapRow);
 }
 
+// Per-month, per-category sums for the category analytics page. Income is
+// summed as absolute values (some income rows are negative), matching
+// groupExpensesByMonth; expense refunds stay negative so they net out.
+export async function fetchCategoryMonthlyTotals({ startDate, endDate, accounts } = {}) {
+    if (!startDate || !endDate) {
+        return [];
+    }
+    const sql = getSql();
+
+    const conditions = [
+        `${DATE_EXPR} >= $1::date`,
+        `${DATE_EXPR} < $2::date`,
+        "category IS NOT NULL AND category <> ''",
+    ];
+    const params = [startDate, endDate];
+
+    if (Array.isArray(accounts) && accounts.length > 0) {
+        const placeholders = accounts.map((_, i) => `$${params.length + i + 1}`).join(', ');
+        conditions.push(`account IN (${placeholders})`);
+        params.push(...accounts);
+    }
+
+    const query = `
+        SELECT TO_CHAR(${DATE_EXPR}, 'YYYY-MM') AS month, category,
+               SUM(CASE WHEN category = 'income' THEN ABS(amount) ELSE amount END)::float AS total,
+               COUNT(*)::int AS count
+        FROM expenses
+        WHERE ${conditions.join(' AND ')}
+        GROUP BY 1, 2
+        ORDER BY 1, 2
+    `;
+
+    const rows = await sql(query, params);
+    return rows.map(({ month, category, total, count }) => ({ month, category, total: Number(total), count }));
+}
+
 export async function getUnhandledExpenses({ year, month, account, limit = DEFAULT_LIMIT } = {}) {
     const sql = getSql();
 

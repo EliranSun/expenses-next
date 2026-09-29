@@ -50,5 +50,24 @@
         "online": "קנייה אונליין",
         "entertainment": "בידור",
         "baby": "בבה"
-    }
+    },
+    "categoriesPage": "קטגוריות",
+    "categories_title": "קטגוריות לאורך זמן",
+    "all_categories_hint": "ללא בחירה מוצגות הקטגוריות הגדולות ביותר",
+    "from": "מ-",
+    "to": "עד",
+    "range": "טווח",
+    "chart_line": "קו",
+    "chart_bar": "עמודות",
+    "chart_stacked": "מוערם",
+    "other": "אחר",
+    "month": "חודש",
+    "total": "סה״כ",
+    "monthly_average": "ממוצע חודשי",
+    "highest_month": "חודש שיא",
+    "latest_vs_average": "אחרון מול ממוצע",
+    "no_data": "אין נתונים לטווח שנבחר",
+    "view_trend": "הצג מגמה",
+    "clear": "נקה",
+    "chart": "גרף"
 }

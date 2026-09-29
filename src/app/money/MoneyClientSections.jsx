@@ -59,7 +59,7 @@ export const MoneyClientSections = ({ data, year, month }) => {
             </div>
 
             <div className="lg:col-span-8">
-                <ExpensesTileData data={data} budgetData={budgetData} />
+                <ExpensesTileData data={data} budgetData={budgetData} year={year} month={month} />
             </div>
 
             <div className="lg:col-span-4 lg:sticky lg:top-20 lg:self-start">

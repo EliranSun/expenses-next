@@ -1,8 +1,10 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { fetchExpenses, updateExpense, deleteExpense } from '@/utils/db';
 import PlainSearchableTable from '@/features/PlainSearchableTable';
 import { MainNavBar } from '@/components/molecules/MainNavBar';
 import { Categories } from '@/constants';
+import { categoryHref } from '@/utils/categoryRange';
 
 export default async function Home({ searchParams }) {
   const today = new Date();
@@ -49,9 +51,12 @@ export default async function Home({ searchParams }) {
               const cat = Categories[key];
               if (!cat) return null;
               return (
-                <span key={key} className="bg-amber-500 text-white rounded-full px-3 py-1">
+                <Link
+                  key={key}
+                  href={categoryHref({ category: key, year, month, account })}
+                  className="bg-amber-500 hover:bg-amber-600 text-white rounded-full px-3 py-1">
                   {cat.emoji} {cat.name}
-                </span>
+                </Link>
               );
             })}
           </span>

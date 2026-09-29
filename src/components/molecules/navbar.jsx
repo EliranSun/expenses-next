@@ -35,7 +35,7 @@ const FilterGroup = ({ label, children }) => (
     </div>
 );
 
-const Pill = ({ isSelected, onClick, children, className = '' }) => (
+export const Pill = ({ isSelected, onClick, children, className = '' }) => (
     <button
         type="button"
         onClick={onClick}
