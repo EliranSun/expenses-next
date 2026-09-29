@@ -4,6 +4,8 @@ import {
     fetchCategoryHistory,
     fetchExpenses,
     findSuspiciousExpenses,
+    findDuplicateGroups,
+    dismissDuplicateGroup,
     getUnhandledExpenses,
     deleteExpense,
     deleteExpenses,
@@ -448,5 +450,82 @@ describe('updateExpense', () => {
         sqlMock.mockRejectedValueOnce(new Error('boom'));
 
         expect(await updateExpense(valid)).toEqual({ ok: false, error: 'boom' });
+    });
+});
+
+describe('findDuplicateGroups', () => {
+    const group = (overrides = {}) => ({
+        name: 'WOLT',
+        amount: 42,
+        date: '2025-03-04',
+        rows: [
+            { id: 'a', name: 'WOLT', amount: 42, account: '3361', category: 'restaurants', note: null },
+            { id: 'b', name: 'WOLT ', amount: 42, account: '9325', category: null, note: null },
+        ],
+        ...overrides,
+    });
+
+    it('groups by trimmed name, amount and date and maps rows', async () => {
+        sqlMock.mockResolvedValueOnce([group()]);
+        sqlMock.mockResolvedValueOnce([]);
+
+        const [result] = await findDuplicateGroups();
+
+        const [query] = sqlMock.mock.calls[0];
+        expect(query).toContain('GROUP BY TRIM(name), amount');
+        expect(query).toContain('HAVING COUNT(*) > 1');
+        expect(result).toMatchObject({ key: 'a|b', name: 'WOLT', amount: 42, date: '2025-03-04' });
+        expect(result.rows.map((r) => r.id)).toEqual(['a', 'b']);
+        expect(result.rows[1]).toMatchObject({ account: '9325', date: '2025-03-04', month: 3, year: 25 });
+    });
+
+    it('hides groups fully covered by a dismissal', async () => {
+        sqlMock.mockResolvedValueOnce([group(), group({ rows: [{ id: 'c' }, { id: 'd' }] })]);
+        sqlMock.mockResolvedValueOnce([{ expense_ids: ['a', 'b'] }]);
+
+        const result = await findDuplicateGroups();
+
+        expect(result.map((g) => g.key)).toEqual(['c|d']);
+    });
+
+    it('shows a dismissed group again when a new identical row joins it', async () => {
+        sqlMock.mockResolvedValueOnce([group({ rows: [{ id: 'a' }, { id: 'b' }, { id: 'c' }] })]);
+        sqlMock.mockResolvedValueOnce([{ expense_ids: ['a', 'b'] }]);
+
+        const result = await findDuplicateGroups();
+
+        expect(result).toHaveLength(1);
+    });
+
+    it('treats a missing dismissals table as no dismissals', async () => {
+        sqlMock.mockResolvedValueOnce([group()]);
+        sqlMock.mockRejectedValueOnce(Object.assign(new Error('relation does not exist'), { code: '42P01' }));
+
+        const result = await findDuplicateGroups();
+
+        expect(result).toHaveLength(1);
+    });
+});
+
+describe('dismissDuplicateGroup', () => {
+    it('rejects fewer than two ids without querying', async () => {
+        expect(await dismissDuplicateGroup(['a'])).toEqual({ ok: false, error: 'missing ids' });
+        expect(sqlMock).not.toHaveBeenCalled();
+    });
+
+    it('inserts the id set as a text array', async () => {
+        sqlMock.mockResolvedValueOnce(undefined);
+
+        const res = await dismissDuplicateGroup(['a', 2]);
+
+        expect(res).toEqual({ ok: true });
+        const [query, params] = sqlMock.mock.calls[0];
+        expect(query).toContain('INSERT INTO duplicate_dismissals');
+        expect(params).toEqual([['a', '2']]);
+    });
+
+    it('returns { ok: false, error } when the driver throws', async () => {
+        sqlMock.mockRejectedValueOnce(new Error('boom'));
+        expect(await dismissDuplicateGroup(['a', 'b'])).toEqual({ ok: false, error: 'boom' });
     });
 });
