@@ -11,6 +11,7 @@ import {
     updateCategory,
     updateNote,
     updateDate,
+    updateExpense,
     updateExpenses,
 } from './db';
 
@@ -402,5 +403,50 @@ describe('fetchCategoryHistory', () => {
         const [query] = sqlMock.mock.calls[0];
         expect(query).toMatch(/category IS NOT NULL/);
         expect(query).toMatch(/GROUP BY name, category/);
+    });
+});
+
+describe('updateExpense', () => {
+    const valid = { id: 'e1', name: ' APPLE ', amount: 39.9, date: '2026-09-20', account: '1039', category: 'subscriptions', note: 'n' };
+
+    it('updates every editable field in one query', async () => {
+        sqlMock.mockResolvedValueOnce([]);
+
+        expect(await updateExpense(valid)).toEqual({ ok: true });
+        const [query, params] = sqlMock.mock.calls[0];
+        expect(query).toMatch(/UPDATE expenses SET name = \$1, amount = \$2, date = \$3::date, account = \$4, category = \$5, note = \$6 WHERE id = \$7/);
+        expect(params).toEqual(['APPLE', 39.9, '2026-09-20', '1039', 'subscriptions', 'n', 'e1']);
+    });
+
+    it('stringifies numeric ids and stores an empty category as null', async () => {
+        sqlMock.mockResolvedValueOnce([]);
+
+        await updateExpense({ ...valid, id: 7, category: '' });
+        const [, params] = sqlMock.mock.calls[0];
+        expect(params[4]).toBeNull();
+        expect(params[6]).toBe('7');
+    });
+
+    it.each([
+        ['missing id', { id: undefined }],
+        ['zero amount', { amount: 0 }],
+        ['NaN amount', { amount: NaN }],
+        ['non-ISO date', { date: '20/09/26' }],
+        ['blank name', { name: ' ' }],
+    ])('rejects %s', async (_label, overrides) => {
+        expect(await updateExpense({ ...valid, ...overrides })).toEqual({ ok: false, error: 'invalid expense' });
+        expect(sqlMock).not.toHaveBeenCalled();
+    });
+
+    it('rejects an unknown category', async () => {
+        expect(await updateExpense({ ...valid, category: 'nope' })).toEqual({ ok: false, error: 'unknown category' });
+        expect(sqlMock).not.toHaveBeenCalled();
+    });
+
+    it('returns { ok: false } on driver error', async () => {
+        jest.spyOn(console, 'error').mockImplementation(() => { });
+        sqlMock.mockRejectedValueOnce(new Error('boom'));
+
+        expect(await updateExpense(valid)).toEqual({ ok: false, error: 'boom' });
     });
 });

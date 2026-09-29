@@ -1,12 +1,13 @@
 'use client';
 
 import { Suspense, useState, useEffect, useMemo, useCallback, useTransition } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { orderBy } from 'lodash';
-import { CaretDownIcon, CaretLeftIcon } from '@phosphor-icons/react';
+import { CaretDownIcon, CaretLeftIcon, PencilSimpleIcon } from '@phosphor-icons/react';
 import { HomepageFilterSheet } from '@/components/organisms/HomepageFilterSheet';
 import { HomepageFilterControls } from '@/components/organisms/HomepageFilterControls';
 import { Categories } from '@/constants';
+import { EditExpenseSheet } from '@/components/organisms/EditExpenseSheet';
 
 const VALID_SORT_FIELDS = ['amount', 'date'];
 const VALID_SORT_DIRS = ['asc', 'desc'];
@@ -61,6 +62,22 @@ const getCategoricalData = (expenses = [], selectedCategories = [], idsToFilter 
 const formatCurrency = amount =>
     new Intl.NumberFormat("he-IL", { style: "currency", currency: "ILS" }).format(amount);
 
+// Tapping a row hides it from the total; the pencil edits it instead.
+function EditButton({ onClick, className = '' }) {
+    return (
+        <button
+            type="button"
+            aria-label="Edit"
+            onClick={(event) => {
+                event.stopPropagation();
+                onClick();
+            }}
+            className={`p-1 rounded text-gray-400 hover:text-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700 dark:hover:text-gray-200 shrink-0 ${className}`}>
+            <PencilSimpleIcon size={14} />
+        </button>
+    );
+}
+
 const formatShortDate = (dateStr) => {
     if (!dateStr) return '';
     const parts = dateStr.split('-');
@@ -70,8 +87,12 @@ const formatShortDate = (dateStr) => {
 
 function PlainSearchableTableInner({
     items = [],
+    updateExpense,
+    deleteExpense,
 }) {
     const searchParams = useSearchParams();
+    const router = useRouter();
+    const [editingId, setEditingId] = useState(null);
     const [searchResults, setSearchResults] = useState(items);
     const [idsToFilter, setIdsToFilter] = useState([]);
     const [collapsedCategories, setCollapsedCategories] = useState({});
@@ -139,6 +160,25 @@ function PlainSearchableTableInner({
         [sortDir]
     ), [categoricalData.Categories, sortField, sortDir]);
 
+    const editingExpense = useMemo(
+        () => searchResults.find((item) => item.id === editingId) ?? null,
+        [searchResults, editingId]
+    );
+
+    const refresh = useCallback(() => startUrlTransition(() => router.refresh()), [router]);
+
+    const handleSaved = useCallback((updated) => {
+        setSearchResults((prev) => prev.map((item) => (item.id === updated.id ? { ...item, ...updated } : item)));
+        setEditingId(null);
+        refresh();
+    }, [refresh]);
+
+    const handleDeleted = useCallback((id) => {
+        setSearchResults((prev) => prev.filter((item) => item.id !== id));
+        setEditingId(null);
+        refresh();
+    }, [refresh]);
+
     const toggleCategory = useCallback((key) =>
         setCollapsedCategories((prev) => ({ ...prev, [key]: !prev[key] })), []);
 
@@ -152,8 +192,9 @@ function PlainSearchableTableInner({
                             {sortedItems.map(item =>
                                 <li
                                     onClick={() => setIdsToFilter(prev => [...prev, item.id])}
-                                    className='bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 my-1 p-2 shadow-sm rounded flex flex-col cursor-pointer'
+                                    className='relative bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 my-1 p-2 pl-7 shadow-sm rounded flex flex-col cursor-pointer'
                                     key={item.id}>
+                                    <EditButton onClick={() => setEditingId(item.id)} className="absolute top-1 left-1" />
                                     <span className='text-sm text-gray-800 dark:text-gray-100 truncate'>{item.name.slice(0, 20)}</span>
                                     {item.note && (
                                         <span className='text-[10px] text-gray-500 dark:text-gray-400 truncate leading-tight'>{item.note}</span>
@@ -220,6 +261,7 @@ function PlainSearchableTableInner({
                                         <span className="text-sm font-medium text-gray-900 dark:text-gray-100 tabular-nums shrink-0 text-left min-w-[4rem]">
                                             {formatCurrency(item.amount)}
                                         </span>
+                                        <EditButton onClick={() => setEditingId(item.id)} />
                                     </li>
                                 ))}
                             </ul>
@@ -276,6 +318,15 @@ function PlainSearchableTableInner({
                 className={isPending ? 'opacity-60 pointer-events-none transition-opacity' : 'transition-opacity'}>
                 {viewMode === 'list' ? renderList() : renderColumns()}
             </div>
+            <EditExpenseSheet
+                expense={editingExpense}
+                open={!!editingExpense}
+                onClose={() => setEditingId(null)}
+                onSaved={handleSaved}
+                onDeleted={handleDeleted}
+                updateExpense={updateExpense}
+                deleteExpense={deleteExpense}
+            />
         </div>
     );
 }

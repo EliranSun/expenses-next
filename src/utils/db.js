@@ -1,6 +1,7 @@
 import { neon } from '@neondatabase/serverless';
 import { Accounts } from '@/constants/account';
 import { isValidInsertRow } from '@/utils';
+import { Categories } from '@/constants';
 
 const DEFAULT_LIMIT = 1000;
 
@@ -299,6 +300,25 @@ export async function updateExpenses(rows) {
         return { ok: true, data: { updated: targets.length } };
     } catch (error) {
         console.error('updateExpenses failed:', error);
+        return { ok: false, error: error.message ?? 'update failed' };
+    }
+}
+
+export async function updateExpense(row) {
+    'use server';
+    const target = row?.id != null ? { ...row, id: String(row.id) } : row;
+    if (!isValidInsertRow(target)) return { ok: false, error: 'invalid expense' };
+    const category = target.category || null;
+    if (category && !Categories[category]) return { ok: false, error: 'unknown category' };
+    try {
+        const sql = getSql();
+        await sql(
+            'UPDATE expenses SET name = $1, amount = $2, date = $3::date, account = $4, category = $5, note = $6 WHERE id = $7',
+            [target.name.trim(), target.amount, target.date, target.account.trim(), category, target.note ?? null, target.id],
+        );
+        return { ok: true };
+    } catch (error) {
+        console.error('updateExpense failed:', error);
         return { ok: false, error: error.message ?? 'update failed' };
     }
 }
