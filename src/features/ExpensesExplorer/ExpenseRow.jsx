@@ -6,7 +6,7 @@ import keys from '@/app/he.json';
 export const formatCurrency = (amount) =>
     new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(amount);
 
-const formatShortDate = (dateStr) => {
+export const formatShortDate = (dateStr) => {
     if (!dateStr) return '';
     const parts = dateStr.split('-');
     if (parts.length < 3) return dateStr;

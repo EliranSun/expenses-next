@@ -74,6 +74,59 @@ describe('ExpensesExplorer category order', () => {
     });
 });
 
+describe('ExpensesExplorer hidden expenses', () => {
+    const chip = () => screen.queryByRole('button', { name: /מוסתרות/ });
+    const popover = () => screen.getByRole('dialog', { name: 'עסקאות מוסתרות' });
+
+    it('shows no chip until something is hidden', () => {
+        render(<ExpensesExplorer items={monthItems} />);
+        expect(chip()).not.toBeInTheDocument();
+    });
+
+    it('lists hidden rows with their sum', () => {
+        render(<ExpensesExplorer items={monthItems} />);
+        fireEvent.click(screen.getByText('SUPERMARKET'));
+        fireEvent.click(screen.getByText('APPLE.COM/BILL'));
+
+        expect(chip().textContent).toMatch(/2 מוסתרות/);
+        expect(chip().textContent).toMatch(/140/);
+
+        fireEvent.click(chip());
+        expect(within(popover()).getByText('SUPERMARKET')).toBeInTheDocument();
+        expect(within(popover()).getByText('APPLE.COM/BILL')).toBeInTheDocument();
+    });
+
+    it('restores a single row to the list and the total', () => {
+        render(<ExpensesExplorer items={monthItems} />);
+        const before = total();
+        fireEvent.click(screen.getByText('SUPERMARKET'));
+        fireEvent.click(screen.getByText('APPLE.COM/BILL'));
+
+        fireEvent.click(chip());
+        fireEvent.click(within(popover()).getByRole('button', { name: 'החזרה SUPERMARKET' }));
+
+        expect(screen.getByText('SUPERMARKET')).toBeInTheDocument();
+        expect(chip().textContent).toMatch(/1 מוסתרות/);
+        expect(within(popover()).queryByText('SUPERMARKET')).not.toBeInTheDocument();
+        expect(total()).not.toBe(before);
+    });
+
+    it('restores everything at once', () => {
+        render(<ExpensesExplorer items={monthItems} />);
+        const before = total();
+        fireEvent.click(screen.getByText('SUPERMARKET'));
+        fireEvent.click(screen.getByText('APPLE.COM/BILL'));
+
+        fireEvent.click(chip());
+        fireEvent.click(screen.getByRole('button', { name: 'החזרת הכל' }));
+
+        expect(chip()).not.toBeInTheDocument();
+        expect(screen.getByText('SUPERMARKET')).toBeInTheDocument();
+        expect(screen.getByText('APPLE.COM/BILL')).toBeInTheDocument();
+        expect(total()).toBe(before);
+    });
+});
+
 describe('ExpensesExplorer calendar view', () => {
     afterEach(() => { mockParams = new URLSearchParams(); });
 

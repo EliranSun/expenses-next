@@ -16,6 +16,7 @@ import { BudgetView } from './BudgetView';
 import { TreemapView } from './TreemapView';
 import { ViewSwitcher, VIEWS } from './ViewSwitcher';
 import { MonthStepper } from './MonthStepper';
+import { HiddenExpenses } from './HiddenExpenses';
 import keys from '@/app/he.json';
 
 const VALID_SORT_FIELDS = ['amount', 'date'];
@@ -230,6 +231,27 @@ function ExpensesExplorerInner({
     }, [refresh]);
 
     const hideItem = useCallback((id) => setIdsToFilter((prev) => [...prev, id]), []);
+    const restoreItem = useCallback((id) => setIdsToFilter((prev) => prev.filter((hiddenId) => hiddenId !== id)), []);
+
+    const hiddenItems = useMemo(() => filteredItems.filter((item) =>
+        idsToFilter.includes(item.id)
+    ), [filteredItems, idsToFilter]);
+    const hiddenData = useMemo(() => getCategoricalData(hiddenItems), [hiddenItems]);
+
+    const restoreAll = useCallback(() => {
+        const shown = new Set(hiddenItems.map((item) => item.id));
+        setIdsToFilter((prev) => prev.filter((id) => !shown.has(id)));
+    }, [hiddenItems]);
+
+    const hiddenExpenses = (
+        <HiddenExpenses
+            items={hiddenItems}
+            incomeAmount={hiddenData.incomeAmount}
+            expenseAmount={hiddenData.expenseAmount}
+            onRestore={restoreItem}
+            onRestoreAll={restoreAll}
+        />
+    );
 
     const renderView = () => {
         switch (viewMode) {
@@ -293,9 +315,12 @@ function ExpensesExplorerInner({
                             <span className="text-4xl font-black tabular-nums text-gray-900 dark:text-gray-100 font-[family-name:var(--font-geist-mono)]">
                                 {formatCurrency(categoricalData.totalAmount)}
                             </span>
+                            {hiddenExpenses}
                         </div>
                     )}
-                    {viewMode === 'budget' && <div className="h-6" />}
+                    {viewMode === 'budget' && (hiddenItems.length > 0
+                        ? <div className="my-6 flex">{hiddenExpenses}</div>
+                        : <div className="h-6" />)}
                     {isPending && (
                         <div
                             role="status"

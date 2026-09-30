@@ -103,5 +103,9 @@
     "open_filters": "פתיחת סינון",
     "close": "סגירה",
     "edit": "עריכה",
+    "hidden_count": "{count} מוסתרות",
+    "hidden_expenses": "עסקאות מוסתרות",
+    "restore": "החזרה",
+    "restore_all": "החזרת הכל",
     "loading": "טוען…"
 }
