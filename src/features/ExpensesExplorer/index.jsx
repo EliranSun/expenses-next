@@ -85,6 +85,14 @@ const getCategoricalData = (expenses = []) => {
     return { Categories, totalAmount, incomeAmount, expenseAmount };
 }
 
+const summarizeCategory = (categoryItems) => {
+    const total = categoryItems.reduce((prev, curr) => prev + curr.amount, 0);
+    const timestamps = categoryItems.map((i) => i.timestamp ?? new Date(i.date).getTime());
+    const latest = timestamps.length ? Math.max(...timestamps) : 0;
+    const earliest = timestamps.length ? Math.min(...timestamps) : 0;
+    return { total, latest, earliest };
+};
+
 // One page, several views of the same month. Every view reads `visibleItems`,
 // so search, the URL filters (account/year/month/category) and tap-to-hide
 // apply to all of them alike.
@@ -138,10 +146,13 @@ function ExpensesExplorerInner({
         return raw ? raw.split(',') : [];
     }, [searchParams]);
 
-    const visibleItems = useMemo(() => searchResults.filter((item) =>
-        !idsToFilter.includes(item.id) &&
-        (selectedCategories.length === 0 || selectedCategories.includes(item.category))
-    ), [searchResults, idsToFilter, selectedCategories]);
+    const filteredItems = useMemo(() => searchResults.filter((item) =>
+        selectedCategories.length === 0 || selectedCategories.includes(item.category)
+    ), [searchResults, selectedCategories]);
+
+    const visibleItems = useMemo(() => filteredItems.filter((item) =>
+        !idsToFilter.includes(item.id)
+    ), [filteredItems, idsToFilter]);
 
     const trendHref = useCallback((category) => categoryHref({
         category,
@@ -176,21 +187,28 @@ function ExpensesExplorerInner({
 
     const categoricalData = useMemo(() => getCategoricalData(visibleItems), [visibleItems]);
 
+    // Categories are ranked by the items *before* tap-to-hide, so hiding an
+    // expense updates its card's total without reshuffling the cards around it.
+    const categoryRank = useMemo(() => {
+        const ranked = orderBy(
+            Object.entries(getCategoricalData(filteredItems).Categories)
+                .map(([key, categoryItems]) => ({ key, ...summarizeCategory(categoryItems) })),
+            [(c) => {
+                if (sortField === 'amount') return c.total;
+                return sortDir === 'asc' ? c.earliest : c.latest;
+            }],
+            [sortDir]
+        );
+        return new Map(ranked.map(({ key }, index) => [key, index]));
+    }, [filteredItems, sortField, sortDir]);
+
     const sortedCategories = useMemo(() => orderBy(
         Object.entries(categoricalData.Categories).map(([key, categoryItems]) => {
-            const total = categoryItems.reduce((prev, curr) => prev + curr.amount, 0);
-            const timestamps = categoryItems.map((i) => i.timestamp ?? new Date(i.date).getTime());
-            const latest = timestamps.length ? Math.max(...timestamps) : 0;
-            const earliest = timestamps.length ? Math.min(...timestamps) : 0;
             const sortedItems = orderBy(categoryItems, [sortField], [sortDir]);
-            return { key, categoryItems, sortedItems, total, latest, earliest };
+            return { key, categoryItems, sortedItems, ...summarizeCategory(categoryItems) };
         }),
-        [(c) => {
-            if (sortField === 'amount') return c.total;
-            return sortDir === 'asc' ? c.earliest : c.latest;
-        }],
-        [sortDir]
-    ), [categoricalData.Categories, sortField, sortDir]);
+        [(c) => categoryRank.get(c.key)]
+    ), [categoricalData.Categories, categoryRank, sortField, sortDir]);
 
     const editingExpense = useMemo(
         () => searchResults.find((item) => item.id === editingId) ?? null,

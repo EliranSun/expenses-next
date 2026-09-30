@@ -53,6 +53,27 @@ const monthItems = [
 
 const dayButton = (day) => screen.getByRole('button', { name: new RegExp(`, ${day} בספטמבר$`) });
 
+describe('ExpensesExplorer category order', () => {
+    const rankedItems = [
+        { ...monthItems[0], amount: 80 },
+        monthItems[1],
+        monthItems[2],
+    ];
+    const isBefore = (first, second) =>
+        Boolean(screen.getByText(first).compareDocumentPosition(screen.getByText(second)) & Node.DOCUMENT_POSITION_FOLLOWING);
+
+    it('hiding a row does not reshuffle the categories', () => {
+        render(<ExpensesExplorer items={rankedItems} />);
+        expect(isBefore('MARKET', 'APPLE.COM/BILL')).toBe(true);
+
+        // groceries drops from 160 to 60, below subscriptions' 80.
+        fireEvent.click(screen.getByText('SUPERMARKET'));
+
+        expect(screen.queryByText('SUPERMARKET')).not.toBeInTheDocument();
+        expect(isBefore('MARKET', 'APPLE.COM/BILL')).toBe(true);
+    });
+});
+
 describe('ExpensesExplorer calendar view', () => {
     afterEach(() => { mockParams = new URLSearchParams(); });
 
