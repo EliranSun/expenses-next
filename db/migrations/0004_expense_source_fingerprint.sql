@@ -27,9 +27,11 @@ END $$;
 -- Backfill (re-run after deploy, step 3).
 UPDATE expenses
     SET source_name = name, source_amount = amount,
+        -- ::text so this works whether date is still TEXT (mixed
+        -- 'YYYY-MM-DD' / 'DD/MM/YY') or already a DATE column.
         source_date = CASE
-            WHEN date ~ '^\d{4}-\d{2}-\d{2}' THEN date::date
-            WHEN date ~ '^\d{2}/\d{2}/\d{2}$' THEN TO_DATE(date, 'DD/MM/YY')
+            WHEN date::text ~ '^\d{4}-\d{2}-\d{2}' THEN LEFT(date::text, 10)::date
+            WHEN date::text ~ '^\d{2}/\d{2}/\d{2}$' THEN TO_DATE(date::text, 'DD/MM/YY')
         END,
         source_account = account
     WHERE source_name IS NULL AND source_amount IS NULL
