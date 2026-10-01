@@ -122,13 +122,18 @@ export async function fetchExpensesByDateRange({ startDate, endDate, accounts } 
     return rows.map(mapRow);
 }
 
-// Free-text search across every expense, newest first. A numeric query matches
+// Free-text search across every expense, newest first. Served by the
+// /api/search route (a GET, so the client can abort it) rather than a server
+// action, which Next runs one at a time and can't cancel. A numeric query matches
 // amounts within ±5%; text matches name, note, account, date or a category
 // (by key or Hebrew name).
-export async function searchExpenses(query, { limit = 100 } = {}) {
-    'use server';
-    const term = String(query ?? '').trim();
+export const SEARCH_MAX_LIMIT = 100;
+export const SEARCH_MAX_QUERY_LENGTH = 100;
+
+export async function searchExpenses(query, { limit = SEARCH_MAX_LIMIT } = {}) {
+    const term = String(query ?? '').trim().slice(0, SEARCH_MAX_QUERY_LENGTH);
     if (!term) return [];
+    const safeLimit = Math.min(Math.max(Math.trunc(Number(limit)) || SEARCH_MAX_LIMIT, 1), SEARCH_MAX_LIMIT);
     const sql = getSql();
 
     const conditions = [];
@@ -167,7 +172,7 @@ export async function searchExpenses(query, { limit = 100 } = {}) {
         WHERE date IS NOT NULL AND (${conditions.join(' OR ')})
         ORDER BY ${DATE_EXPR} DESC NULLS LAST, name ASC
         LIMIT $${params.length + 1}
-    `, [...params, limit]);
+    `, [...params, safeLimit]);
     return rows.filter((row) => row.date != null).map(mapRow);
 }
 

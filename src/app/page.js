@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { fetchExpenses, updateExpense, deleteExpense, searchExpenses } from '@/utils/db';
+import { fetchExpenses, updateExpense, deleteExpense } from '@/utils/db';
 import ExpensesExplorer from '@/features/ExpensesExplorer';
 import { MainNavBar } from '@/components/molecules/MainNavBar';
 import { Categories } from '@/constants';
@@ -66,7 +66,6 @@ export default async function Home({ searchParams }) {
         items={existingExpenses}
         updateExpense={updateExpense}
         deleteExpense={deleteExpense}
-        searchExpenses={searchExpenses}
       />
     </div>
   );

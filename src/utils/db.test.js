@@ -80,6 +80,18 @@ describe('searchExpenses', () => {
         await searchExpenses('50%_off');
         expect(sqlMock.mock.calls[1][1][0]).toBe('%50\\%\\_off%');
     });
+
+    it('clamps the limit and query length', async () => {
+        sqlMock.mockResolvedValue([]);
+
+        await searchExpenses('ab', { limit: 1e9 });
+        await searchExpenses('ab', { limit: 'x' });
+        await searchExpenses('a'.repeat(500));
+
+        expect(sqlMock.mock.calls[0][1].at(-1)).toBe(100);
+        expect(sqlMock.mock.calls[1][1].at(-1)).toBe(100);
+        expect(sqlMock.mock.calls[2][1][0]).toBe(`%${'a'.repeat(100)}%`);
+    });
 });
 
 describe('fetchExpenses', () => {

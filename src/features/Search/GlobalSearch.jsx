@@ -7,49 +7,73 @@ import { Categories } from '@/constants';
 import { AccountName } from '@/constants/account';
 import { EditButton, formatCurrency } from '@/features/ExpensesExplorer/ExpenseRow';
 import keys from '@/app/he.json';
+import { fetchSearch } from './fetchSearch';
 
 const DEBOUNCE_MS = 250;
 const LIMIT = 100;
+const MIN_LENGTH = 2;
+const CACHE_SIZE = 50;
 
 const formatFullDate = (iso) => {
     const [yyyy, mm, dd] = iso.split('-');
     return `${dd}/${mm}/${yyyy.slice(2)}`;
 };
 
+// One character matches half the table; numbers are specific enough already.
+const isSearchable = (term) => term.length >= MIN_LENGTH || /^\d+$/.test(term);
+
 // Searches every expense in the DB (not just the loaded month) and lists the
 // matches in a modal. Picking a row jumps to its month; the pencil edits it.
-export function GlobalSearch({ searchExpenses, onPick, onEdit }) {
+// Bump `version` after a mutation to drop cached results.
+export function GlobalSearch({ onPick, onEdit, version = 0, search = fetchSearch }) {
     const [open, setOpen] = useState(false);
     const [query, setQuery] = useState('');
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(false);
-    const requestRef = useRef(0);
+    const cacheRef = useRef(new Map());
+
+    useEffect(() => {
+        cacheRef.current.clear();
+    }, [version]);
 
     useEffect(() => {
         const term = query.trim();
-        const requestId = ++requestRef.current;
-        if (!open || !term) {
+        if (!open || !isSearchable(term)) {
             setResults([]);
             setLoading(false);
             return;
         }
+        const cache = cacheRef.current;
+        if (cache.has(term)) {
+            setResults(cache.get(term));
+            setLoading(false);
+            return;
+        }
         setLoading(true);
+        const controller = new AbortController();
         const timer = setTimeout(async () => {
             try {
-                const rows = await searchExpenses(term, { limit: LIMIT });
-                if (requestRef.current === requestId) setResults(rows ?? []);
+                const rows = (await search(term, { limit: LIMIT, signal: controller.signal })) ?? [];
+                if (controller.signal.aborted) return;
+                cache.set(term, rows);
+                if (cache.size > CACHE_SIZE) cache.delete(cache.keys().next().value);
+                setResults(rows);
             } catch (error) {
-                console.error('searchExpenses failed:', error);
-                if (requestRef.current === requestId) setResults([]);
-            } finally {
-                if (requestRef.current === requestId) setLoading(false);
+                if (controller.signal.aborted) return;
+                console.error('search failed:', error);
+                setResults([]);
             }
+            setLoading(false);
         }, DEBOUNCE_MS);
-        return () => clearTimeout(timer);
-    }, [query, open, searchExpenses]);
+        return () => {
+            clearTimeout(timer);
+            controller.abort();
+        };
+    }, [query, open, version, search]);
 
     const close = () => setOpen(false);
     const term = query.trim();
+    const searchable = isSearchable(term);
 
     return (
         <>
@@ -71,16 +95,16 @@ export function GlobalSearch({ searchExpenses, onPick, onEdit }) {
                     onChange={(event) => setQuery(event.target.value)}
                     className="border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 rounded-xl py-2 px-4 w-full"
                 />
-                {!term && (
+                {!searchable && (
                     <p className="text-sm text-gray-500 dark:text-gray-400">{keys.search_type_more}</p>
                 )}
-                {term && loading && (
+                {searchable && loading && (
                     <p role="status" className="text-sm text-gray-500 dark:text-gray-400">{keys.loading}</p>
                 )}
-                {term && !loading && results.length === 0 && (
+                {searchable && !loading && results.length === 0 && (
                     <p className="text-sm text-gray-500 dark:text-gray-400">{keys.search_no_results}</p>
                 )}
-                {term && results.length > 0 && (
+                {searchable && results.length > 0 && (
                     <>
                         {results.length >= LIMIT && (
                             <p className="text-xs text-gray-500 dark:text-gray-400">

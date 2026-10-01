@@ -102,7 +102,6 @@ function ExpensesExplorerInner({
     items = [],
     updateExpense,
     deleteExpense,
-    searchExpenses,
 }) {
     const searchParams = useSearchParams();
     const router = useRouter();
@@ -110,6 +109,7 @@ function ExpensesExplorerInner({
     // A search hit can be outside the loaded month, so it's edited by value.
     const [editingSearchHit, setEditingSearchHit] = useState(null);
     const [localItems, setLocalItems] = useState(items);
+    const [searchVersion, setSearchVersion] = useState(0);
     const [idsToFilter, setIdsToFilter] = useState([]);
     // Navbar clicks (year/month/account/category) trigger router.push and a
     // server refetch. Wrapping that in a transition gives us isPending so we
@@ -227,17 +227,21 @@ function ExpensesExplorerInner({
         setEditingSearchHit(null);
     }, []);
 
+    const afterMutation = useCallback(() => {
+        closeEditor();
+        setSearchVersion((v) => v + 1);
+        refresh();
+    }, [closeEditor, refresh]);
+
     const handleSaved = useCallback((updated) => {
         setLocalItems((prev) => prev.map((item) => (item.id === updated.id ? { ...item, ...updated } : item)));
-        closeEditor();
-        refresh();
-    }, [refresh, closeEditor]);
+        afterMutation();
+    }, [afterMutation]);
 
     const handleDeleted = useCallback((id) => {
         setLocalItems((prev) => prev.filter((item) => item.id !== id));
-        closeEditor();
-        refresh();
-    }, [refresh, closeEditor]);
+        afterMutation();
+    }, [afterMutation]);
 
     // Jump to the hit's month with account/category cleared so it's visible.
     const goToSearchHit = useCallback((item) => navigate({
@@ -249,7 +253,7 @@ function ExpensesExplorerInner({
 
     const search = (
         <GlobalSearch
-            searchExpenses={searchExpenses}
+            version={searchVersion}
             onPick={goToSearchHit}
             onEdit={setEditingSearchHit}
         />
