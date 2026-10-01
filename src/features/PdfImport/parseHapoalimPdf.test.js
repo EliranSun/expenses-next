@@ -2,6 +2,12 @@ import { parseHapoalimPages, rowsToTsv } from './parseHapoalimPdf';
 import { parseTextToRows } from '@/utils';
 import { markDuplicates } from '@/features/PasteableExpensesTable/parseAndPrepareRows';
 
+// DB rows carry their import fingerprint; these fixtures were never edited.
+const withSource = (expense) => ({
+    ...expense,
+    source: { name: expense.name, amount: expense.amount, date: expense.date, account: expense.account },
+});
+
 // Positional fixtures mimic pdfjs text items: x grows left-to-right, y grows
 // bottom-to-top. Hebrew words in a line are separate items ordered by x.
 const item = (str, x, y) => ({ str, x, y });
@@ -126,7 +132,7 @@ describe('rowsToTsv', () => {
 
 describe('markDuplicates matchName option', () => {
     const row = { id: 'a', name: 'ודניאל וטרנריה בע \'\' מ', date: '2026-09-20', account: '8580', amount: 139 };
-    const existing = [{ name: 'וטרינריה דניאל בע"מ', date: '2026-09-20', account: '8580', amount: 139 }];
+    const existing = [withSource({ name: 'וטרינריה דניאל בע"מ', date: '2026-09-20', account: '8580', amount: 139 })];
 
     it('requires a name match by default', () => {
         expect(markDuplicates([row], existing)[0].isDuplicate).toBeUndefined();
@@ -134,7 +140,7 @@ describe('markDuplicates matchName option', () => {
 
     it('matches names that differ only in spacing around punctuation', () => {
         const pasted = { ...row, name: 'הוראת-קבע - פרטי' };
-        const saved = [{ ...existing[0], name: 'הוראת - קבע - פרטי' }];
+        const saved = [withSource({ ...existing[0], name: 'הוראת - קבע - פרטי' })];
         expect(markDuplicates([pasted], saved)[0].isDuplicate).toBe(true);
     });
 

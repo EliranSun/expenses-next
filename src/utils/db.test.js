@@ -261,8 +261,8 @@ describe('fetchExpensesByDateRange', () => {
         const [row] = await fetchExpensesByDateRange({ startDate: '2025-01-01', endDate: '2025-02-01', accounts: ['3361'] });
 
         const [query, params] = sqlMock.mock.calls[0];
-        expect(query).toMatch(/COALESCE\(source_date, .*\) >= \$1::date/s);
-        expect(query).toMatch(/COALESCE\(source_account, account\) IN \(\$3\)/);
+        expect(query).toMatch(/source_date >= \$1::date/);
+        expect(query).toMatch(/source_account IN \(\$3\)/);
         expect(params).toEqual(['2025-01-01', '2025-02-01', '3361']);
         expect(row).toMatchObject({
             date: '2025-02-10',
@@ -403,26 +403,6 @@ describe('insertExpenses', () => {
         const [query] = sqlMock.mock.calls[0];
         expect(query).toMatch(/source_name, source_amount, source_date, source_account/);
         expect(query).toContain('($1, $2, $3::date, $4, $5, $6, $1, $2, $3::date, $4)');
-    });
-
-    it('adds the source columns and retries once when they are missing', async () => {
-        const missing = Object.assign(new Error('column "source_name" does not exist'), { code: '42703' });
-        let attempts = 0;
-        sqlMock.mockImplementation(async (query) => {
-            if (!/INSERT INTO expenses/.test(query)) return [];
-            attempts += 1;
-            if (attempts === 1) throw missing;
-            return [{ id: 'i1' }];
-        });
-
-        const res = await insertExpenses([{ name: 'a', amount: 1, date: '2025-01-01', account: '3361', category: 'food', id: 'i1' }]);
-
-        expect(res).toMatchObject({ ok: true, data: { ids: ['i1'] } });
-        expect(sqlMock.transaction).toHaveBeenCalledTimes(1);
-        const ddl = sqlMock.mock.calls.slice(1, 5).map(([q]) => q).join('\n');
-        expect(ddl).toMatch(/ADD COLUMN IF NOT EXISTS source_name/);
-        expect(ddl).toMatch(/source_amount %s/);
-        expect(ddl).toMatch(/UPDATE expenses\s+SET source_name = name/);
     });
 
     it('returns { ok: false } on driver error', async () => {
@@ -605,7 +585,7 @@ describe('findDuplicateGroups', () => {
         const [result] = await findDuplicateGroups();
 
         const [query] = sqlMock.mock.calls[0];
-        expect(query).toContain('GROUP BY TRIM(COALESCE(source_name, name)), COALESCE(source_amount, amount)');
+        expect(query).toContain('GROUP BY TRIM(source_name), source_amount, source_date');
         expect(query).toContain('HAVING COUNT(*) > 1');
         expect(result).toMatchObject({ key: 'a|b', name: 'WOLT', amount: 42, date: '2025-03-04' });
         expect(result.rows.map((r) => r.id)).toEqual(['a', 'b']);

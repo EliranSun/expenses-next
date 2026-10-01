@@ -56,47 +56,9 @@ function mapRow(expense) {
 
 // The bank values a row was imported with (its fingerprint). Editing an
 // expense changes name/amount/date/account but never these, so pasting the
-// same bank row again is still recognized as a duplicate. Rows that predate
-// the columns are backfilled from their values at migration time.
-// Same statements as db/migrations/0004_expense_source_fingerprint.sql.
-const SOURCE_COLUMNS_DDL = [
-    `ALTER TABLE expenses
-        ADD COLUMN IF NOT EXISTS source_name TEXT,
-        ADD COLUMN IF NOT EXISTS source_date DATE,
-        ADD COLUMN IF NOT EXISTS source_account TEXT`,
-    // Same type as amount, so float comparisons stay exact.
-    `DO $$ BEGIN
-        EXECUTE format('ALTER TABLE expenses ADD COLUMN IF NOT EXISTS source_amount %s',
-            (SELECT format_type(atttypid, atttypmod) FROM pg_attribute
-             WHERE attrelid = 'expenses'::regclass AND attname = 'amount'));
-    END $$`,
-    `UPDATE expenses
-        SET source_name = name, source_amount = amount,
-            source_date = ${DATE_EXPR}, source_account = account
-        WHERE source_name IS NULL AND source_amount IS NULL
-          AND source_date IS NULL AND source_account IS NULL`,
-    `CREATE INDEX IF NOT EXISTS expenses_source_account_date_idx
-        ON expenses (source_account, source_date)`,
-];
-
-const SOURCE_DATE = `COALESCE(source_date, ${DATE_EXPR})`;
-const SOURCE_ACCOUNT = 'COALESCE(source_account, account)';
-const SOURCE_SELECT = 'COALESCE(source_name, name) AS source_name, '
-    + 'COALESCE(source_amount, amount) AS source_amount, '
-    + `${SOURCE_DATE} AS source_date, `
-    + `${SOURCE_ACCOUNT} AS source_account`;
-
-// 42703 = undefined_column: migration 0004 not applied yet. Apply it and
-// retry once, like duplicate_dismissals does for its table.
-async function withSourceColumns(sql, query) {
-    try {
-        return await query();
-    } catch (error) {
-        if (error?.code !== '42703') throw error;
-        await sql.transaction(SOURCE_COLUMNS_DDL.map((statement) => sql(statement)));
-        return query();
-    }
-}
+// same bank row again is still recognized as a duplicate. Added and
+// backfilled by db/migrations/0004_expense_source_fingerprint.sql.
+const SOURCE_SELECT = 'source_name, source_amount, source_date, source_account';
 
 const mapNullableRow = (row) =>
     (row.date ? mapRow(row) : { ...row, month: null, year: null, timestamp: null });
@@ -161,14 +123,14 @@ export async function fetchExpensesByDateRange({ startDate, endDate, accounts } 
     // Filtered by fingerprint, not current values: this feeds duplicate
     // detection, and an edited row must still match its original bank line.
     const conditions = [
-        `${SOURCE_DATE} >= $1::date`,
-        `${SOURCE_DATE} < $2::date`,
+        'source_date >= $1::date',
+        'source_date < $2::date',
     ];
     const params = [startDate, endDate];
 
     if (Array.isArray(accounts) && accounts.length > 0) {
         const placeholders = accounts.map((_, i) => `$${params.length + i + 1}`).join(', ');
-        conditions.push(`${SOURCE_ACCOUNT} IN (${placeholders})`);
+        conditions.push(`source_account IN (${placeholders})`);
         params.push(...accounts);
     }
 
@@ -178,7 +140,7 @@ export async function fetchExpensesByDateRange({ startDate, endDate, accounts } 
         WHERE ${conditions.join(' AND ')}
     `;
 
-    const rows = await withSourceColumns(sql, () => sql(query, params));
+    const rows = await sql(query, params);
     return rows.map((row) => mapNullableRow(splitSource(row)));
 }
 
@@ -305,7 +267,7 @@ export async function getUnhandledExpenses({ year, month, account, limit = DEFAU
     `;
     params.push(limit);
 
-    const rows = await withSourceColumns(sql, () => sql(query, params));
+    const rows = await sql(query, params);
     return rows.map((row) => mapNullableRow(splitSource(row)));
 }
 
@@ -369,24 +331,22 @@ const CREATE_DISMISSALS_TABLE = `
 // Grouping by fingerprint keeps an edited copy in its group.
 export async function findDuplicateGroups({ limit = 500 } = {}) {
     const sql = getSql();
-    const name = 'TRIM(COALESCE(source_name, name))';
-    const amount = 'COALESCE(source_amount, amount)';
     const [groups, dismissed] = await Promise.all([
-        withSourceColumns(sql, () => sql(`
-            SELECT ${name} AS name, ${amount} AS amount, ${SOURCE_DATE} AS date,
+        sql(`
+            SELECT TRIM(source_name) AS name, source_amount AS amount, source_date AS date,
                    json_agg(json_build_object(
                        'id', id, 'name', name, 'amount', amount,
                        'account', account, 'category', category, 'note', note
                    ) ORDER BY id) AS rows
             FROM expenses
-            WHERE ${name} <> ''
-              AND ${amount} IS NOT NULL
-              AND ${SOURCE_DATE} IS NOT NULL
-            GROUP BY ${name}, ${amount}, ${SOURCE_DATE}
+            WHERE source_name IS NOT NULL AND TRIM(source_name) <> ''
+              AND source_amount IS NOT NULL
+              AND source_date IS NOT NULL
+            GROUP BY TRIM(source_name), source_amount, source_date
             HAVING COUNT(*) > 1
-            ORDER BY ${SOURCE_DATE} DESC, ${name} ASC
+            ORDER BY source_date DESC, TRIM(source_name) ASC
             LIMIT $1
-        `, [limit])),
+        `, [limit]),
         fetchDismissedIdSets(sql),
     ]);
 
@@ -478,7 +438,7 @@ export async function insertExpenses(rows) {
         `;
         // Single multi-row INSERT is atomic in Postgres. RETURNING preserves
         // VALUES order, so ids[i] corresponds to validRows[i].
-        const inserted = await withSourceColumns(sql, () => sql(query, values.flat()));
+        const inserted = await sql(query, values.flat());
         const ids = inserted.map((r) => r.id);
         return { ok: true, data: { inserted: ids.length, skipped, ids } };
     } catch (error) {

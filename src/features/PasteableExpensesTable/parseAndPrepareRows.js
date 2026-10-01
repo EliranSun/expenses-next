@@ -30,12 +30,13 @@ export function parseAndPrepareRows(text, alreadyStaged = []) {
 
 // An expense matches a pasted row by its fingerprint: the bank values it was
 // imported with (`source`, loaded from the DB), so later edits to its name,
-// amount, date or account don't hide it. Falls back to the current values.
+// amount, date or account don't hide it.
 // PDF-extracted names can differ slightly from the pasted names already in the
 // DB beyond spacing/punctuation (glyph extraction), so PDF imports skip the name check.
 export function matchesFingerprint(expense, row, { matchName = true } = {}) {
-    const fingerprint = expense.source ?? expense;
-    return (!matchName || isSameName(fingerprint.name, row.name)) &&
+    const fingerprint = expense.source;
+    return !!fingerprint &&
+        (!matchName || isSameName(fingerprint.name, row.name)) &&
         fingerprint.amount === row.amount &&
         fingerprint.date === row.date &&
         fingerprint.account === row.account;

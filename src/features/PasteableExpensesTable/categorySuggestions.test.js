@@ -55,7 +55,7 @@ describe('enrichRows', () => {
 
     it('marks duplicates and suggests categories', async () => {
         const [row] = await enrichRows(rows, {
-            fetchExpensesByDateRange: async () => [{ ...rows[0], id: 'db' }],
+            fetchExpensesByDateRange: async () => [{ ...rows[0], id: 'db', source: rows[0] }],
             fetchCategoryHistory: async () => [{ name: 'APPLE.COM/BILL', category: 'subscriptions', count: 1 }],
         });
         expect(row).toMatchObject({ isDuplicate: true, category: 'subscriptions' });
