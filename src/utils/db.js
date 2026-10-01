@@ -122,6 +122,55 @@ export async function fetchExpensesByDateRange({ startDate, endDate, accounts } 
     return rows.map(mapRow);
 }
 
+// Free-text search across every expense, newest first. A numeric query matches
+// amounts within ±5%; text matches name, note, account, date or a category
+// (by key or Hebrew name).
+export async function searchExpenses(query, { limit = 100 } = {}) {
+    'use server';
+    const term = String(query ?? '').trim();
+    if (!term) return [];
+    const sql = getSql();
+
+    const conditions = [];
+    const params = [];
+    const amount = Number(term.replace(/,/g, ''));
+
+    if (!Number.isNaN(amount) && amount !== 0) {
+        const abs = Math.abs(amount);
+        conditions.push(`ABS(amount) BETWEEN $${params.length + 1} AND $${params.length + 2}`);
+        params.push(abs * 0.95, abs * 1.05);
+    }
+
+    const like = `%${term.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
+    const p = params.length + 1;
+    params.push(like);
+    const textConditions = [
+        `name ILIKE $${p}`,
+        `note ILIKE $${p}`,
+        `account ILIKE $${p}`,
+        `TO_CHAR(${DATE_EXPR}, 'DD/MM/YYYY') ILIKE $${p}`,
+    ];
+    const lower = term.toLowerCase();
+    const categoryKeys = Object.entries(Categories)
+        .filter(([key, { name }]) => key.includes(lower) || name.includes(term))
+        .map(([key]) => key);
+    if (categoryKeys.length) {
+        const placeholders = categoryKeys.map((_, i) => `$${params.length + i + 1}`).join(', ');
+        textConditions.push(`category IN (${placeholders})`);
+        params.push(...categoryKeys);
+    }
+    conditions.push(...textConditions);
+
+    const rows = await sql(`
+        SELECT name, amount, ${DATE_EXPR} AS date, account, category, id, note
+        FROM expenses
+        WHERE date IS NOT NULL AND (${conditions.join(' OR ')})
+        ORDER BY ${DATE_EXPR} DESC NULLS LAST, name ASC
+        LIMIT $${params.length + 1}
+    `, [...params, limit]);
+    return rows.filter((row) => row.date != null).map(mapRow);
+}
+
 // Per-month, per-category sums for the category analytics page. Income is
 // summed as absolute values (some income rows are negative), matching
 // groupExpensesByMonth; expense refunds stay negative so they net out.

@@ -13,8 +13,7 @@ import { HomepageFilterControls } from './HomepageFilterControls';
 
 const renderControls = (props = {}) => render(
     <HomepageFilterControls
-        searchItems={[]}
-        onSearch={jest.fn()}
+        search={<input placeholder="חיפוש" />}
         sortCriteria={['amount', 'desc']}
         setSortCriteria={jest.fn()}
         {...props}

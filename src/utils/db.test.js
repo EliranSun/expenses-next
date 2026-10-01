@@ -8,6 +8,7 @@ import {
     findDuplicateGroups,
     dismissDuplicateGroup,
     getUnhandledExpenses,
+    searchExpenses,
     deleteExpense,
     deleteExpenses,
     insertExpenses,
@@ -42,6 +43,43 @@ const dbRow = (overrides = {}) => ({
     id: '1',
     note: null,
     ...overrides,
+});
+
+describe('searchExpenses', () => {
+    it('skips the query for a blank term', async () => {
+        expect(await searchExpenses('   ')).toEqual([]);
+        expect(sqlMock).not.toHaveBeenCalled();
+    });
+
+    it('matches text against name/note/account/date and Hebrew category names', async () => {
+        sqlMock.mockResolvedValueOnce([dbRow({ date: '2025-03-04' })]);
+
+        const [result] = await searchExpenses('מצרכים');
+
+        const [query, params] = sqlMock.mock.calls[0];
+        expect(query).toMatch(/name ILIKE \$1/);
+        expect(query).toMatch(/note ILIKE \$1/);
+        expect(query).toMatch(/category IN \(\$2\)/);
+        expect(params).toEqual(['%מצרכים%', 'groceries', 100]);
+        expect(result).toMatchObject({ date: '2025-03-04', month: 3, year: 25 });
+    });
+
+    it('matches a number against amounts within 5% and escapes LIKE wildcards', async () => {
+        sqlMock.mockResolvedValueOnce([]);
+
+        await searchExpenses('100', { limit: 20 });
+
+        const [query, params] = sqlMock.mock.calls[0];
+        expect(query).toMatch(/ABS\(amount\) BETWEEN \$1 AND \$2/);
+        expect(params[0]).toBeCloseTo(95);
+        expect(params[1]).toBeCloseTo(105);
+        expect(params[2]).toBe('%100%');
+        expect(params.at(-1)).toBe(20);
+
+        sqlMock.mockResolvedValueOnce([]);
+        await searchExpenses('50%_off');
+        expect(sqlMock.mock.calls[1][1][0]).toBe('%50\\%\\_off%');
+    });
 });
 
 describe('fetchExpenses', () => {

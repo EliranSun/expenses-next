@@ -5,8 +5,7 @@ import { BottomSheet } from '../molecules/BottomSheet';
 import { HomepageFilterControls } from './HomepageFilterControls';
 
 export function HomepageFilterSheet({
-    searchItems,
-    onSearch,
+    search,
     sortCriteria,
     setSortCriteria,
     onUrlChange,
@@ -22,8 +21,7 @@ export function HomepageFilterSheet({
     return (
         <BottomSheet hasIndicator={hasActiveFilter}>
             <HomepageFilterControls
-                searchItems={searchItems}
-                onSearch={onSearch}
+                search={search}
                 sortCriteria={sortCriteria}
                 setSortCriteria={setSortCriteria}
                 onUrlChange={onUrlChange}
