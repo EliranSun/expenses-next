@@ -13,6 +13,12 @@ jest.mock('next/font/google', () => ({
 import TextToExpensesTable from './index';
 import { MobilePasteScreen } from './MobilePasteScreen';
 
+// DB rows carry their import fingerprint; these fixtures were never edited.
+const withSource = (expense) => ({
+    ...expense,
+    source: { name: expense.name, amount: expense.amount, date: expense.date, account: expense.account },
+});
+
 // Each TableRow renders exactly one 🗑️ delete button (table-row.jsx).
 // Counting those is a stable proxy for the number of rendered rows.
 const renderedRowCount = () =>
@@ -144,7 +150,7 @@ describe('TextToExpensesTable', () => {
 
     describe('duplicate detection against DB rows', () => {
         it('marks a pasted row as duplicate when all four fields match a DB row', async () => {
-            const dbRow = { id: 'db-1', name: 'APPLE.COM/BILL', amount: 69.90, date: '2025-01-28', account: '3361' };
+            const dbRow = withSource({ id: 'db-1', name: 'APPLE.COM/BILL', amount: 69.90, date: '2025-01-28', account: '3361' });
             const fetchExpensesByDateRange = jest.fn(async () => [dbRow]);
 
             render(<TextToExpensesTable fetchExpensesByDateRange={fetchExpensesByDateRange} />);
@@ -158,7 +164,7 @@ describe('TextToExpensesTable', () => {
 
         it('does not mark when name differs', async () => {
             const fetchExpensesByDateRange = jest.fn(async () => [
-                { id: 'db-1', name: 'DIFFERENT', amount: 69.90, date: '2025-01-28', account: '3361' },
+                withSource({ id: 'db-1', name: 'DIFFERENT', amount: 69.90, date: '2025-01-28', account: '3361' }),
             ]);
 
             render(<TextToExpensesTable fetchExpensesByDateRange={fetchExpensesByDateRange} />);
@@ -171,7 +177,7 @@ describe('TextToExpensesTable', () => {
 
         it('does not mark when amount differs', async () => {
             const fetchExpensesByDateRange = jest.fn(async () => [
-                { id: 'db-1', name: 'APPLE.COM/BILL', amount: 1.00, date: '2025-01-28', account: '3361' },
+                withSource({ id: 'db-1', name: 'APPLE.COM/BILL', amount: 1.00, date: '2025-01-28', account: '3361' }),
             ]);
 
             render(<TextToExpensesTable fetchExpensesByDateRange={fetchExpensesByDateRange} />);
@@ -184,7 +190,7 @@ describe('TextToExpensesTable', () => {
 
         it('does not mark when account differs', async () => {
             const fetchExpensesByDateRange = jest.fn(async () => [
-                { id: 'db-1', name: 'APPLE.COM/BILL', amount: 69.90, date: '2025-01-28', account: '9999' },
+                withSource({ id: 'db-1', name: 'APPLE.COM/BILL', amount: 69.90, date: '2025-01-28', account: '9999' }),
             ]);
 
             render(<TextToExpensesTable fetchExpensesByDateRange={fetchExpensesByDateRange} />);
@@ -225,7 +231,7 @@ describe('TextToExpensesTable', () => {
 
         it('does not mark when date differs', async () => {
             const fetchExpensesByDateRange = jest.fn(async () => [
-                { id: 'db-1', name: 'APPLE.COM/BILL', amount: 69.90, date: '2024-01-28', account: '3361' },
+                withSource({ id: 'db-1', name: 'APPLE.COM/BILL', amount: 69.90, date: '2024-01-28', account: '3361' }),
             ]);
 
             render(<TextToExpensesTable fetchExpensesByDateRange={fetchExpensesByDateRange} />);
