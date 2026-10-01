@@ -7,7 +7,7 @@ import { run } from "@/utils/action";
 import { MobilePasteScreen } from "./MobilePasteScreen";
 import { PdfImportButton } from "@/features/PdfImport/PdfImportButton";
 import { ManualExpenseButton } from "@/features/ManualExpense/ManualExpenseButton";
-import { isSameName } from "./categorySuggestions";
+import { matchesFingerprint } from "./parseAndPrepareRows";
 
 export default function TextToExpensesTable({
     expenses = [],
@@ -19,14 +19,9 @@ export default function TextToExpensesTable({
     updateDate,
     deleteExpense
 }) {
-    const pasteFilterLogic = useCallback((row) => !expenses.some(expense => {
-        return expense.id === row.id || (
-            isSameName(expense.name, row.name) &&
-            expense.amount === row.amount &&
-            expense.account === row.account &&
-            expense.date === row.date
-        );
-    }, [expenses]));
+    const pasteFilterLogic = useCallback((row) => !expenses.some((expense) =>
+        expense.id === row.id || matchesFingerprint(expense, row)
+    ), [expenses]);
 
     const [rows, setRows, ingest, addRows] = usePasteToRows(expenses, pasteFilterLogic, fetchExpensesByDateRange, fetchCategoryHistory);
 

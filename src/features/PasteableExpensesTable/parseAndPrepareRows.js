@@ -28,20 +28,25 @@ export function parseAndPrepareRows(text, alreadyStaged = []) {
         });
 }
 
+// An expense matches a pasted row by its fingerprint: the bank values it was
+// imported with (`source`, loaded from the DB), so later edits to its name,
+// amount, date or account don't hide it. Falls back to the current values.
 // PDF-extracted names can differ slightly from the pasted names already in the
 // DB beyond spacing/punctuation (glyph extraction), so PDF imports skip the name check.
+export function matchesFingerprint(expense, row, { matchName = true } = {}) {
+    const fingerprint = expense.source ?? expense;
+    return (!matchName || isSameName(fingerprint.name, row.name)) &&
+        fingerprint.amount === row.amount &&
+        fingerprint.date === row.date &&
+        fingerprint.account === row.account;
+}
+
 export function markDuplicates(rows, existingExpenses = [], { matchName = true } = {}) {
     if (rows.length === 0 || existingExpenses.length === 0) {
         return rows;
     }
     return rows.map((row) => {
-        const isDuplicate = existingExpenses.some((expense) =>
-            (!matchName || isSameName(expense.name, row.name)) &&
-            expense.amount === row.amount &&
-            expense.date === row.date &&
-            expense.account === row.account
-        );
-
+        const isDuplicate = existingExpenses.some((expense) => matchesFingerprint(expense, row, { matchName }));
         return isDuplicate ? { ...row, isDuplicate: true } : row;
     });
 }

@@ -195,6 +195,34 @@ describe('TextToExpensesTable', () => {
             expect(duplicateBadgeCount()).toBe(0);
         });
 
+        it('marks a row whose DB copy was edited but keeps the same source fingerprint', async () => {
+            const fetchExpensesByDateRange = jest.fn(async () => [{
+                id: 'db-1', name: 'Apple subscription', amount: 70, date: '2025-02-03', account: '9325',
+                source: { name: 'APPLE.COM/BILL', amount: 69.90, date: '2025-01-28', account: '3361' },
+            }]);
+
+            render(<TextToExpensesTable fetchExpensesByDateRange={fetchExpensesByDateRange} />);
+
+            paste('APPLE.COM/BILL\t28/01/25\t3361\tfoo\t69.90 ₪');
+
+            await waitFor(() => expect(renderedRowCount()).toBe(1));
+            await waitFor(() => expect(duplicateBadgeCount()).toBe(1));
+        });
+
+        it('skips a pasted row matching an on-page expense by its source fingerprint', async () => {
+            const expenses = [{
+                id: 'db-1', name: 'APPLE.COM/BILL', amount: 69.90, date: '2025-02-03', account: '3361', category: null,
+                source: { name: 'APPLE.COM/BILL', amount: 69.90, date: '2025-01-28', account: '3361' },
+            }];
+
+            render(<TextToExpensesTable expenses={expenses} />);
+
+            paste('APPLE.COM/BILL\t28/01/25\t3361\tfoo\t69.90 ₪');
+
+            await new Promise((r) => setTimeout(r, 50));
+            expect(renderedRowCount()).toBe(1);
+        });
+
         it('does not mark when date differs', async () => {
             const fetchExpensesByDateRange = jest.fn(async () => [
                 { id: 'db-1', name: 'APPLE.COM/BILL', amount: 69.90, date: '2024-01-28', account: '3361' },

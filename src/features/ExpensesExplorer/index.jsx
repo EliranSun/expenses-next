@@ -7,6 +7,7 @@ import { HomepageFilterSheet } from '@/components/organisms/HomepageFilterSheet'
 import { HomepageFilterControls } from '@/components/organisms/HomepageFilterControls';
 import { EditExpenseSheet } from '@/components/organisms/EditExpenseSheet';
 import { buildSearchParams } from '@/components/molecules/navbar';
+import { GlobalSearch } from '@/features/Search/GlobalSearch';
 import { categoryHref } from '@/utils/categoryRange';
 import { formatCurrency } from './ExpenseRow';
 import { ListView } from './ListView';
@@ -95,8 +96,8 @@ const summarizeCategory = (categoryItems) => {
 };
 
 // One page, several views of the same month. Every view reads `visibleItems`,
-// so search, the URL filters (account/year/month/category) and tap-to-hide
-// apply to all of them alike.
+// so the URL filters (account/year/month/category) and tap-to-hide apply to
+// all of them alike. Search is separate: it queries the whole DB in a modal.
 function ExpensesExplorerInner({
     items = [],
     updateExpense,
@@ -105,7 +106,10 @@ function ExpensesExplorerInner({
     const searchParams = useSearchParams();
     const router = useRouter();
     const [editingId, setEditingId] = useState(null);
-    const [searchResults, setSearchResults] = useState(items);
+    // A search hit can be outside the loaded month, so it's edited by value.
+    const [editingSearchHit, setEditingSearchHit] = useState(null);
+    const [localItems, setLocalItems] = useState(items);
+    const [searchVersion, setSearchVersion] = useState(0);
     const [idsToFilter, setIdsToFilter] = useState([]);
     // Navbar clicks (year/month/account/category) trigger router.push and a
     // server refetch. Wrapping that in a transition gives us isPending so we
@@ -135,7 +139,7 @@ function ExpensesExplorerInner({
     }, []);
 
     useEffect(() => {
-        setSearchResults(items);
+        setLocalItems(items);
     }, [items]);
 
     const year = searchParams.get('year') || '';
@@ -147,9 +151,9 @@ function ExpensesExplorerInner({
         return raw ? raw.split(',') : [];
     }, [searchParams]);
 
-    const filteredItems = useMemo(() => searchResults.filter((item) =>
+    const filteredItems = useMemo(() => localItems.filter((item) =>
         selectedCategories.length === 0 || selectedCategories.includes(item.category)
-    ), [searchResults, selectedCategories]);
+    ), [localItems, selectedCategories]);
 
     const visibleItems = useMemo(() => filteredItems.filter((item) =>
         !idsToFilter.includes(item.id)
@@ -212,23 +216,48 @@ function ExpensesExplorerInner({
     ), [categoricalData.Categories, categoryRank, sortField, sortDir]);
 
     const editingExpense = useMemo(
-        () => searchResults.find((item) => item.id === editingId) ?? null,
-        [searchResults, editingId]
+        () => editingSearchHit ?? localItems.find((item) => item.id === editingId) ?? null,
+        [editingSearchHit, localItems, editingId]
     );
 
     const refresh = useCallback(() => startUrlTransition(() => router.refresh()), [router]);
 
-    const handleSaved = useCallback((updated) => {
-        setSearchResults((prev) => prev.map((item) => (item.id === updated.id ? { ...item, ...updated } : item)));
+    const closeEditor = useCallback(() => {
         setEditingId(null);
+        setEditingSearchHit(null);
+    }, []);
+
+    const afterMutation = useCallback(() => {
+        closeEditor();
+        setSearchVersion((v) => v + 1);
         refresh();
-    }, [refresh]);
+    }, [closeEditor, refresh]);
+
+    const handleSaved = useCallback((updated) => {
+        setLocalItems((prev) => prev.map((item) => (item.id === updated.id ? { ...item, ...updated } : item)));
+        afterMutation();
+    }, [afterMutation]);
 
     const handleDeleted = useCallback((id) => {
-        setSearchResults((prev) => prev.filter((item) => item.id !== id));
-        setEditingId(null);
-        refresh();
-    }, [refresh]);
+        setLocalItems((prev) => prev.filter((item) => item.id !== id));
+        afterMutation();
+    }, [afterMutation]);
+
+    // Jump to the hit's month with account/category cleared so it's visible.
+    const goToSearchHit = useCallback((item) => navigate({
+        year: String(item.year).padStart(2, '0'),
+        month: String(item.month).padStart(2, '0'),
+        account: null,
+        category: null,
+    }), [navigate]);
+
+    const search = (
+        <GlobalSearch
+            version={searchVersion}
+            onPick={goToSearchHit}
+            onEdit={setEditingSearchHit}
+        />
+    );
 
     const hideItem = useCallback((id) => setIdsToFilter((prev) => [...prev, id]), []);
     const restoreItem = useCallback((id) => setIdsToFilter((prev) => prev.filter((hiddenId) => hiddenId !== id)), []);
@@ -281,8 +310,7 @@ function ExpensesExplorerInner({
         <div className="w-full max-w-screen-xl mx-auto">
             <div className="md:hidden">
                 <HomepageFilterSheet
-                    searchItems={items}
-                    onSearch={setSearchResults}
+                    search={search}
                     sortCriteria={sortCriteria}
                     setSortCriteria={setSortCriteria}
                     onUrlChange={startUrlTransition}
@@ -291,8 +319,7 @@ function ExpensesExplorerInner({
             <div className="md:flex md:flex-col lg:grid lg:grid-cols-3 lg:gap-6 lg:items-start">
                 <aside className="hidden md:block mb-4 lg:mb-0 lg:order-last lg:col-span-1 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto">
                     <HomepageFilterControls
-                        searchItems={items}
-                        onSearch={setSearchResults}
+                        search={search}
                         sortCriteria={sortCriteria}
                         setSortCriteria={setSortCriteria}
                         onUrlChange={startUrlTransition}
@@ -340,7 +367,7 @@ function ExpensesExplorerInner({
             <EditExpenseSheet
                 expense={editingExpense}
                 open={!!editingExpense}
-                onClose={() => setEditingId(null)}
+                onClose={closeEditor}
                 onSaved={handleSaved}
                 onDeleted={handleDeleted}
                 updateExpense={updateExpense}

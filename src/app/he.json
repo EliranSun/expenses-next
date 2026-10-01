@@ -107,5 +107,11 @@
     "hidden_expenses": "עסקאות מוסתרות",
     "restore": "החזרה",
     "restore_all": "החזרת הכל",
-    "loading": "טוען…"
+    "loading": "טוען…",
+    "search_all": "חיפוש בכל העסקאות",
+    "search_results": "תוצאות חיפוש",
+    "search_no_results": "לא נמצאו עסקאות",
+    "search_type_more": "הקלידו לחיפוש בכל העסקאות",
+    "search_limit": "מוצגות {count} התוצאות האחרונות",
+    "go_to_month": "מעבר לחודש"
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { XIcon } from '@phosphor-icons/react';
 
@@ -14,7 +15,7 @@ export function Modal({ open, onClose, title, children }) {
         return () => document.removeEventListener('keydown', handleKey);
     }, [open, onClose]);
 
-    return (
+    const content = (
         <AnimatePresence>
             {open && (
                 <motion.div
@@ -48,4 +49,8 @@ export function Modal({ open, onClose, title, children }) {
             )}
         </AnimatePresence>
     );
+
+    // Portal out of any transformed/sticky ancestor (e.g. the filters sheet),
+    // which would otherwise trap `position: fixed` inside it.
+    return typeof document === 'undefined' ? content : createPortal(content, document.body);
 }

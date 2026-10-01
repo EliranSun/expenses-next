@@ -1,13 +1,11 @@
 'use client';
 
 import { CalendarIcon, CoinsIcon } from '@phosphor-icons/react';
-import Search from '@/features/Search';
 import { Navbar } from '../molecules/navbar';
 import keys from '@/app/he.json';
 
 export function HomepageFilterControls({
-    searchItems,
-    onSearch,
+    search,
     sortCriteria,
     setSortCriteria,
     onUrlChange,
@@ -25,7 +23,7 @@ export function HomepageFilterControls({
         <div className="flex flex-col gap-4 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 shadow-sm">
             <div className="flex flex-col md:flex-row lg:flex-col gap-3 md:items-center lg:items-stretch">
                 <div className="flex-1 min-w-0">
-                    <Search items={searchItems} onSearch={onSearch} />
+                    {search}
                 </div>
                 <div role="group" aria-label={keys.sort} className="flex flex-wrap gap-2 shrink-0">
                     <button
