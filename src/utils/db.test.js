@@ -8,6 +8,7 @@ import {
     findDuplicateGroups,
     dismissDuplicateGroup,
     getUnhandledExpenses,
+    fetchExpensesByDateRange,
     searchExpenses,
     deleteExpense,
     deleteExpenses,
@@ -250,6 +251,28 @@ describe('getUnhandledExpenses', () => {
     });
 });
 
+describe('fetchExpensesByDateRange', () => {
+    it('filters and returns rows by their source fingerprint', async () => {
+        sqlMock.mockResolvedValueOnce([dbRow({
+            date: '2025-02-10', amount: 12,
+            source_name: 'foo', source_amount: 10, source_date: new Date(2025, 0, 28), source_account: '3361',
+        })]);
+
+        const [row] = await fetchExpensesByDateRange({ startDate: '2025-01-01', endDate: '2025-02-01', accounts: ['3361'] });
+
+        const [query, params] = sqlMock.mock.calls[0];
+        expect(query).toMatch(/COALESCE\(source_date, .*\) >= \$1::date/s);
+        expect(query).toMatch(/COALESCE\(source_account, account\) IN \(\$3\)/);
+        expect(params).toEqual(['2025-01-01', '2025-02-01', '3361']);
+        expect(row).toMatchObject({
+            date: '2025-02-10',
+            amount: 12,
+            source: { name: 'foo', amount: 10, date: '2025-01-28', account: '3361' },
+        });
+        expect(row).not.toHaveProperty('source_name');
+    });
+});
+
 describe('deleteExpenses', () => {
     it('returns { ok: false } on empty input without querying', async () => {
         const res = await deleteExpenses([]);
@@ -370,6 +393,36 @@ describe('insertExpenses', () => {
         expect(query).toMatch(/\$3::date/);
         expect(query).toMatch(/\$9::date/);
         expect(params).toHaveLength(12);
+    });
+
+    it('stores the inserted values as the source fingerprint', async () => {
+        sqlMock.mockResolvedValueOnce([{ id: 'i1' }]);
+
+        await insertExpenses([{ name: 'a', amount: 1, date: '2025-01-01', account: '3361', category: 'food', id: 'i1' }]);
+
+        const [query] = sqlMock.mock.calls[0];
+        expect(query).toMatch(/source_name, source_amount, source_date, source_account/);
+        expect(query).toContain('($1, $2, $3::date, $4, $5, $6, $1, $2, $3::date, $4)');
+    });
+
+    it('adds the source columns and retries once when they are missing', async () => {
+        const missing = Object.assign(new Error('column "source_name" does not exist'), { code: '42703' });
+        let attempts = 0;
+        sqlMock.mockImplementation(async (query) => {
+            if (!/INSERT INTO expenses/.test(query)) return [];
+            attempts += 1;
+            if (attempts === 1) throw missing;
+            return [{ id: 'i1' }];
+        });
+
+        const res = await insertExpenses([{ name: 'a', amount: 1, date: '2025-01-01', account: '3361', category: 'food', id: 'i1' }]);
+
+        expect(res).toMatchObject({ ok: true, data: { ids: ['i1'] } });
+        expect(sqlMock.transaction).toHaveBeenCalledTimes(1);
+        const ddl = sqlMock.mock.calls.slice(1, 5).map(([q]) => q).join('\n');
+        expect(ddl).toMatch(/ADD COLUMN IF NOT EXISTS source_name/);
+        expect(ddl).toMatch(/source_amount %s/);
+        expect(ddl).toMatch(/UPDATE expenses\s+SET source_name = name/);
     });
 
     it('returns { ok: false } on driver error', async () => {
@@ -552,7 +605,7 @@ describe('findDuplicateGroups', () => {
         const [result] = await findDuplicateGroups();
 
         const [query] = sqlMock.mock.calls[0];
-        expect(query).toContain('GROUP BY TRIM(name), amount');
+        expect(query).toContain('GROUP BY TRIM(COALESCE(source_name, name)), COALESCE(source_amount, amount)');
         expect(query).toContain('HAVING COUNT(*) > 1');
         expect(result).toMatchObject({ key: 'a|b', name: 'WOLT', amount: 42, date: '2025-03-04' });
         expect(result.rows.map((r) => r.id)).toEqual(['a', 'b']);
