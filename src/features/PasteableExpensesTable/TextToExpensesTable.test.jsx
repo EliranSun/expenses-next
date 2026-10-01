@@ -148,6 +148,57 @@ describe('TextToExpensesTable', () => {
         });
     });
 
+    describe('saving a duplicate anyway with a new date (recurring charge)', () => {
+        const lastMonth = withSource({ id: 'db-1', name: 'NETFLIX', amount: 49.9, date: '2025-01-05', account: '3361' });
+        const line = 'NETFLIX\t05/01/25\t3361\tfoo\t49.90 ₪';
+
+        it('desktop: saves the edited date and keeps the bank values as the fingerprint', async () => {
+            const onSave = jest.fn(async () => ({ ok: true }));
+            const updateDate = jest.fn(async () => ({ ok: true }));
+            render(<TextToExpensesTable
+                fetchExpensesByDateRange={async () => [lastMonth]}
+                onSave={onSave}
+                updateDate={updateDate}
+            />);
+
+            paste(line);
+            await waitFor(() => expect(duplicateBadgeCount()).toBe(1));
+            fireEvent.click(screen.getByRole('button', { name: /save anyway/i }));
+
+            const desktop = within(screen.getByTestId('desktop-table-view'));
+            const dateInput = desktop.getByDisplayValue('2025-01-05');
+            fireEvent.change(dateInput, { target: { value: '2025-02-05' } });
+            fireEvent.blur(dateInput);
+            fireEvent.click(screen.getByRole('button', { name: /Save rows to database \(1\)/ }));
+
+            await waitFor(() => expect(onSave).toHaveBeenCalled());
+            expect(updateDate).not.toHaveBeenCalled();
+            expect(onSave.mock.calls[0][0][0]).toMatchObject({
+                date: '2025-02-05',
+                source: { name: 'NETFLIX', amount: 49.9, date: '2025-01-05', account: '3361' },
+            });
+        });
+
+        it('mobile: the row date can be changed before saving', async () => {
+            const onSubmit = jest.fn(async () => { });
+            render(<MobilePasteScreen fetchExpensesByDateRange={async () => [lastMonth]} onSubmit={onSubmit} />);
+
+            fireEvent.paste(screen.getByPlaceholderText('Paste rows here…'), {
+                clipboardData: { getData: () => line },
+            });
+            fireEvent.click(await screen.findByRole('button', { name: /save anyway/i }));
+            fireEvent.change(screen.getByLabelText('Date'), { target: { value: '2025-02-05' } });
+            fireEvent.click(screen.getByRole('button', { name: /Save rows to database/ }));
+
+            await waitFor(() => expect(onSubmit).toHaveBeenCalled());
+            expect(onSubmit.mock.calls[0][0][0]).toMatchObject({
+                date: '2025-02-05',
+                isDuplicate: false,
+                source: { date: '2025-01-05' },
+            });
+        });
+    });
+
     describe('duplicate detection against DB rows', () => {
         it('marks a pasted row as duplicate when all four fields match a DB row', async () => {
             const dbRow = withSource({ id: 'db-1', name: 'APPLE.COM/BILL', amount: 69.90, date: '2025-01-28', account: '3361' });

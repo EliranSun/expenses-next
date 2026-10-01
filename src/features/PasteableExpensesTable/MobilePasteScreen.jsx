@@ -3,7 +3,6 @@
 import { useRef, useState } from 'react';
 import { parseAndPrepareRows, enrichRows } from './parseAndPrepareRows';
 import { CurrencyAmount } from '@/components/atoms/currency-amount';
-import { formatDate } from '@/utils/formatDate';
 import { AccountName } from '@/constants/account';
 import { Categories } from '@/constants';
 import { PdfImportButton } from '@/features/PdfImport/PdfImportButton';
@@ -52,6 +51,13 @@ export function MobilePasteScreen({ fetchExpensesByDateRange, fetchCategoryHisto
     const setRowCategory = (id, category) => {
         setUnsavedRows((prev) => prev.map((r) => r.id === id ? { ...r, category } : r));
         setEditingCategoryId(null);
+    };
+
+    // Recurring charges arrive with their original date; let the row be
+    // re-dated before saving. Its bank values stay in `source`.
+    const setRowDate = (id, date) => {
+        if (!date) return;
+        setUnsavedRows((prev) => prev.map((r) => r.id === id ? { ...r, date } : r));
     };
 
     const unmarkDuplicate = (id) => {
@@ -130,7 +136,14 @@ export function MobilePasteScreen({ fetchExpensesByDateRange, fetchCategoryHisto
                                         )}
                                     </span>
                                     <span className="text-xs text-gray-500">
-                                        {formatDate(row.date)}
+                                        <input
+                                            type="date"
+                                            aria-label="Date"
+                                            value={row.date}
+                                            disabled={row.isDuplicate}
+                                            onChange={(e) => setRowDate(row.id, e.target.value)}
+                                            className="bg-transparent text-xs disabled:opacity-100"
+                                        />
                                         {' · '}
                                         {AccountName[row.account]?.translation || row.account}
                                         {' · '}
