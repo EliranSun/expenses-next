@@ -85,6 +85,24 @@ export default function TextToExpensesTable({
         return updateCategory(id, category);
     }, [rows, setRows, updateCategory]);
 
+    // Same for date and note: an unsaved row has no DB copy to update yet.
+    const editRow = useCallback((id, changes, persist) => {
+        setRows(prev => prev.map(r => r.id === id ? { ...r, ...changes } : r));
+        const row = rows.find(r => r.id === id);
+        if (row?.isUnsaved) return Promise.resolve({ ok: true });
+        return persist();
+    }, [rows, setRows]);
+
+    const handleDateChange = useCallback((id, date) => {
+        const [y, m, d] = date.split('-').map(Number);
+        return editRow(id, { date, timestamp: new Date(y, m - 1, d).getTime() }, () => updateDate(id, date));
+    }, [editRow, updateDate]);
+
+    const handleNoteChange = useCallback(
+        (id, note) => editRow(id, { note }, () => updateNote(id, note)),
+        [editRow, updateNote]
+    );
+
     const unmarkDuplicate = (id) => {
         setRows(prev => prev.map(r => r.id === id ? { ...r, isDuplicate: false } : r));
     };
@@ -146,8 +164,8 @@ export default function TextToExpensesTable({
                         <Table
                             rows={rows}
                             updateCategory={handleCategoryChange}
-                            updateNote={updateNote}
-                            updateDate={updateDate}
+                            updateNote={handleNoteChange}
+                            updateDate={handleDateChange}
                             deleteExpense={deleteExpense}
                             unmarkDuplicate={unmarkDuplicate}
                         />

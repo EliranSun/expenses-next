@@ -409,6 +409,13 @@ export async function deleteExpenses(ids) {
     }
 }
 
+// A pasted row carries its bank values in `source` (its date may have been
+// edited before saving); anything else is fingerprinted as entered.
+function sourceOf(row) {
+    const source = row.source;
+    return source && isValidInsertRow({ ...source, id: row.id }) ? source : row;
+}
+
 export async function insertExpenses(rows) {
     'use server';
     if (!Array.isArray(rows) || rows.length === 0) {
@@ -421,17 +428,23 @@ export async function insertExpenses(rows) {
     }
     try {
         const sql = getSql();
-        const values = validRows.map(row => [row.name.trim(), row.amount, row.date, row.account.trim(), row.category, row.id]);
-        // The source_* fingerprint reuses the name/amount/date/account params.
+        const values = validRows.map((row) => {
+            const source = sourceOf(row);
+            return [
+                row.name.trim(), row.amount, row.date, row.account.trim(), row.category, row.id, row.note || null,
+                source.name.trim(), source.amount, source.date, source.account.trim(),
+            ];
+        });
         const placeholders = values
             .map((_, i) => {
-                const [name, amount, date, account, category, id] = [1, 2, 3, 4, 5, 6].map((n) => `$${i * 6 + n}`);
-                return `(${name}, ${amount}, ${date}::date, ${account}, ${category}, ${id}, `
-                    + `${name}, ${amount}, ${date}::date, ${account})`;
+                const [name, amount, date, account, category, id, note, sName, sAmount, sDate, sAccount] =
+                    Array.from({ length: 11 }, (_, n) => `$${i * 11 + n + 1}`);
+                return `(${name}, ${amount}, ${date}::date, ${account}, ${category}, ${id}, ${note}, `
+                    + `${sName}, ${sAmount}, ${sDate}::date, ${sAccount})`;
             })
             .join(', ');
         const query = `
-            INSERT INTO expenses (name, amount, date, account, category, id,
+            INSERT INTO expenses (name, amount, date, account, category, id, note,
                                   source_name, source_amount, source_date, source_account)
             VALUES ${placeholders}
             RETURNING id

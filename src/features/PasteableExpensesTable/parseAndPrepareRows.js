@@ -1,15 +1,18 @@
 import { parseTextToRows, formatDateFromDB } from '@/utils';
 import { applyCategorySuggestions, isSameName } from './categorySuggestions';
 
+// Staged rows are compared by their bank values (`source`), so a staged row
+// whose date was edited (e.g. a recurring charge) still blocks a re-paste.
 const matchesStaged = (row, alreadyStaged) =>
-    alreadyStaged.some((staged) =>
-        isSameName(staged.name, row.name) &&
-        staged.amount === row.amount &&
-        staged.account === row.account &&
-        // Staged rows can be either raw paste format (DD/MM/YY) or ISO
-        // (YYYY-MM-DD) if they came from the DB. Accept either.
-        (staged.date === row.date || staged.date === formatDateFromDB(row.date))
-    );
+    alreadyStaged.some((staged) => {
+        const bank = staged.source ?? staged;
+        return isSameName(bank.name, row.name) &&
+            bank.amount === row.amount &&
+            bank.account === row.account &&
+            // Staged rows can be either raw paste format (DD/MM/YY) or ISO
+            // (YYYY-MM-DD) if they came from the DB. Accept either.
+            (bank.date === row.date || bank.date === formatDateFromDB(row.date));
+    });
 
 export function parseAndPrepareRows(text, alreadyStaged = []) {
     const parsed = parseTextToRows(text);
@@ -18,10 +21,14 @@ export function parseAndPrepareRows(text, alreadyStaged = []) {
         .filter((row) => !matchesStaged(row, alreadyStaged))
         .map((row) => {
             const [day, month, year] = row.date.split('/');
+            const date = `20${year}-${month}-${day}`;
             return {
                 ...row,
                 id: crypto.randomUUID(),
-                date: `20${year}-${month}-${day}`,
+                date,
+                // The bank values, kept as the row's fingerprint even if its
+                // date is edited before saving.
+                source: { name: row.name, amount: row.amount, date, account: row.account },
                 timestamp: new Date(`20${year}`, Number(month) - 1, Number(day)).getTime(),
                 isDuplicate: false,
             };
