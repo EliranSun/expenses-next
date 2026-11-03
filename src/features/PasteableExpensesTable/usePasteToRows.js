@@ -1,40 +1,66 @@
-import { useState, useEffect, useCallback } from "react";
-import { parseAndPrepareRows, enrichRows } from "./parseAndPrepareRows";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { parseAndPrepareRows, enrichRows, matchesFingerprint } from "./parseAndPrepareRows";
 
-export default function usePasteToRows(expenses = [], pasteFilterLogic = () => true, fetchExpensesByDateRange, fetchCategoryHistory) {
-    const [rows, setRows] = useState(expenses);
+const isEditableTarget = (target) =>
+    !!target && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
 
+// Rows pasted, imported or typed in but not saved yet. Every edit stays in
+// this state until the whole batch is inserted.
+export default function usePasteToRows({ staged = [], fetchExpensesByDateRange, fetchCategoryHistory } = {}) {
+    const [drafts, setDrafts] = useState([]);
+
+    // Resolves to the number of rows added.
     const addRows = useCallback(async (prepared, { source } = {}) => {
-        if (prepared.length === 0) {
-            return;
-        }
+        if (prepared.length === 0) return 0;
 
         const enriched = await enrichRows(prepared, { fetchExpensesByDateRange, fetchCategoryHistory, source });
-        // Not in the DB yet - category edits must stay local until save.
-        const marked = enriched.map((r) => ({ ...r, isUnsaved: true }));
 
-        setRows(prev => {
-            const ids = new Set(prev.map(r => r.id));
-            return [...prev, ...marked.filter(r => !ids.has(r.id))];
+        // Re-check against the latest drafts: another paste may have landed
+        // while the lookups above were in flight.
+        setDrafts((prev) => {
+            const fresh = enriched.filter((row) =>
+                !prev.some((draft) => draft.id === row.id || (row.source && matchesFingerprint(draft, row)))
+            );
+            return fresh.length > 0 ? [...prev, ...fresh] : prev;
         });
+        return enriched.length;
     }, [fetchExpensesByDateRange, fetchCategoryHistory]);
 
-    const ingest = useCallback(
-        (text, options) => addRows(parseAndPrepareRows(text, rows).filter(pasteFilterLogic), options),
-        [rows, pasteFilterLogic, addRows]
-    );
+    const ingest = useCallback((text, options) => {
+        if (!text || !text.trim()) return Promise.resolve(0);
+        return addRows(parseAndPrepareRows(text, [...staged, ...drafts]), options);
+    }, [staged, drafts, addRows]);
+
+    const updateDraft = useCallback((id, patch) => {
+        setDrafts((prev) => prev.map((row) => (row.id === id ? { ...row, ...patch } : row)));
+    }, []);
+
+    const removeDraft = useCallback((id) => {
+        setDrafts((prev) => prev.filter((row) => row.id !== id));
+    }, []);
+
+    const clearDrafts = useCallback(() => setDrafts([]), []);
+
+    return { drafts, ingest, addRows, updateDraft, removeDraft, clearDrafts };
+}
+
+// Pasting anywhere on the page imports rows. Pastes into a field (the mobile
+// textarea, a note input) are left to that field.
+export function useDocumentPaste(onText) {
+    const onTextRef = useRef(onText);
+    useEffect(() => {
+        onTextRef.current = onText;
+    }, [onText]);
 
     useEffect(() => {
         const handlePaste = (event) => {
-            void ingest(event.clipboardData.getData('Text'));
+            if (isEditableTarget(event.target)) return;
+            const text = event.clipboardData?.getData('Text') ?? '';
+            if (!text.trim()) return;
+            void onTextRef.current(text);
         };
 
         document.addEventListener('paste', handlePaste);
-
-        return () => {
-            document.removeEventListener('paste', handlePaste);
-        };
-    }, [ingest]);
-
-    return [rows, setRows, ingest, addRows];
+        return () => document.removeEventListener('paste', handlePaste);
+    }, []);
 }

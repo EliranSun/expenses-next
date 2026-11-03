@@ -77,12 +77,10 @@ export const TableRow = ({ rowData = {}, updateCategory, updateNote, updateDate,
                         disabled={isDuplicate}
                         onBlur={() => {
                             if (isDuplicate) return;
+                            if (note === (rowData.note || "")) return;
                             run(updateNote(rowData.id, note));
                         }}
-                        onChange={(e) => {
-                            console.log("Changing note:", e.target.value);
-                            setNote(e.target.value);
-                        }} />
+                        onChange={(e) => setNote(e.target.value)} />
                 </DataDisplay>
                 {/* <DataDisplay>
                     {rowData.account.slice(0, 4)}

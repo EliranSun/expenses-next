@@ -391,8 +391,8 @@ describe('insertExpenses', () => {
         expect(query).toMatch(/INSERT INTO expenses/);
         expect(query).toMatch(/RETURNING id/);
         expect(query).toMatch(/\$3::date/);
-        expect(query).toMatch(/\$9::date/);
-        expect(params).toHaveLength(12);
+        expect(query).toMatch(/\$14::date/);
+        expect(params).toHaveLength(22);
     });
 
     it('stores the inserted values as the source fingerprint', async () => {
@@ -400,9 +400,34 @@ describe('insertExpenses', () => {
 
         await insertExpenses([{ name: 'a', amount: 1, date: '2025-01-01', account: '3361', category: 'food', id: 'i1' }]);
 
-        const [query] = sqlMock.mock.calls[0];
+        const [query, params] = sqlMock.mock.calls[0];
         expect(query).toMatch(/source_name, source_amount, source_date, source_account/);
-        expect(query).toContain('($1, $2, $3::date, $4, $5, $6, $1, $2, $3::date, $4)');
+        expect(query).toContain('($1, $2, $3::date, $4, $5, $6, $7, $8, $9, $10::date, $11)');
+        expect(params).toEqual(['a', 1, '2025-01-01', '3361', 'food', 'i1', null, 'a', 1, '2025-01-01', '3361']);
+    });
+
+    it('keeps the pasted bank values as the fingerprint when the row was edited before saving', async () => {
+        sqlMock.mockResolvedValueOnce([{ id: 'i1' }]);
+
+        await insertExpenses([{
+            name: 'a', amount: 1, date: '2025-02-05', account: '3361', category: 'food', id: 'i1', note: 'gift',
+            source: { name: 'A-BANK', amount: 1, date: '2025-01-01', account: '3361' },
+        }]);
+
+        const [, params] = sqlMock.mock.calls[0];
+        expect(params).toEqual(['a', 1, '2025-02-05', '3361', 'food', 'i1', 'gift', 'A-BANK', 1, '2025-01-01', '3361']);
+    });
+
+    it('falls back to the row values when the fingerprint is malformed', async () => {
+        sqlMock.mockResolvedValueOnce([{ id: 'i1' }]);
+
+        await insertExpenses([{
+            name: 'a', amount: 1, date: '2025-02-05', account: '3361', category: null, id: 'i1', note: '  ',
+            source: { name: 'A', amount: 1, date: '05/02/25', account: '3361' },
+        }]);
+
+        const [, params] = sqlMock.mock.calls[0];
+        expect(params).toEqual(['a', 1, '2025-02-05', '3361', null, 'i1', null, 'a', 1, '2025-02-05', '3361']);
     });
 
     it('returns { ok: false } on driver error', async () => {
@@ -427,7 +452,7 @@ describe('insertExpenses', () => {
 
         expect(res).toEqual({ ok: true, data: { inserted: 1, skipped: 4, ids: ['i1'] } });
         const [, params] = sqlMock.mock.calls[0];
-        expect(params).toHaveLength(6);
+        expect(params).toHaveLength(11);
         expect(params[0]).toBe('a');
     });
 

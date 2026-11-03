@@ -421,17 +421,27 @@ export async function insertExpenses(rows) {
     }
     try {
         const sql = getSql();
-        const values = validRows.map(row => [row.name.trim(), row.amount, row.date, row.account.trim(), row.category, row.id]);
-        // The source_* fingerprint reuses the name/amount/date/account params.
+        const values = validRows.map((row) => {
+            // The fingerprint is the bank line as pasted, so edits made before
+            // saving (e.g. the date) don't stop a re-paste from being caught.
+            const source = isValidInsertRow({ ...row.source, id: row.id }) ? row.source : row;
+            const note = typeof row.note === 'string' && row.note.trim() ? row.note : null;
+            return [
+                row.name.trim(), row.amount, row.date, row.account.trim(), row.category ?? null, row.id, note,
+                source.name.trim(), source.amount, source.date, source.account.trim(),
+            ];
+        });
+        const width = values[0].length;
         const placeholders = values
             .map((_, i) => {
-                const [name, amount, date, account, category, id] = [1, 2, 3, 4, 5, 6].map((n) => `$${i * 6 + n}`);
-                return `(${name}, ${amount}, ${date}::date, ${account}, ${category}, ${id}, `
-                    + `${name}, ${amount}, ${date}::date, ${account})`;
+                const [name, amount, date, account, category, id, note, sName, sAmount, sDate, sAccount] =
+                    Array.from({ length: width }, (__, n) => `$${i * width + n + 1}`);
+                return `(${name}, ${amount}, ${date}::date, ${account}, ${category}, ${id}, ${note}, `
+                    + `${sName}, ${sAmount}, ${sDate}::date, ${sAccount})`;
             })
             .join(', ');
         const query = `
-            INSERT INTO expenses (name, amount, date, account, category, id,
+            INSERT INTO expenses (name, amount, date, account, category, id, note,
                                   source_name, source_amount, source_date, source_account)
             VALUES ${placeholders}
             RETURNING id
