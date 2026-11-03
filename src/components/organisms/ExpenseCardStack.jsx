@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ExpenseCard } from './ExpenseCard';
 import { ToolbarSheet } from '../molecules/ToolbarSheet';
@@ -28,6 +28,8 @@ export function ExpenseCardStack({
     updateNote,
     updateDate,
     deleteExpense,
+    unmarkDuplicate,
+    liveEdits,
     searchItems,
     onSearch,
     sortCriteria,
@@ -37,27 +39,35 @@ export function ExpenseCardStack({
     selectedCategories,
     setSelectedCategories,
 }) {
-    const [[index, direction], setState] = useState([0, 0]);
+    // Track the current card by id: editing a date re-sorts the rows, and the
+    // card being edited must stay on screen. `index` is the fallback position
+    // once the current row is removed.
+    const [{ id: currentId, index, direction }, setState] = useState({ id: rows[0]?.id, index: 0, direction: 0 });
 
-    const safeIndex = rows.length === 0 ? 0 : Math.min(index, rows.length - 1);
+    const found = rows.findIndex((r) => r.id === currentId);
+    const safeIndex = rows.length === 0 ? 0 : found !== -1 ? found : Math.min(index, rows.length - 1);
 
-    useEffect(() => {
-        if (index > rows.length - 1) {
-            setState([Math.max(rows.length - 1, 0), 0]);
-        }
-    }, [rows.length, index]);
+    const goTo = (nextIndex, nextDirection) =>
+        setState({ id: rows[nextIndex].id, index: nextIndex, direction: nextDirection });
 
     const advance = () => {
-        if (safeIndex < rows.length - 1) setState([safeIndex + 1, 1]);
+        if (safeIndex < rows.length - 1) goTo(safeIndex + 1, 1);
     };
     const retreat = () => {
-        if (safeIndex > 0) setState([safeIndex - 1, -1]);
+        if (safeIndex > 0) goTo(safeIndex - 1, -1);
     };
 
     const row = rows[safeIndex];
 
+    // Pin whatever card is shown (first card, or the next one after a delete).
+    useEffect(() => {
+        if (row && (row.id !== currentId || safeIndex !== index)) {
+            setState((prev) => ({ ...prev, id: row.id, index: safeIndex }));
+        }
+    }, [row?.id, safeIndex]); // eslint-disable-line react-hooks/exhaustive-deps
+
     return (
-        <div className="relative w-full" style={{ height: '75dvh' }}>
+        <div className="relative w-full" style={{ height: '70dvh' }}>
             <div
                 className="flex items-center justify-center pb-2 text-sm text-gray-600 font-mono"
                 dir="ltr">
@@ -102,6 +112,8 @@ export function ExpenseCardStack({
                                 updateNote={updateNote}
                                 updateDate={updateDate}
                                 deleteExpense={deleteExpense}
+                                unmarkDuplicate={unmarkDuplicate}
+                                liveEdits={liveEdits}
                                 onCategorySelected={advance}
                             />
                         </motion.div>

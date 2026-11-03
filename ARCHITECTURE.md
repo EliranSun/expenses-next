@@ -206,7 +206,7 @@ graph TD
 | Hook | File | Purpose |
 |---|---|---|
 | `useFilteredExpenses` | `src/hooks/useFilteredExpenses.js` | Filter rows by account/category, sort, compute totals |
-| `usePasteToRows` | `src/features/PasteableExpensesTable/usePasteToRows.js` | Parse clipboard paste into expense rows, deduplicate |
+| `usePasteToRows` | `src/features/PasteableExpensesTable/usePasteToRows.js` | Holds unsaved draft rows from paste/PDF/manual entry; edits stay local until one batch insert |
 | `useKeyboardControl` | `src/hooks/useKeyboardControl.js` | Arrow-key navigation through table inputs |
 | `useSort` | `src/hooks/useSort.js` | Sort criteria and category selection state |
 

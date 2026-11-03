@@ -45,6 +45,7 @@ export default function Table({
     updateDate,
     deleteExpense,
     unmarkDuplicate,
+    liveEdits = false,
     year,
     month,
     searchItems,
@@ -191,9 +192,11 @@ export default function Table({
                 </div>
             )}
 
-            <div className="w-full md:hidden">
+            <div data-testid="mobile-card-view" className="w-full md:hidden">
                 <ExpenseCardStack
                     rows={filteredRows}
+                    unmarkDuplicate={unmarkDuplicate}
+                    liveEdits={liveEdits}
                     updateCategory={updateCategory}
                     updateNote={updateNote}
                     updateDate={updateDate}
